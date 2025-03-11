@@ -163,9 +163,12 @@ def tensor2im(input_image, imtype=np.uint8):
         else:
             return input_image
         image_numpy = image_tensor[0].cpu().float().numpy()  # convert it into a numpy array
+        print("Debug print 1: shape of image_numpy is: ", image_numpy.shape)
         if image_numpy.shape[0] == 1:  # grayscale to RGB
-            image_numpy = np.tile(image_numpy, (3, 1, 1))
-        image_numpy = (np.transpose(image_numpy, (1, 2, 0)) + 1) / 2.0 * 255.0  # post-processing: tranpose and scaling
+            image_numpy = image_numpy[0]
+            print("Debug print 2: shape of image_numpy is: ", image_numpy.shape)
+        #    image_numpy = np.tile(image_numpy, (3, 1, 1))
+        #image_numpy = (np.transpose(image_numpy, (1, 2, 0)) + 1) / 2.0 * 255.0  # post-processing: tranpose and scaling
     else:  # if it is a numpy array, do nothing
         image_numpy = input_image
     return image_numpy.astype(imtype)
@@ -206,6 +209,19 @@ def save_image(image_numpy, image_path, aspect_ratio=1.0):
     if aspect_ratio < 1.0:
         image_pil = image_pil.resize((int(h / aspect_ratio), w), Image.BICUBIC)
     image_pil.save(image_path)
+
+def save_image_to_nii(image_numpy, image_path, aspect_ratio=1.0):
+    """Save a numpy image to the disk
+
+    Parameters:
+        image_numpy (numpy array) -- input numpy array
+        image_path (str)          -- the path of the image
+    """
+
+    nifti_img = nib.Nifti1Image(image_numpy, affine=np.eye(4))  # Identitätsmatrix als Dummy-Affine: TODO get the real one. 
+    
+    # Speichere das Bild als .nii oder .nii.gz
+    nib.save(nifti_img, image_path)
 
 
 def print_numpy(x, val=True, shp=False):

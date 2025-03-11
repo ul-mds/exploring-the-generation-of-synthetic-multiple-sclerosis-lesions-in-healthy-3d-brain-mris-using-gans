@@ -1,0 +1,67 @@
+import os
+import torch
+import nibabel as nib
+from data.base_dataset import BaseDataset
+
+class MyNiftiDataset(BaseDataset):
+    """Dataset für Pix2Pix mit NifTi-Bildern"""
+
+    @staticmethod
+    def modify_commandline_options(parser, is_train):
+        """Fügt spezifische Optionen für das Dataset hinzu."""
+        parser.add_argument('--nifti_normalize', type=bool, default=True, help='Normalisiert die NifTi-Dateien auf [0,1]')
+        return parser
+
+    def __init__(self, opt):
+        """Initialisiert das Dataset"""
+        super().__init__(opt)
+
+        # Speicherorte der Bilder
+        self.source_dir = os.path.join(opt.dataroot, "train_gan1", "source")
+        self.target_dir = os.path.join(opt.dataroot, "train_gan1", "target")
+        source_files = [f for f in os.listdir(self.source_dir) if f.endswith(".nii") or f.endswith(".nii.gz")]
+        self.basenames = sorted([f.replace("_source_gan1.nii", "").replace("_source_gan1.nii.gz", "") for f in source_files])
+        
+        # test imgs
+        self.test_dir = os.path.join(opt.dataroot, "gan1_test_imgs")
+        test_files = [f for f in os.listdir(self.test_dir) if f.endswith(".nii") or f.endswith(".nii.gz")]
+        self.test_basenames = sorted([f.replace("_test_gan1.nii", "")for f in test_files])
+        self.is_test = opt.phase == 'test'
+
+
+    def __getitem__(self, index):
+        """Lädt ein Bildpaar (source & target) und konvertiert sie in Tensoren"""
+
+        if self.is_test: 
+            test_filename = self.test_basenames[index] + "_test_gan1.nii"
+            test_path = os.path.join(self.test_dir, test_filename)
+            test_img = nib.load(test_path).get_fdata()
+            test_tensor = torch.tensor(test_img, dtype=torch.float32).unsqueeze(0)
+
+            # return {"A": test_tensor, "B": None, "A_paths": test_path, "B_paths": None}
+            return {"A": test_tensor, "A_paths": test_path}
+        
+        else: 
+            #Training mode-> load image pairs
+            basename = self.basenames[index]
+            # Lade Dateipfade
+            source_path = os.path.join(self.source_dir, basename + "_source_gan1.nii")
+            target_path = os.path.join(self.target_dir, basename + "_target_gan1.nii")
+
+
+            # Lade die NifTi-Bilder mit nibabel
+            source_img = nib.load(source_path).get_fdata()
+            target_img = nib.load(target_path).get_fdata()
+
+            # Konvertiere zu PyTorch-Tensoren
+            source_tensor = torch.tensor(source_img, dtype=torch.float32).unsqueeze(0)  # [C, H, W, D]
+            target_tensor = torch.tensor(target_img, dtype=torch.float32).unsqueeze(0)
+
+            return {"A": source_tensor, "B": target_tensor, "A_paths": source_path, "B_paths": target_path}
+
+    def __len__(self):
+        """Gibt die Anzahl der Bilder zurück"""
+        if self.is_test:
+            return len(self.test_basenames) 
+        else: 
+            return len(self.basenames)

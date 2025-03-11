@@ -114,19 +114,26 @@ class Pix2PixModel(BaseModel):
         The option 'direction' can be used to swap images in domain A and domain B.
         """
         AtoB = self.opt.direction == 'AtoB'
-        self.real_A = input['A' if AtoB else 'B'].to(self.device)
-        self.real_B = input['B' if AtoB else 'A'].to(self.device)
+
+        if 'B' in input:
+            self.real_A = input['A' if AtoB else 'B'].to(self.device)
+            self.real_B = input['B' if AtoB else 'A'].to(self.device)
+        else: 
+            self.real_A = input['A'].to(self.device)
+            self.real_B = None
+
         if self.nifti:
             self.mask = input['mask']
+
         else:
             # If we are not using nifti the mask is just the image itself
-            self.mask = torch.ones(self.real_B.shape, dtype=torch.bool)
+            self.mask = torch.ones(self.real_A.shape, dtype=torch.bool)
         self.mask = self.mask.to(self.device)
-        if self.nifti and input['truth'] is not None:
+        if self.nifti and 'truth' in input and input['truth'] is not None:
             self.truth = input['truth']
         else:
             # If we don't have the truth, nothing should matter
-            self.truth = torch.zeros(self.real_B.shape, dtype=torch.bool)
+            self.truth = torch.zeros(self.real_A.shape, dtype=torch.bool)
         self.truth = self.truth.to(self.device)
         self.image_paths = input['A_paths' if AtoB else 'B_paths']
 
@@ -180,13 +187,14 @@ class Pix2PixModel(BaseModel):
         else:
             self.loss_G.backward()
 
-    def optimize_parameters(self):
+    def optimize_parameters(self, i):
         self.forward()  # compute fake images: G(A)
         # update D
-        self.set_requires_grad(self.netD, True)  # enable backprop for D
-        self.optimizer_D.zero_grad()  # set D's gradients to zero
-        self.backward_D()  # calculate gradients for D
-        self.optimizer_D.step()  # update D's weights
+        if i % 5 == 0: 
+            self.set_requires_grad(self.netD, True)  # enable backprop for D
+            self.optimizer_D.zero_grad()  # set D's gradients to zero
+            self.backward_D()  # calculate gradients for D
+            self.optimizer_D.step()  # update D's weights
         # update G
         self.set_requires_grad(self.netD, False)  # D requires no gradients when optimizing G
         self.optimizer_G.zero_grad()  # set G's gradients to zero

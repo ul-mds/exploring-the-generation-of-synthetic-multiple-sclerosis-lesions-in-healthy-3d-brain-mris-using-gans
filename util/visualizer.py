@@ -90,10 +90,17 @@ def save_images(webpage, visuals, image_path, aspect_ratio=1.0, width=256):
     ims, txts, links = [], [], []
 
     for label, im_data in visuals.items():
+        print("Debug print 4: ", visuals.items())
+        print("Debug print 5: ", visuals.keys())
         im = util.tensor2im(im_data)
-        image_name = '%s_%s.png' % (name, label)
+        if im is None:
+            print(f"Skipping {label} because tensor2im returned None")
+            continue
+        print("Debug print 3 im shape; ", im.shape)
+        #TODO only save label 'B_fake' images and throw away the others
+        image_name = '%s_%s.nii' % (name, label)
         save_path = os.path.join(image_dir, image_name)
-        util.save_image(im, save_path, aspect_ratio=aspect_ratio)
+        util.save_image_to_nii(im, save_path, aspect_ratio=aspect_ratio)
         ims.append(image_name)
         txts.append(label)
         links.append(image_name)

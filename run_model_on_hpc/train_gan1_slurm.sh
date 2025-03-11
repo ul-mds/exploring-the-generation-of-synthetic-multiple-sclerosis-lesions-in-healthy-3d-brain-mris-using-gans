@@ -12,7 +12,7 @@
 #SBATCH --error=slurm-%j.err
 
 
-IMAGE="nifti_img.sif"
+IMAGE="/home/sc.uni-leipzig.de/iu71daji/masterthesis/containers/nifti_img.sif"
 WORKDIR="/home/sc.uni-leipzig.de/iu71daji/masterthesis/Pix2PixNIfTI"
 
 apptainer exec --nv $IMAGE bash -c "

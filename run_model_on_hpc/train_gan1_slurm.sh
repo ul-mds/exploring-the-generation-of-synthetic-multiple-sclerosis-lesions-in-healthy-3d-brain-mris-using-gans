@@ -21,5 +21,31 @@ apptainer exec --nv $IMAGE bash -c "
     pip install mpmath -r requirements.txt
 
     # Starte das Training
-    bash run_train_gan1.sh
+    python train.py \
+    --dataroot /home/sc.uni-leipzig.de/iu71daji/thesis_gan1 \
+    --phase train
+
+    # options similar to test_gan1_slurm.sh
+    --name gan1_WmInTarget_3 \
+    --model pix2pix3d \
+    --dataset_mode my_nifti
+    --norm none \
+    --input_nc 1 \
+    --output_nc 1 \
+    --netG unet_128 \
+    --ngf 32 \
+    --ndf 32 \
+    --gan_mode 'lsgan' \
+    --upsampling deconvolution \
+    --preprocess none \
+    --no_flip \
+    --verbose \
+
+    # print options
+    --display_freq 100 \
+    --print_freq 50 \
+    --update_html_freq 200 \
+    --save_epoch_freq 10 \
+    --print_model_info \
+ 
 "

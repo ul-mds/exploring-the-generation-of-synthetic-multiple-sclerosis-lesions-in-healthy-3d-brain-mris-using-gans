@@ -171,15 +171,16 @@ class Pix2PixModel(BaseModel):
         # Compute the L1 loss only on the masked values
         self.loss_G_L1 = self.criterionL1(self.fake_B * self.mask, self.real_B * self.mask) * self.opt.lambda_L1
         # Compute the L2 loss on the tumor area
-        self.loss_G_L2_T = self.criterionTumor(self.fake_B * self.truth,
-                                               self.real_B * self.truth) * self.opt.gamma_TMSE
+        #self.loss_G_L2_T = self.criterionTumor(self.fake_B * self.truth,
+        #                                       self.real_B * self.truth) * self.opt.gamma_TMSE
         # print(self.loss_G_L1, self.loss_G_L2_T)
-        self.loss_G_L1 = zero_division(self.loss_G_L1, torch.sum(self.mask))
-        # TODO: Problem what to do with slices without tumor
-        self.loss_G_L2_T = zero_division(self.loss_G_L2_T, torch.sum(self.truth))
+
+        # TODO maybe it helps to load a brain mask as input['mask'] 
+        #self.loss_G_L1 = zero_division(self.loss_G_L1, torch.sum(self.mask))
+        
         # print(self.loss_G_L1, self.loss_G_L2_T)
         # combine loss and calculate gradients
-        self.loss_G = self.loss_G_GAN + self.loss_G_L1 + self.loss_G_L2_T
+        self.loss_G = self.loss_G_GAN + self.loss_G_L1  # + self.loss_G_L2_T
         if self.fp16:
             from apex import amp
             with amp.scale_loss(self.loss_G, self.optimizer_G, loss_id=1) as scaled_loss:
@@ -190,11 +191,11 @@ class Pix2PixModel(BaseModel):
     def optimize_parameters(self, i):
         self.forward()  # compute fake images: G(A)
         # update D
-        if i % 5 == 0: 
-            self.set_requires_grad(self.netD, True)  # enable backprop for D
-            self.optimizer_D.zero_grad()  # set D's gradients to zero
-            self.backward_D()  # calculate gradients for D
-            self.optimizer_D.step()  # update D's weights
+        #if i % 5 == 0:  TODO set as hyperparameter to slow down training of D 
+        self.set_requires_grad(self.netD, True)  # enable backprop for D
+        self.optimizer_D.zero_grad()  # set D's gradients to zero
+        self.backward_D()  # calculate gradients for D
+        self.optimizer_D.step()  # update D's weights
         # update G
         self.set_requires_grad(self.netD, False)  # D requires no gradients when optimizing G
         self.optimizer_G.zero_grad()  # set G's gradients to zero

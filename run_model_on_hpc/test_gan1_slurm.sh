@@ -20,23 +20,25 @@ apptainer exec --nv $IMAGE bash -c "
     pip install --upgrade pip
     pip install mpmath -r requirements.txt
 
-    # Starte das testing
-    python test.py --dataroot /home/sc.uni-leipzig.de/iu71daji/thesis_gan1 \
-    --results_dir /home/sc.uni-leipzig.de/iu71daji/thesis_gan1/test_results_gan1_WmInTarget_2 \
-    --name gan1_WmInTarget_2 \
+    # Start testing
+    python test.py \
+    --dataroot /home/sc.uni-leipzig.de/iu71daji/thesis_gan1 \
+    --results_dir /home/sc.uni-leipzig.de/iu71daji/thesis_gan1/test_results_gan1_WmInTarget_3 \
+    --phase test \
+
+    # options similar to train_gan1_slurm.sh: 
+    --name gan1_WmInTarget_3 \
     --model pix2pix3d \
     --dataset_mode my_nifti \
-    --phase test \
-    --eval \
-    --gpu_ids 0 \
-    --norm instance \
+    --norm none \
     --input_nc 1 \
     --output_nc 1 \
-    --netG unet_256 \
+    --netG unet_128 \
     --ngf 32 \
     --ndf 32 \
+    --gan_mode 'lsgan' \
     --upsampling deconvolution \
     --preprocess none \
     --no_flip \
     --verbose \
-"
+    

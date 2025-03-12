@@ -15,20 +15,28 @@
 IMAGE="/home/sc.uni-leipzig.de/iu71daji/masterthesis/containers/nifti_img.sif"
 WORKDIR="/home/sc.uni-leipzig.de/iu71daji/masterthesis/Pix2PixNIfTI"
 
-apptainer exec --nv $IMAGE bash -c "
+apptainer exec --nv $IMAGE bash <<EOF
     cd $WORKDIR
     pip install --upgrade pip
-    pip install mpmath -r requirements.txt
+    pip install -r requirements.txt
+    pip install mpmath
 
-    # Starte das Training
+    # start training
     python train.py \
     --dataroot /home/sc.uni-leipzig.de/iu71daji/thesis_gan1 \
-    --phase train
+    --phase train \
+
+    # print options
+    --display_freq 100 \
+    --print_freq 50 \
+    --update_html_freq 200 \
+    --save_epoch_freq 10 \
+    --print_model_info \
 
     # options similar to test_gan1_slurm.sh
     --name gan1_WmInTarget_3 \
     --model pix2pix3d \
-    --dataset_mode my_nifti
+    --dataset_mode my_nifti \
     --norm none \
     --input_nc 1 \
     --output_nc 1 \
@@ -39,13 +47,5 @@ apptainer exec --nv $IMAGE bash -c "
     --upsampling deconvolution \
     --preprocess none \
     --no_flip \
-    --verbose \
-
-    # print options
-    --display_freq 100 \
-    --print_freq 50 \
-    --update_html_freq 200 \
-    --save_epoch_freq 10 \
-    --print_model_info \
- 
-"
+    --verbose 
+EOF

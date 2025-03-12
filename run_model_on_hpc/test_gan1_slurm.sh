@@ -15,10 +15,11 @@
 IMAGE="/home/sc.uni-leipzig.de/iu71daji/masterthesis/containers/nifti_img.sif"
 WORKDIR="/home/sc.uni-leipzig.de/iu71daji/masterthesis/Pix2PixNIfTI"
 
-apptainer exec --nv $IMAGE bash -c "
+apptainer exec --nv $IMAGE bash <<EOF
     cd $WORKDIR
     pip install --upgrade pip
-    pip install mpmath -r requirements.txt
+    pip install -r requirements.txt
+    pip install mpmath
 
     # Start testing
     python test.py \
@@ -40,5 +41,6 @@ apptainer exec --nv $IMAGE bash -c "
     --upsampling deconvolution \
     --preprocess none \
     --no_flip \
-    --verbose \
+    --verbose 
+EOF
     

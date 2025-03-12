@@ -40,7 +40,7 @@ apptainer exec --nv $IMAGE bash <<EOF
     --norm none \
     --input_nc 1 \
     --output_nc 1 \
-    --netG unet_128 \
+    --netG unet_256 \
     --ngf 32 \
     --ndf 32 \
     --gan_mode 'lsgan' \

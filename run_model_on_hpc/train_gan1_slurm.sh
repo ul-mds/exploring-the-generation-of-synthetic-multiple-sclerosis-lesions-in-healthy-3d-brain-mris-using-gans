@@ -21,6 +21,10 @@ apptainer exec --nv $IMAGE bash <<EOF
     pip install -r requirements.txt
     pip install mpmath
 
+    # Start monitoring GPU usage in the background
+    # Logs the GPU usage to the slurm.out file every 10 seconds
+    nohup watch -n 10 nvidia-smi >> gpu_usage.log &
+
     # start training
     python train.py \
     --dataroot /home/sc.uni-leipzig.de/iu71daji/thesis_gan1 \

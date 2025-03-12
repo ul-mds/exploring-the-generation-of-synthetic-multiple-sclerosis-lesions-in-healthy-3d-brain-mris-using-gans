@@ -171,9 +171,9 @@ class Pix2PixModel(BaseModel):
         # Compute the L1 loss only on the masked values
         self.loss_G_L1 = self.criterionL1(self.fake_B * self.mask, self.real_B * self.mask) * self.opt.lambda_L1
         # Compute the L2 loss on the tumor area
-        #self.loss_G_L2_T = self.criterionTumor(self.fake_B * self.truth,
-        #                                       self.real_B * self.truth) * self.opt.gamma_TMSE
-        # print(self.loss_G_L1, self.loss_G_L2_T)
+        self.loss_G_L2_T = self.criterionTumor(self.fake_B * self.truth,
+                                               self.real_B * self.truth) * self.opt.gamma_TMSE
+        print(self.loss_G_L1, self.loss_G_L2_T)
 
         # TODO maybe it helps to load a brain mask as input['mask'] 
         #self.loss_G_L1 = zero_division(self.loss_G_L1, torch.sum(self.mask))

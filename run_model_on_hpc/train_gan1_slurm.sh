@@ -25,19 +25,15 @@ apptainer exec --nv $IMAGE bash <<EOF
     python train.py \
     --dataroot /home/sc.uni-leipzig.de/iu71daji/thesis_gan1 \
     --phase train \
-
-    # print options
     --display_freq 100 \
     --print_freq 50 \
     --update_html_freq 200 \
     --save_epoch_freq 10 \
     --print_model_info \
-
-    # options similar to test_gan1_slurm.sh
     --name gan1_WmInTarget_3 \
     --model pix2pix3d \
     --dataset_mode my_nifti \
-    --norm none \
+    --norm instance \
     --input_nc 1 \
     --output_nc 1 \
     --netG unet_256 \

@@ -23,7 +23,7 @@ apptainer exec --nv $IMAGE bash <<EOF
 
     # Start monitoring GPU usage in the background
     # Logs the GPU usage to the slurm.out file every 10 seconds
-    nohup watch -n 10 nvidia-smi >> gpu_usage.log &
+    nohup watch -n 300 nvidia-smi >> gpu_usage.log &
 
     # start training
     python train.py \

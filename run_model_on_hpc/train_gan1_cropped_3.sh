@@ -34,7 +34,7 @@ apptainer exec --nv $IMAGE bash <<EOF
     --update_html_freq 200 \
     --save_epoch_freq 10 \
     --print_model_info \
-    --name gan1_cropped_1 \
+    --name gan1_cropped_3 \
     --model pix2pix3d \
     --dataset_mode my_nifti \
     --norm instance \
@@ -42,10 +42,14 @@ apptainer exec --nv $IMAGE bash <<EOF
     --input_nc 1 \
     --output_nc 1 \
     --netG unet_128 \
+    --netD n_layers \ 
+    --n_layers_D 4 \
     --ngf 32 \
     --ndf 16 \
     --gan_mode 'lsgan' \
     --upsampling deconvolution \
+    --n_epochs_decay 0 \
+    --n_epochs 100 \
     --preprocess none \
     --no_flip \
     --verbose 

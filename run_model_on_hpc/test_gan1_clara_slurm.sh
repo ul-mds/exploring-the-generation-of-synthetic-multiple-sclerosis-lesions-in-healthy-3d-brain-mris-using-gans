@@ -1,12 +1,12 @@
 #!/bin/bash
 
-#SBATCH --job-name="train_gan1"
+#SBATCH --job-name="test_gan1"
 #SBATCH --time=02-00:00:00
 #SBATCH --partition=clara
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=12
-#SBATCH --gpus=v100
+#SBATCH --gpus=rtx2080ti
 #SBATCH --mem-per-cpu=16G
 #SBATCH --output=slurm-%j.out
 #SBATCH --error=slurm-%j.err
@@ -24,17 +24,16 @@ apptainer exec --nv $IMAGE bash <<EOF
     # Start testing
     python test.py \
     --dataroot /home/sc.uni-leipzig.de/iu71daji/thesis_gan1 \
-    --results_dir /home/sc.uni-leipzig.de/iu71daji/thesis_gan1/test_results_gan1_WmInTarget_5 \
+    --results_dir /home/sc.uni-leipzig.de/iu71daji/thesis_gan1/gan1_cropped_1 \
     --phase test \
-    --name gan1_WmInTarget_5 \
+    --name gan1_cropped_1 \
     --model pix2pix3d \
     --dataset_mode my_nifti \
     --norm instance \
     --input_nc 1 \
     --output_nc 1 \
-    --netG unet_256 \
+    --netG unet_128 \
     --ngf 32 \
-    --ndf 16 \
     --upsampling deconvolution \
     --preprocess none \
     --no_flip \

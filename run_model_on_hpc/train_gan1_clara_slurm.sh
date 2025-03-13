@@ -7,7 +7,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=12
 #SBATCH --gpus=v100
-#SBATCH --mem-per-cpu=16G
+#SBATCH --mem-per-cpu=8G
 #SBATCH --output=slurm-%j.out
 #SBATCH --error=slurm-%j.err
 
@@ -34,14 +34,14 @@ apptainer exec --nv $IMAGE bash <<EOF
     --update_html_freq 200 \
     --save_epoch_freq 10 \
     --print_model_info \
-    --name gan1_WmInTarget_5 \
+    --name gan1_cropped_1 \
     --model pix2pix3d \
     --dataset_mode my_nifti \
     --norm instance \
     --lambda_L1 300 \
     --input_nc 1 \
     --output_nc 1 \
-    --netG unet_256 \
+    --netG unet_128 \
     --ngf 32 \
     --ndf 16 \
     --gan_mode 'lsgan' \

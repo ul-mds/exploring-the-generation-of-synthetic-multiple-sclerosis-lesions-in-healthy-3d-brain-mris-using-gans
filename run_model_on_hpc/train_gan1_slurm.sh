@@ -23,7 +23,7 @@ apptainer exec --nv $IMAGE bash <<EOF
 
     # Start monitoring GPU usage in the background
     # Logs the GPU usage to the slurm.out file every 10 seconds
-    nohup watch -n 300 nvidia-smi >> gpu_usage.log &
+    #nohup watch -n 300 nvidia-smi >> gpu_usage.log &
 
     # start training
     python train.py \
@@ -34,10 +34,11 @@ apptainer exec --nv $IMAGE bash <<EOF
     --update_html_freq 200 \
     --save_epoch_freq 10 \
     --print_model_info \
-    --name gan1_WmInTarget_3 \
+    --name gan1_WmInTarget_4 \
     --model pix2pix3d \
     --dataset_mode my_nifti \
     --norm instance \
+    --lambda_L1 300 \
     --input_nc 1 \
     --output_nc 1 \
     --netG unet_256 \

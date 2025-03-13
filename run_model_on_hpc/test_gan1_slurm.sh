@@ -26,18 +26,15 @@ apptainer exec --nv $IMAGE bash <<EOF
     --dataroot /home/sc.uni-leipzig.de/iu71daji/thesis_gan1 \
     --results_dir /home/sc.uni-leipzig.de/iu71daji/thesis_gan1/test_results_gan1_WmInTarget_3 \
     --phase test \
-
-    # options similar to train_gan1_slurm.sh: 
     --name gan1_WmInTarget_3 \
     --model pix2pix3d \
     --dataset_mode my_nifti \
-    --norm none \
+    --norm instance \
     --input_nc 1 \
     --output_nc 1 \
     --netG unet_256 \
     --ngf 32 \
     --ndf 32 \
-    --gan_mode 'lsgan' \
     --upsampling deconvolution \
     --preprocess none \
     --no_flip \

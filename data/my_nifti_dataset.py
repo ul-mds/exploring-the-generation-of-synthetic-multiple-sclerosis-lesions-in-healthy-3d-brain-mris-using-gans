@@ -36,6 +36,10 @@ class MyNiftiDataset(BaseDataset):
             test_filename = self.test_basenames[index] + "_test_gan1.nii"
             test_path = os.path.join(self.test_dir, test_filename)
             test_img = nib.load(test_path).get_fdata()
+
+            # crop 256^3 to 128³: 
+            test_img = self.crop_image(test_img)
+
             test_tensor = torch.tensor(test_img, dtype=torch.float32).unsqueeze(0)
 
             # return {"A": test_tensor, "B": None, "A_paths": test_path, "B_paths": None}
@@ -53,6 +57,10 @@ class MyNiftiDataset(BaseDataset):
             source_img = nib.load(source_path).get_fdata()
             target_img = nib.load(target_path).get_fdata()
 
+            # crop images to 128³: 
+            source_img = self.crop_image(source_img)
+            target_img = self.crop_image(target_img)
+
             # Konvertiere zu PyTorch-Tensoren
             source_tensor = torch.tensor(source_img, dtype=torch.float32).unsqueeze(0)  # [C, H, W, D]
             target_tensor = torch.tensor(target_img, dtype=torch.float32).unsqueeze(0)
@@ -65,3 +73,17 @@ class MyNiftiDataset(BaseDataset):
             return len(self.test_basenames) 
         else: 
             return len(self.basenames)
+        
+    def crop_image(self, img):
+        """
+        Cuts out the center of the image (trying to avoid all the background.)
+        we normaly expect to have 256 size and we crop to 128, taking the middle 
+        of the cube. Expects x, y, and z coordinates to have same size ! 
+        """
+        # Berechne die Koordinaten für den mittleren Ausschnitt
+        start = (img.shape[1] - 128) // 2  # Startindex in der Höhe
+        end = start + 128  # Endindex in der Höhe
+        
+        # Ausschneiden des mittleren Bereichs (für alle Dimensionen)
+        cropped_img = img[start:end, start:end, start:end]
+        return cropped_img

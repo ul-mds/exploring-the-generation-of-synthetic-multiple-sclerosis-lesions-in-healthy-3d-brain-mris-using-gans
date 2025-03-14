@@ -24,7 +24,7 @@ apptainer exec --nv $IMAGE bash <<EOF
     # Start testing
     python test.py \
     --dataroot /home/sc.uni-leipzig.de/iu71daji/thesis_gan1 \
-    --results_dir /home/sc.uni-leipzig.de/iu71daji/thesis_gan1/gan1_cropped_1 \
+    --results_dir /home/sc.uni-leipzig.de/iu71daji/thesis_gan1/gan1_cropped_1_100eps \
     --phase test \
     --name gan1_cropped_1 \
     --model pix2pix3d \
@@ -34,9 +34,11 @@ apptainer exec --nv $IMAGE bash <<EOF
     --output_nc 1 \
     --netG unet_128 \
     --ngf 32 \
+    --ndf 16 \
     --upsampling deconvolution \
     --preprocess none \
     --no_flip \
-    --verbose 
+    --verbose \
+    --epoch 100
 EOF
     

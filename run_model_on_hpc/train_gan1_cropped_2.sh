@@ -42,7 +42,7 @@ apptainer exec --nv $IMAGE bash <<EOF
     --input_nc 1 \
     --output_nc 1 \
     --netG unet_128 \
-    --netD n_layers \ 
+    --netD n_layers \
     --n_layers_D 5 \
     --ngf 32 \
     --ndf 16 \

@@ -6,7 +6,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=12
-#SBATCH --gpus=rtx2080ti
+#SBATCH --gpus=v100
 #SBATCH --mem-per-cpu=8G
 #SBATCH --output=slurm-%j.out
 #SBATCH --error=slurm-%j.err
@@ -29,10 +29,7 @@ apptainer exec --nv $IMAGE bash <<EOF
     python train.py \
     --dataroot /home/sc.uni-leipzig.de/iu71daji/thesis_gan1 \
     --phase train \
-    --display_freq 100 \
-    --print_freq 50 \
-    --update_html_freq 200 \
-    --save_epoch_freq 10 \
+    --save_epoch_freq 20 \
     --print_model_info \
     --name gan1_cropped_1_100eps \
     --model pix2pix3d \
@@ -47,7 +44,7 @@ apptainer exec --nv $IMAGE bash <<EOF
     --gan_mode 'lsgan' \
     --upsampling deconvolution \
     --n_epochs_decay 0 \
-    --n_epochs 400 \
+    --n_epochs 800 \
     --preprocess none \
     --no_flip \
     --verbose \

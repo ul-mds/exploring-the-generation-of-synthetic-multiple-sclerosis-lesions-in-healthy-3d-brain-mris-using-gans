@@ -105,7 +105,7 @@ class Pix2PixModel(BaseModel):
         if len(opt.gpu_ids) > 0:
             self.netG = torch.nn.DataParallel(self.netG, opt.gpu_ids)  # multi-GPUs
 
-    def set_input(self, input):
+    def set_input(self, input, L1_lesions_only=False):
         """Unpack input data from the dataloader and perform necessary pre-processing steps.
 
         Parameters:
@@ -122,9 +122,8 @@ class Pix2PixModel(BaseModel):
             self.real_A = input['A'].to(self.device)
             self.real_B = None
 
-        if self.nifti:
+        if self.nifti or opt.L1_lesions_only:
             self.mask = input['mask']
-
         else:
             # If we are not using nifti the mask is just the image itself
             self.mask = torch.ones(self.real_A.shape, dtype=torch.bool)

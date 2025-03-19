@@ -9,8 +9,7 @@ class MyNiftiDataset(BaseDataset):
     @staticmethod
     def modify_commandline_options(parser, is_train):
         """Fügt spezifische Optionen für das Dataset hinzu."""
-        parser.add_argument('--nifti_normalize', type=bool, default=True, help='Normalisiert die NifTi-Dateien auf [0,1]')
-        parser.add_argument('--L1_lesions_only', type=bool, default=False, help='Computes L1 only for lesion areas.')
+        parser.add_argument('--L1_lesions_only', action='store_true', help='Computes L1 only for lesion areas.')
         return parser
 
     def __init__(self, opt):

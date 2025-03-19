@@ -10,6 +10,7 @@ class MyNiftiDataset(BaseDataset):
     def modify_commandline_options(parser, is_train):
         """Fügt spezifische Optionen für das Dataset hinzu."""
         parser.add_argument('--nifti_normalize', type=bool, default=True, help='Normalisiert die NifTi-Dateien auf [0,1]')
+        parser.add_argument('--L1_lesions_only', type=bool, default=False, help='Computes L1 only for lesion areas.')
         return parser
 
     def __init__(self, opt):
@@ -19,9 +20,14 @@ class MyNiftiDataset(BaseDataset):
         # Speicherorte der Bilder
         self.source_dir = os.path.join(opt.dataroot, "train_gan1", "source")
         self.target_dir = os.path.join(opt.dataroot, "train_gan1", "target")
+
+        self.target_dir = os.path.join(opt.dataroot, "train_gan1", "target")
         source_files = [f for f in os.listdir(self.source_dir) if f.endswith(".nii") or f.endswith(".nii.gz")]
         self.basenames = sorted([f.replace("_source_gan1.nii", "").replace("_source_gan1.nii.gz", "") for f in source_files])
         
+        # Lesion mask only for L1 
+        self.L1_lesions_only = opt.L1_lesions_only
+
         # test imgs
         self.test_dir = os.path.join(opt.dataroot, "gan1_test_imgs")
         test_files = [f for f in os.listdir(self.test_dir) if f.endswith(".nii") or f.endswith(".nii.gz")]
@@ -64,8 +70,15 @@ class MyNiftiDataset(BaseDataset):
             # Konvertiere zu PyTorch-Tensoren
             source_tensor = torch.tensor(source_img, dtype=torch.float32).unsqueeze(0)  # [C, H, W, D]
             target_tensor = torch.tensor(target_img, dtype=torch.float32).unsqueeze(0)
+            
+            # the mask for L1 == target_gan1, it's the same Input. 
+            if self.L1_lesions_only: 
+                mask_tensor = target_tensor.clone()
+                return {"A": source_tensor, "B": target_tensor, "mask": mask_tensor, 
+                        "A_paths": source_path, "B_paths": target_path}
 
-            return {"A": source_tensor, "B": target_tensor, "A_paths": source_path, "B_paths": target_path}
+            else:     
+                return {"A": source_tensor, "B": target_tensor, "A_paths": source_path, "B_paths": target_path}
 
     def __len__(self):
         """Gibt die Anzahl der Bilder zurück"""

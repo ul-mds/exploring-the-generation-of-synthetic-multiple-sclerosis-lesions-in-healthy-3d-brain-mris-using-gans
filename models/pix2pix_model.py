@@ -122,7 +122,7 @@ class Pix2PixModel(BaseModel):
             self.real_A = input['A'].to(self.device)
             self.real_B = None
 
-        if self.nifti or opt.L1_lesions_only:
+        if self.nifti or L1_lesions_only:
             self.mask = input['mask']
         else:
             # If we are not using nifti the mask is just the image itself

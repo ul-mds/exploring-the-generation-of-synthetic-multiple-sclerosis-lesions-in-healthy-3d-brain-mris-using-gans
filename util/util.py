@@ -7,8 +7,7 @@ import os
 import nibabel as nib
 import datetime
 import matplotlib.pyplot as plt
-import time
-import cv2 as cv
+import time 
 
 OKBLUE = '\033[94m'
 OKGREEN = '\033[92m'
@@ -50,7 +49,7 @@ def postprocess_images(visuals, opt, original_shape):
     np_dict['fake_B'][zero_brain_mask] = np_dict['fake_B'].min()
 
     # Apply the median filter to fakeB
-    np_dict['fake_B_smoothed'] = filter_blur(np_dict['fake_B'], opt.smoothing)
+    #np_dict['fake_B_smoothed'] = filter_blur(np_dict['fake_B'], opt.smoothing)
 
     for label, image in np_dict.items():
         # They could potentially have different sizes, but not tested
@@ -73,19 +72,7 @@ def plot_2d(image, filename):
 
 
 def filter_blur(mapped, mode="median", k_size=3):
-    if mode == "average":
-        kernel = np.ones((k_size, k_size), np.float32) / (k_size * k_size)
-        dst = cv.filter2D(mapped, -1, kernel)
-    elif mode == "median":
-        dst = cv.medianBlur(np.float32(mapped), ksize=k_size)
-    elif mode == "blur":
-        dst = cv.blur(mapped, ksize=(k_size, k_size))
-    elif mode == "gblur":
-        dst = cv.GaussianBlur(mapped, k_size=(k_size, k_size), sigmaX=0)
-    else:
-        error("Smoothing mode not recognized.")
-
-    return dst
+    return None
 
 
 def nifti_to_np(image_path, sliced, chosen_slice):

@@ -16,11 +16,12 @@
 IMAGE="/home/sc.uni-leipzig.de/iu71daji/masterthesis/containers/nifti_img.sif"
 WORKDIR="/home/sc.uni-leipzig.de/iu71daji/masterthesis/Pix2PixNIfTI"
 
-EPOCHS=(200 300 400)  # Liste der Epochen
+EPOCHS=(500 600 700 800)  # Liste der Epochen
 RESULTS_DIRS=(
-    "/home/sc.uni-leipzig.de/iu71daji/thesis_gan1/gan1_cropped_1_200eps"
-    "/home/sc.uni-leipzig.de/iu71daji/thesis_gan1/gan1_cropped_1_300eps"
-    "/home/sc.uni-leipzig.de/iu71daji/thesis_gan1/gan1_cropped_1_400eps"
+    "/home/sc.uni-leipzig.de/iu71daji/thesis_gan1/gan1_cropped_1_500eps"
+    "/home/sc.uni-leipzig.de/iu71daji/thesis_gan1/gan1_cropped_1_600eps"
+    "/home/sc.uni-leipzig.de/iu71daji/thesis_gan1/gan1_cropped_1_700eps"
+    "/home/sc.uni-leipzig.de/iu71daji/thesis_gan1/gan1_cropped_1_800eps"
 )
 
 # Slurm-Array beginnt bei 1, also Index um 1 reduzieren

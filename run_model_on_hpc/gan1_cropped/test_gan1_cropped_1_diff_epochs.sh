@@ -10,7 +10,7 @@
 #SBATCH --mem-per-cpu=16G
 #SBATCH --output=slurm-%A_%a.out
 #SBATCH --error=slurm-%A_%a.err
-#SBATCH --array=1-3  # <== Stelle hier die Anzahl der Jobs ein!
+#SBATCH --array=1-4  # <== Stelle hier die Anzahl der Jobs ein!
 
 
 IMAGE="/home/sc.uni-leipzig.de/iu71daji/masterthesis/containers/nifti_img.sif"

@@ -10,6 +10,7 @@ class MyNiftiDataset(BaseDataset):
     def modify_commandline_options(parser, is_train):
         """Fügt spezifische Optionen für das Dataset hinzu."""
         parser.add_argument('--L1_lesions_only', action='store_true', help='Computes L1 only for lesion areas.')
+        parser.add_argument('--crop_imgs', action='store_true', help='Croppes the input images to a 128³ cube. Use unet_128 if true.')
         return parser
 
     def __init__(self, opt):
@@ -27,6 +28,9 @@ class MyNiftiDataset(BaseDataset):
         # Lesion mask only for L1 
         self.L1_lesions_only = opt.L1_lesions_only
 
+        # crop imgs from 256 to 128 ? 
+        self.crop_imgs = opt.crop_imgs
+
         # test imgs
         self.test_dir = os.path.join(opt.dataroot, "gan1_test_imgs")
         test_files = [f for f in os.listdir(self.test_dir) if f.endswith(".nii") or f.endswith(".nii.gz")]
@@ -43,7 +47,8 @@ class MyNiftiDataset(BaseDataset):
             test_img = nib.load(test_path).get_fdata()
 
             # crop 256^3 to 128³: 
-            test_img = self.crop_image(test_img)
+            if self.crop_imgs: 
+                test_img = self.crop_image(test_img)
 
             test_tensor = torch.tensor(test_img, dtype=torch.float32).unsqueeze(0)
 
@@ -62,9 +67,10 @@ class MyNiftiDataset(BaseDataset):
             source_img = nib.load(source_path).get_fdata()
             target_img = nib.load(target_path).get_fdata()
 
-            # crop images to 128³: 
-            source_img = self.crop_image(source_img)
-            target_img = self.crop_image(target_img)
+            # crop images to 128³:
+            if self.crop_imgs: 
+                source_img = self.crop_image(source_img)
+                target_img = self.crop_image(target_img)
 
             # Konvertiere zu PyTorch-Tensoren
             source_tensor = torch.tensor(source_img, dtype=torch.float32).unsqueeze(0)  # [C, H, W, D]

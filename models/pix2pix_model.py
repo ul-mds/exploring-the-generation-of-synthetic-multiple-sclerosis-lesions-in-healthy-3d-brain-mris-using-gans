@@ -169,9 +169,11 @@ class Pix2PixModel(BaseModel):
         # Second, G(A) = B
         # Compute the L1 loss only on the masked values
         self.loss_G_L1 = self.criterionL1(self.fake_B * self.mask, self.real_B * self.mask) * self.opt.lambda_L1
-        # Compute the L2 loss on the tumor area
-        self.loss_G_L2_T = self.criterionTumor(self.fake_B * self.truth,
-                                               self.real_B * self.truth) * self.opt.gamma_TMSE
+
+        # I use T Loss for penalizing background instead of Tumor (all background, not just WM or brain mask.)
+        self.loss_G_L2_T = self.criterionL1(self.fake_B * (1-self.mask),
+                                               self.real_B * (1-self.mask)) * self.opt.gamma_TMSE
+        
         print(self.loss_G_L1, self.loss_G_L2_T)
 
         # TODO maybe it helps to load a brain mask as input['mask'] 
@@ -179,7 +181,7 @@ class Pix2PixModel(BaseModel):
         
         # print(self.loss_G_L1, self.loss_G_L2_T)
         # combine loss and calculate gradients
-        self.loss_G = self.loss_G_GAN + self.loss_G_L1  # + self.loss_G_L2_T
+        self.loss_G = self.loss_G_GAN + self.loss_G_L1  + self.loss_G_L2_T
         if self.fp16:
             from apex import amp
             with amp.scale_loss(self.loss_G, self.optimizer_G, loss_id=1) as scaled_loss:

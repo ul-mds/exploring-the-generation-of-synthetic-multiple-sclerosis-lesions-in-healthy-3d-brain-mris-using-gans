@@ -1,26 +1,32 @@
 #!/bin/bash
 
-#SBATCH --job-name="gan1_cropped_L1_masks_2"
+#SBATCH --job-name="test_gan1"
 #SBATCH --time=02-00:00:00
 #SBATCH --partition=clara
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=12
-#SBATCH --gpus=v100
-#SBATCH --mem-per-cpu=8G
-#SBATCH --output=slurm-%x-%j.out
-#SBATCH --error=slurm-%x-%j.err 
-#SBATCH --array=1-5  
+#SBATCH --gpus=rtx2080ti
+#SBATCH --mem-per-cpu=16G
+#SBATCH --output=slurm-%A_%a.out
+#SBATCH --error=slurm-%A_%a.err
+#SBATCH --array=1-8  # <== Stelle hier die Anzahl der Jobs ein!
+
 
 IMAGE="/home/sc.uni-leipzig.de/iu71daji/masterthesis/containers/nifti_img.sif"
 WORKDIR="/home/sc.uni-leipzig.de/iu71daji/masterthesis/Pix2PixNIfTI"
 
-ALL_GAMMA_T=(1 10 20 50 100)
+ALL_LAMBDA_L1=(200 300 400 500)
+ALL_EPOCHS=(200 400 600 800)
 
+# Slurm-Array beginnt bei 1, also Index um 1 reduzieren
 INDEX=$((SLURM_ARRAY_TASK_ID - 1))
 
-# Die Werte für diesen Job holen
-GAMMA_T=${ALL_GAMMA_T[$INDEX]}
+LAMBDA_INDEX=$((INDEX / 4))  # Ganzzahldivision, um Gamma-Wert zu bestimmen
+EPOCH_INDEX=$((INDEX % 4))  # Modulo, um Epoche zu bestimmen
+
+LAMBDA=${ALL_LAMBDA_L1[$LAMBDA_INDEX]}
+EPOCH=${ALL_EPOCHS[$EPOCH_INDEX]}
 
 apptainer exec --nv $IMAGE bash <<EOF
     cd $WORKDIR
@@ -28,31 +34,23 @@ apptainer exec --nv $IMAGE bash <<EOF
     pip install -r requirements.txt
     pip install mpmath
 
-
-    # start training
-    python train.py \
+    # Start testing
+    python test.py \
     --dataroot /home/sc.uni-leipzig.de/iu71daji/thesis_gan1 \
-    --phase train \
-    --save_epoch_freq 20 \
-    --print_model_info \
-    --name gan1_cropped_L1_masks_2 \
+    --results_dir /home/sc.uni-leipzig.de/iu71daji/thesis_gan1 \
+    --phase test \
+    --name gan1_L1_masks_3_L${LAMBDA} \
     --model pix2pix3d \
     --dataset_mode my_nifti \
     --norm instance \
-    --lambda_L1 300 \
     --input_nc 1 \
     --output_nc 1 \
-    --netG unet_128 \
+    --netG unet_256 \
     --ngf 32 \
     --ndf 16 \
-    --gan_mode 'lsgan' \
     --upsampling deconvolution \
-    --n_epochs_decay 0 \
-    --n_epochs 800 \
     --preprocess none \
     --no_flip \
     --verbose \
-    --L1_lesions_only \
-    --gamma_TMSE "$GAMMA_T" \
-    --crop_imgs
+    --epoch "$EPOCH"
 EOF

@@ -15,15 +15,15 @@
 IMAGE="/home/sc.uni-leipzig.de/iu71daji/masterthesis/containers/nifti_img.sif"
 WORKDIR="/home/sc.uni-leipzig.de/iu71daji/masterthesis/Pix2PixNIfTI"
 
-ALL_GAMMA_T=(1 10 20 50 100)
+ALL_GAMMA_T=(1 10 20)
 ALL_EPOCHS=(200 400 600 800)
 
 # SLURM-Array-Index berechnen
 INDEX=$((SLURM_ARRAY_TASK_ID - 1))
 
 # Berechnen, welcher Gamma-Wert und welche Epoche benutzt werden
-GAMMA_INDEX=$((INDEX / 4))  # Ganzzahldivision, um Gamma-Wert zu bestimmen
-EPOCH_INDEX=$((INDEX % 4))  # Modulo, um Epoche zu bestimmen
+GAMMA_INDEX=$((INDEX / 3))  # Ganzzahldivision, um Gamma-Wert zu bestimmen
+EPOCH_INDEX=$((INDEX % 3))  # Modulo, um Epoche zu bestimmen
 
 GAMMA_T=${ALL_GAMMA_T[$GAMMA_INDEX]}
 EPOCH=${ALL_EPOCHS[$EPOCH_INDEX]}
@@ -36,11 +36,9 @@ apptainer exec --nv $IMAGE bash <<EOF
 
     # start testing
     python test.py \
-    --dataroot /home/sc.uni-leipzig.de/iu71daji/thesis_gan1 \
+    --dataroot /work/iu71daji-gan1_results/trained_models \
     --results_dir /home/sc.uni-leipzig.de/iu71daji/thesis_gan1 \
     --phase test \
-    --save_epoch_freq 20 \
-    --print_model_info \
     --lambda_L1 300 \
     --input_nc 1 \
     --name gan1_cropped_L1_masks_2_Tgamma_${GAMMA_T} \
@@ -51,10 +49,7 @@ apptainer exec --nv $IMAGE bash <<EOF
     --netG unet_128 \
     --ngf 32 \
     --ndf 16 \
-    --gan_mode 'lsgan' \
     --upsampling deconvolution \
-    --n_epochs_decay 0 \
-    --n_epochs 800 \
     --preprocess none \
     --no_flip \
     --verbose \

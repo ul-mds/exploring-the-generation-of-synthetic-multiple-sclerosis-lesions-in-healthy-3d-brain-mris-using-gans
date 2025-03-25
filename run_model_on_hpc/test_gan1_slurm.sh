@@ -24,9 +24,9 @@ apptainer exec --nv $IMAGE bash <<EOF
     # Start testing
     python test.py \
     --dataroot /home/sc.uni-leipzig.de/iu71daji/thesis_gan1 \
-    --results_dir /home/sc.uni-leipzig.de/iu71daji/thesis_gan1/test_results_gan1_WmInTarget_3 \
+    --results_dir /home/sc.uni-leipzig.de/iu71daji/thesis_gan1 \
     --phase test \
-    --name gan1_WmInTarget_3 \
+    --name gan1_L1_masks_3 \
     --model pix2pix3d \
     --dataset_mode my_nifti \
     --norm instance \
@@ -34,7 +34,7 @@ apptainer exec --nv $IMAGE bash <<EOF
     --output_nc 1 \
     --netG unet_256 \
     --ngf 32 \
-    --ndf 32 \
+    --ndf 16 \
     --upsampling deconvolution \
     --preprocess none \
     --no_flip \

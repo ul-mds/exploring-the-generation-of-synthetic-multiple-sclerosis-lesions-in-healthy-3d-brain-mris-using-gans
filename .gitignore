@@ -11,3 +11,7 @@ venv/
 datasets/
 checkpoints/
 results/
+
+# slurm outputs
+*.out
+*.err

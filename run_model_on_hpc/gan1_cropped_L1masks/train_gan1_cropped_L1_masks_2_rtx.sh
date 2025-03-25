@@ -33,7 +33,7 @@ apptainer exec --nv $IMAGE bash <<EOF
     python train.py \
     --dataroot /home/sc.uni-leipzig.de/iu71daji/thesis_gan1 \
     --phase train \
-    --save_epoch_freq 20 \
+    --save_epoch_freq 100 \
     --print_model_info \
     --name gan1_cropped_L1_masks_2_Tgamma_${GAMMA_T} \
     --model pix2pix3d \
@@ -55,4 +55,4 @@ apptainer exec --nv $IMAGE bash <<EOF
     --L1_lesions_only \
     --gamma_TMSE "$GAMMA_T" \
     --crop_imgs
-EOF
+EOF

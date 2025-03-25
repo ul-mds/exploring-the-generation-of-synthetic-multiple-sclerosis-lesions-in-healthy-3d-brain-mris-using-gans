@@ -33,7 +33,7 @@ apptainer exec --nv $IMAGE bash <<EOF
     python train.py \
     --dataroot /home/sc.uni-leipzig.de/iu71daji/thesis_gan1 \
     --phase train \
-    --save_epoch_freq 20 \
+    --save_epoch_freq 100 \
     --print_model_info \
     --name gan1_L1_masks_3_L${LAMBDA} \
     --model pix2pix3d \

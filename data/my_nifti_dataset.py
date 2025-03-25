@@ -21,9 +21,11 @@ class MyNiftiDataset(BaseDataset):
         self.source_dir = os.path.join(opt.dataroot, "train_gan1", "source")
         self.target_dir = os.path.join(opt.dataroot, "train_gan1", "target")
 
-        self.target_dir = os.path.join(opt.dataroot, "train_gan1", "target")
-        source_files = [f for f in os.listdir(self.source_dir) if f.endswith(".nii") or f.endswith(".nii.gz")]
-        self.basenames = sorted([f.replace("_source_gan1.nii", "").replace("_source_gan1.nii.gz", "") for f in source_files])
+        if os.path.isdir(self.source_dir):
+            source_files = [f for f in os.listdir(self.source_dir) if f.endswith(".nii") or f.endswith(".nii.gz")]
+            self.basenames = sorted([f.replace("_source_gan1.nii", "").replace("_source_gan1.nii.gz", "") for f in source_files])
+        else: 
+            self.basenames = []
         
         # Lesion mask only for L1 
         self.L1_lesions_only = opt.L1_lesions_only
@@ -33,9 +35,14 @@ class MyNiftiDataset(BaseDataset):
 
         # test imgs
         self.test_dir = os.path.join(opt.dataroot, "gan1_test_imgs")
-        test_files = [f for f in os.listdir(self.test_dir) if f.endswith(".nii") or f.endswith(".nii.gz")]
-        self.test_basenames = sorted([f.replace("_test_gan1.nii", "")for f in test_files])
         self.is_test = opt.phase == 'test'
+        if os.path.isdir(self.test_dir):
+            test_files = [f for f in os.listdir(self.test_dir) if f.endswith(".nii") or f.endswith(".nii.gz")]
+            self.test_basenames = sorted([f.replace("_test_gan1.nii", "")for f in test_files])
+        else:
+            self.test_basenames = []
+        
+        
 
 
     def __getitem__(self, index):

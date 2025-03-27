@@ -21,9 +21,9 @@ ALL_EPOCHS=(200 400 600 800)
 # SLURM-Array-Index berechnen
 INDEX=$((SLURM_ARRAY_TASK_ID - 1))
 
-# Berechnen, welcher Gamma-Wert und welche Epoche benutzt werden
-GAMMA_INDEX=$((INDEX / 3))  # Ganzzahldivision, um Gamma-Wert zu bestimmen
-EPOCH_INDEX=$((INDEX % 3))  # Modulo, um Epoche zu bestimmen
+GAMMA_INDEX=$((INDEX % ${#ALL_GAMMA_T[@]}))  # Zyklische Auswahl für Gamma
+EPOCH_INDEX=$((INDEX % ${#ALL_EPOCHS[@]}))  # Zyklische Auswahl für Epoche
+
 
 GAMMA_T=${ALL_GAMMA_T[$GAMMA_INDEX]}
 EPOCH=${ALL_EPOCHS[$EPOCH_INDEX]}
@@ -36,7 +36,7 @@ apptainer exec --nv $IMAGE bash <<EOF
 
     # start testing
     python test.py \
-    --dataroot /work/iu71daji-gan1_results/trained_models \
+    --dataroot /home/sc.uni-leipzig.de/iu71daji/thesis_gan1/gan1_test_imgs \
     --results_dir /home/sc.uni-leipzig.de/iu71daji/thesis_gan1 \
     --phase test \
     --lambda_L1 300 \

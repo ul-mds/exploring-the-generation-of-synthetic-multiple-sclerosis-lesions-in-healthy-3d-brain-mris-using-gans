@@ -126,7 +126,7 @@ class Pix2PixModel(BaseModel):
             self.mask = input['mask']
         else:
             # If we are not using nifti the mask is just the image itself
-            self.mask = torch.ones(self.real_A.shape, dtype=torch.bool)
+            self.mask = torch.ones(self.real_A.shape, dtype=torch.uint8)
         self.mask = self.mask.to(self.device)
         if self.nifti and 'truth' in input and input['truth'] is not None:
             self.truth = input['truth']

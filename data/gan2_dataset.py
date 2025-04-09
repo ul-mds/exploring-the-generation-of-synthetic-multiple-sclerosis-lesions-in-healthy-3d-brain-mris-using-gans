@@ -62,7 +62,7 @@ class Gan2Dataset(BaseDataset):
         self.flair_dir = os.path.join(opt.dataroot, "flair_slices")
         self.lsmsk_dir = os.path.join(opt.dataroot, "lesion_slices")
 
-        flair_files = [f for f in os.listdir(self.flair_dir) if f.endswith(".nii") or f.endswith(".nii.gz")]
+        flair_files = [f for f in os.listdir(self.flair_dir) if f.endswith(".png")]
 
         # naming: umcl_patient01_flair_slice_051.png umcl_patient25_mask_slice_112.png
         self.flairnames = sorted([f.replace(".png", "") for f in flair_files])

@@ -52,8 +52,6 @@ class Gan2Dataset(BaseDataset):
         Returns:
             the modified parser.
         """
-
-        parser.set_defaults(max_dataset_size=10, new_dataset_option=2.0)  # specify dataset-specific default values
         return parser
 
 

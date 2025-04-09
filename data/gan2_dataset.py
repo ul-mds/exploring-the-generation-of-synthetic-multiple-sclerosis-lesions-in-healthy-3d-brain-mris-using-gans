@@ -117,6 +117,12 @@ class Gan2Dataset(BaseDataset):
                     np.stack([lsmsk_img, lsmsk_img, lsmsk_img], axis=0),
                     dtype=torch.float32
         )
+
+        print("Source Tensor shape: ", source_tensor.shape)
+        print("Target Tensor shape: ", target_tensor.shape)
+        print("Mask Tensor shape: ", mask_tensor.shape)
+
+
         if self.is_test: 
              pass 
         else: 

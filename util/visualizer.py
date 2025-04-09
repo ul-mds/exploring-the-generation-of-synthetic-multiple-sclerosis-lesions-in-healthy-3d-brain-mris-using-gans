@@ -186,6 +186,11 @@ class Visualizer():
                     image_numpy = util.tensor2im(image)
                     print(f"Image shape: {image_numpy.shape}")
 
+                    if int(self.opt.input_nc) == 3: 
+                        image_numpy = image_numpy[0]
+
+                    print(f"Image shape: {image_numpy.shape}")
+
                     label_html_row += '<td>%s</td>' % label
                     images.append(image_numpy.transpose([2, 0, 1]))
                     idx += 1

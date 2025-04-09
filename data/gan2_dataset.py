@@ -40,7 +40,7 @@ import nibabel as nib
 from data.base_dataset import BaseDataset
 import numpy as np
 
-class Gan2Data(BaseDataset):
+class Gan2Dataset(BaseDataset):
     @staticmethod
     def modify_commandline_options(parser, is_train):
         """Fügt spezifische Optionen für das Dataset hinzu."""

@@ -61,7 +61,12 @@ if __name__ == '__main__':
 
             total_iters += opt.batch_size
             epoch_iter += opt.batch_size
-            model.set_input(data, opt.L1_lesions_only)  # unpack data from dataset and apply preprocessing
+            # unpack data from dataset and apply preprocessing
+            if hasattr(opt, 'L1_lesions_only'):
+                model.set_input(data, opt.L1_lesions_only)
+            else:
+                model.set_input(data)
+
 
             model.optimize_parameters(i)  # calculate loss functions, get gradients, update network weights
 

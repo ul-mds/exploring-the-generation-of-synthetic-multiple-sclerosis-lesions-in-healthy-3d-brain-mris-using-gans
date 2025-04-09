@@ -80,11 +80,16 @@ class Gan2Dataset(BaseDataset):
         flair_path = os.path.join(self.flair_dir, basename + ".png")
         ls_msk_path = os.path.join(self.ls_msk_dir, basename.replace("flair", "mask") + ".png")
 
+        print("flair_path: ", flair_path)
+        print("ls_path: ", ls_msk_path)
+        print("ls path exists: ", os.path.exists(ls_msk_path))
+        print("flair path existsi? : ", os.path.exists(flair_path))
+
         flair_img = nib.load(flair_path).get_fdata()
         lsmsk_img = nib.load(ls_msk_path).get_fdata()
 
         masked_flair = flair_img.copy()
-        masked_flair[lsmsk_img == 1] = 0
+        masked_flair[lsmsk_img != 0] = 0
 
         zero_channel = np.zeros_like(masked_flair)
 

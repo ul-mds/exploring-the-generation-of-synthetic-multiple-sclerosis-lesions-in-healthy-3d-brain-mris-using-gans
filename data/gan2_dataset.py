@@ -39,6 +39,7 @@ import torch
 import nibabel as nib
 from data.base_dataset import BaseDataset
 import numpy as np
+from PIL import Image
 
 class Gan2Dataset(BaseDataset):
     @staticmethod
@@ -86,8 +87,13 @@ class Gan2Dataset(BaseDataset):
         flair_path = os.path.join(self.flair_dir, basename + ".png")
         ls_msk_path = os.path.join(self.lsmsk_dir, basename.replace("flair", "mask") + ".png")
 
-        flair_img = nib.load(flair_path).get_fdata()
-        lsmsk_img = nib.load(ls_msk_path).get_fdata()
+        
+        flair_img = Image.open(flair_path).convert('L')  # 'L' für Graustufen
+        flair_img = np.array(flair_img)
+
+
+        lsmsk_img = Image.open(ls_msk_path).convert('L')
+        lsmsk_img = np.array(lsmsk_img)
 
         masked_flair = flair_img.copy()
         masked_flair[lsmsk_img != 0] = 0

@@ -70,6 +70,12 @@ class Gan2Dataset(BaseDataset):
         self.is_test = opt.phase == 'test'
 
 
+        print("flair_path: ", self.flair_dir)
+        print("ls_path: ", self.lsmsk_dir)
+        print("ls path exists: ", os.path.exists(self.lsmsk_dir))
+        print("flair path existsi? : ", os.path.exists(self.flair_dir))
+        print("no files; ", len(self.flairnames))
+
     def __getitem__(self, index):
         """
         Lädt ein Bildpaar (source & target) und konvertiert sie in Tensoren.

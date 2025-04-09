@@ -84,12 +84,7 @@ class Gan2Dataset(BaseDataset):
         basename = self.flairnames[index]
         # load the flair img and it's corresponding lesion mask
         flair_path = os.path.join(self.flair_dir, basename + ".png")
-        ls_msk_path = os.path.join(self.ls_msk_dir, basename.replace("flair", "mask") + ".png")
-
-        print("flair_path: ", flair_path)
-        print("ls_path: ", ls_msk_path)
-        print("ls path exists: ", os.path.exists(ls_msk_path))
-        print("flair path existsi? : ", os.path.exists(flair_path))
+        ls_msk_path = os.path.join(self.lsmsk_dir, basename.replace("flair", "mask") + ".png")
 
         flair_img = nib.load(flair_path).get_fdata()
         lsmsk_img = nib.load(ls_msk_path).get_fdata()
@@ -121,7 +116,6 @@ class Gan2Dataset(BaseDataset):
         else: 
              return {"A": source_tensor, "B": target_tensor, "mask": mask_tensor, 
                         "A_paths": flair_path, "B_paths": flair_path}
-
 
         
 

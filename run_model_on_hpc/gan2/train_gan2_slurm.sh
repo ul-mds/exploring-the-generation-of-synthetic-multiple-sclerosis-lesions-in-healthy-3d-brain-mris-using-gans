@@ -39,6 +39,7 @@ apptainer exec --nv $IMAGE bash <<EOF
     --dataset_mode gan2 \
     --norm instance \
     --lambda_L1 300 \
+    --gamma_TMSE 0 \
     --input_nc 3 \
     --output_nc 3 \
     --netG unet_256 \

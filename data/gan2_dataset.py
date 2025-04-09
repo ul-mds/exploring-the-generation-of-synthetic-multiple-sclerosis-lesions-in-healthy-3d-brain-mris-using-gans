@@ -52,7 +52,7 @@ class Gan2Dataset(BaseDataset):
         Returns:
             the modified parser.
         """
-        
+
         parser.set_defaults(max_dataset_size=10, new_dataset_option=2.0)  # specify dataset-specific default values
         return parser
 
@@ -77,7 +77,7 @@ class Gan2Dataset(BaseDataset):
         Lädt ein Bildpaar (source & target) und konvertiert sie in Tensoren.
         """
 
-        basename = self.basenames[index]
+        basename = self.flairnames[index]
         # load the flair img and it's corresponding lesion mask
         flair_path = os.path.join(self.flair_dir, basename + ".png")
         ls_msk_path = os.path.join(self.ls_msk_dir, basename.replace("flair", "mask") + ".png")
@@ -117,4 +117,4 @@ class Gan2Dataset(BaseDataset):
         
 
     def __len__(self):
-        return len(self.basenames)
+        return len(self.flairnames)

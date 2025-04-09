@@ -36,7 +36,7 @@ apptainer exec --nv $IMAGE bash <<EOF
     --print_model_info \
     --name gan2_1 \
     --model pix2pix \
-    --dataset_mode gan2_data \
+    --dataset_mode gan2 \
     --norm instance \
     --lambda_L1 300 \
     --input_nc 3 \

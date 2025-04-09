@@ -43,8 +43,19 @@ import numpy as np
 class Gan2Dataset(BaseDataset):
     @staticmethod
     def modify_commandline_options(parser, is_train):
-        """Fügt spezifische Optionen für das Dataset hinzu."""
-        pass
+        """Add new dataset-specific options, and rewrite default values for existing options.
+
+        Parameters:
+            parser          -- original option parser
+            is_train (bool) -- whether training phase or test phase. You can use this flag to add training-specific or test-specific options.
+
+        Returns:
+            the modified parser.
+        """
+        
+        parser.set_defaults(max_dataset_size=10, new_dataset_option=2.0)  # specify dataset-specific default values
+        return parser
+
 
     def __init__(self, opt):
         """Initialisiert das Dataset"""

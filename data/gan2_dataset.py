@@ -96,27 +96,16 @@ class Gan2Dataset(BaseDataset):
         lsmsk_img = np.array(lsmsk_img)
 
         masked_flair = flair_img.copy()
-        masked_flair[lsmsk_img != 0] = 0
+        masked_flair[lsmsk_img != 0] = 255
 
-        zero_channel = np.zeros_like(masked_flair)
-
-        # Source Tensor: orignal mri with lesions cancelled out plus lesionmask[3, H, W]
-        source_tensor = torch.tensor(
-                    np.stack([masked_flair, lsmsk_img, zero_channel], axis=0),
-                    dtype=torch.float32
-        )
+        # Source Tensor: orignal mri with lesionregions labeled as 255 [1, H, W]
+        source_tensor = torch.tensor(masked_flair, dtype=torch.float32).unsqueeze(0)
 
         # Target Tensor: only original mri [1, H, W]
-        target_tensor = torch.tensor(
-                    np.stack([flair_img, flair_img, flair_img], axis=0),
-                    dtype=torch.float32
-        )
+        target_tensor = torch.tensor(flair_img, dtype=torch.float32).unsqueeze(0)
 
         # Lesion-Mask: [1, H, W]
-        mask_tensor = torch.tensor(
-                    np.stack([lsmsk_img, lsmsk_img, lsmsk_img], axis=0),
-                    dtype=torch.float32
-        )
+        mask_tensor = torch.tensor(lsmsk_img, dtype=torch.float32).unsqueeze(0)
 
         print("Source Tensor shape: ", source_tensor.shape)
         print("Target Tensor shape: ", target_tensor.shape)
@@ -124,12 +113,11 @@ class Gan2Dataset(BaseDataset):
 
 
         if self.is_test: 
-             pass 
+             return {"A": source_tensor, "A_paths": flair_path}
         else: 
              return {"A": source_tensor, "B": target_tensor, "mask": mask_tensor, 
                         "A_paths": flair_path, "B_paths": flair_path}
 
-        
 
     def __len__(self):
         return len(self.flairnames)

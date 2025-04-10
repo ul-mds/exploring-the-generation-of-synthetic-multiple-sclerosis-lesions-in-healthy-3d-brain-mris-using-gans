@@ -7,7 +7,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=12
 #SBATCH --gpus=rtx2080ti
-#SBATCH --mem-per-cpu=16G
+#SBATCH --mem-per-cpu=8G
 #SBATCH --output=slurm-%j.out
 #SBATCH --error=slurm-%j.err
 
@@ -32,7 +32,7 @@ apptainer exec --nv $IMAGE bash <<EOF
     --display_freq 100 \
     --print_freq 50 \
     --update_html_freq 200 \
-    --save_epoch_freq 10 \
+    --save_epoch_freq 50 \
     --print_model_info \
     --name gan2_1 \
     --model pix2pix \
@@ -40,8 +40,8 @@ apptainer exec --nv $IMAGE bash <<EOF
     --norm instance \
     --lambda_L1 300 \
     --gamma_TMSE 0 \
-    --input_nc 3 \
-    --output_nc 3 \
+    --input_nc 1 \
+    --output_nc 1 \
     --netG unet_256 \
     --ngf 32 \
     --ndf 32 \
@@ -49,5 +49,5 @@ apptainer exec --nv $IMAGE bash <<EOF
     --upsampling deconvolution \
     --preprocess none \
     --no_flip \
-    --verbose 
+    --verbose
 EOF

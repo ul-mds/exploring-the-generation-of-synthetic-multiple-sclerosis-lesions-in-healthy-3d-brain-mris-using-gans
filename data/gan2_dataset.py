@@ -71,11 +71,11 @@ class Gan2Dataset(BaseDataset):
         self.is_test = opt.phase == 'test'
 
 
-        print("flair_path: ", self.flair_dir)
-        print("ls_path: ", self.lsmsk_dir)
-        print("ls path exists: ", os.path.exists(self.lsmsk_dir))
-        print("flair path existsi? : ", os.path.exists(self.flair_dir))
-        print("no files; ", len(self.flairnames))
+        #print("flair_path: ", self.flair_dir)
+        #print("ls_path: ", self.lsmsk_dir)
+        #print("ls path exists: ", os.path.exists(self.lsmsk_dir))
+        #print("flair path existsi? : ", os.path.exists(self.flair_dir))
+        #print("no files; ", len(self.flairnames))
 
     def __getitem__(self, index):
         """
@@ -107,9 +107,9 @@ class Gan2Dataset(BaseDataset):
         # Lesion-Mask: [1, H, W]
         mask_tensor = torch.tensor(lsmsk_img, dtype=torch.float32).unsqueeze(0)
 
-        print("Source Tensor shape: ", source_tensor.shape)
-        print("Target Tensor shape: ", target_tensor.shape)
-        print("Mask Tensor shape: ", mask_tensor.shape)
+        #print("Source Tensor shape: ", source_tensor.shape)
+        #print("Target Tensor shape: ", target_tensor.shape)
+        #print("Mask Tensor shape: ", mask_tensor.shape)
 
 
         if self.is_test: 

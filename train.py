@@ -24,6 +24,7 @@ from models import create_model
 from util.visualizer import Visualizer
 from util.util import print_timestamped
 import time
+import torch
 
 # Fimos trying to debug the container: 
 import debugpy
@@ -86,7 +87,18 @@ if __name__ == '__main__':
             if total_iters % opt.display_freq == 0:  # display images on visdom and save images to a HTML file
                 save_result = total_iters % opt.update_html_freq == 0
                 model.compute_visuals()
-                visualizer.display_current_results(model.get_current_visuals(), epoch, save_result)
+                visuals = model.get_current_visuals()
+
+                # debug check of visuals: 
+                print("==> Visuals zurückgegeben vom Modell:")
+                for label, image in visuals.items():
+                    print(f" - {label}: type={type(image)}", end='')
+
+                    if isinstance(image, torch.Tensor):
+                        print(f", shape={image.shape}, device={image.device}, NaNs={torch.isnan(image).any()}, Infs={torch.isinf(image).any()}")
+                    else:
+                        print(" (kein Tensor)")
+                visualizer.display_current_results(visuals, epoch, save_result)
 
             if total_iters % opt.print_freq == 0:  # print training losses and save logging information to the disk
                 losses = model.get_current_losses()

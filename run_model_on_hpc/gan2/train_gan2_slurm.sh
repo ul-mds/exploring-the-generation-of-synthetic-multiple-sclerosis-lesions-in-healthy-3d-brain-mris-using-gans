@@ -34,7 +34,7 @@ apptainer exec --nv $IMAGE bash <<EOF
     --update_html_freq 200 \
     --save_epoch_freq 50 \
     --print_model_info \
-    --name gan2_1 \
+    --name gan2_1_clara \
     --model pix2pix \
     --dataset_mode gan2 \
     --norm instance \

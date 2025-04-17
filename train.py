@@ -60,33 +60,42 @@ if __name__ == '__main__':
     visualizer = Visualizer(opt)  # create a visualizer that display/save images and plots
     total_iters = 0  # the total number of training iterations
     init_time = time.time()
+
     for epoch in range(opt.epoch_count,
                        opt.n_epochs + opt.n_epochs_decay + 1):  # outer loop for different epochs;
         # we save the model by <epoch_count>, <epoch_count>+<save_latest_freq>
+        print(f"[DEBUG] Starting epoch {epoch} / {opt.n_epochs + opt.n_epochs_decay}")
+
         epoch_start_time = time.time()  # timer for entire epoch
         iter_data_time = time.time()  # timer for data loading per iteration
         epoch_iter = 0  # the number of training iterations in current epoch, reset to 0 every epoch
+        
+        print(f"[DEBUG] Calling visualizer.reset()")
         visualizer.reset()  # reset the visualizer: make sure it saves the results to HTML at least once every epoch
+        print(f"[DEBUG] Done visualizer.reset(), about to enter data loop")
 
         for i, data in enumerate(dataset):  # inner loop within one epoch
+            print(f"[DEBUG] Got data sample {i}")
             iter_start_time = time.time()  # timer for computation per iteration
             if total_iters % opt.print_freq == 0:
                 t_data = iter_start_time - iter_data_time
 
             total_iters += opt.batch_size
             epoch_iter += opt.batch_size
+
             # unpack data from dataset and apply preprocessing
             if hasattr(opt, 'L1_lesions_only'):
                 model.set_input(data, opt.L1_lesions_only)
             else:
                 model.set_input(data)
 
-
+            print(f"[DEBUG] model input has been set.")
             model.optimize_parameters(i)  # calculate loss functions, get gradients, update network weights
-
+            print(f"[DEBUG] model optimize_params has been called.")
             if total_iters % opt.display_freq == 0:  # display images on visdom and save images to a HTML file
                 save_result = total_iters % opt.update_html_freq == 0
                 model.compute_visuals()
+                print(f"[DEBUG] visuals were computed.")
                 visuals = model.get_current_visuals()
 
                 # debug check of visuals: 

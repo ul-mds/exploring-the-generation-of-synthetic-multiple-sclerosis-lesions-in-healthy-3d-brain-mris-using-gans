@@ -23,7 +23,7 @@ apptainer exec --nv $IMAGE bash <<EOF
 
     # start testing
     python test.py \
-    --dataroot /home/sc.uni-leipzig.de/iu71daji/thesis_gan2/gan2_test_imgs \
+    --dataroot /home/sc.uni-leipzig.de/iu71daji/thesis_gan2/train_gan2 \
     --results_dir /home/sc.uni-leipzig.de/iu71daji/thesis_gan2 \
     --phase test \
     --lambda_L1 300 \
@@ -37,10 +37,8 @@ apptainer exec --nv $IMAGE bash <<EOF
     --upsampling deconvolution \
     --preprocess none \
     --no_flip \
-    --verbose \
-    --L1_lesions_only \
-    --gamma_TMSE 0 \
-    --input_nc 3 \
-    --output_nc 3 \
-    --gan_mode 'lsgan'
+    --num_test 100 \
+    --output_nc 1 \
+    --input_nc 1 \
+    --verbose
 EOF

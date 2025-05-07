@@ -2,11 +2,11 @@
 
 #SBATCH --job-name="gan2_train"
 #SBATCH --time=02-00:00:00
-#SBATCH --partition=clara
+#SBATCH --partition=paula
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=12
-#SBATCH --gpus=rtx2080ti
+#SBATCH --gpus=a30
 #SBATCH --mem-per-cpu=8G
 #SBATCH --output=slurm-%j.out
 #SBATCH --error=slurm-%j.err
@@ -34,7 +34,7 @@ apptainer exec --nv $IMAGE bash <<EOF
     --update_html_freq 200 \
     --save_epoch_freq 50 \
     --print_model_info \
-    --name gan2_1_clara \
+    --name gan2_1_paula \
     --model pix2pix \
     --dataset_mode gan2 \
     --norm instance \
@@ -49,6 +49,5 @@ apptainer exec --nv $IMAGE bash <<EOF
     --upsampling deconvolution \
     --preprocess none \
     --no_flip \
-    --verbose \
-    --display_port 1898
+    --verbose
 EOF

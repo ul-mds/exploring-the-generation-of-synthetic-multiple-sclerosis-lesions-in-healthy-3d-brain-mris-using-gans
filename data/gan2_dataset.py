@@ -69,6 +69,7 @@ class Gan2Dataset(BaseDataset):
         self.flairnames = sorted([f.replace(".png", "") for f in flair_files])
         
         self.is_test = opt.phase == 'test'
+        self.original_shape = None
 
 
         #print("flair_path: ", self.flair_dir)
@@ -95,8 +96,11 @@ class Gan2Dataset(BaseDataset):
         lsmsk_img = Image.open(ls_msk_path).convert('L')
         lsmsk_img = np.array(lsmsk_img)
 
+
         masked_flair = flair_img.copy()
         masked_flair[lsmsk_img != 0] = 255
+
+        self.original_shape = lsmsk_img.shape
 
         # Source Tensor: orignal mri with lesionregions labeled as 255 [1, H, W]
         source_tensor = torch.tensor(masked_flair, dtype=torch.float32).unsqueeze(0)

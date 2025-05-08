@@ -102,7 +102,7 @@ if __name__ == '__main__':
         img_path = model.get_image_paths()  # get image paths
         if i % 5 == 0:  # save images to an HTML file
             print('processing (%04d)-th image... %s' % (i, img_path))
-        if nifti:
+        if True:
             query_name = os.path.basename(img_path[0])
             # Postprocess the results to numpy arrays
             np_post = postprocess_images(visuals, opt, dataset.dataset.original_shape)

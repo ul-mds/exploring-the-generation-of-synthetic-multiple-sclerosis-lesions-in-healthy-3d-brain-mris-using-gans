@@ -22,7 +22,7 @@ apptainer exec --nv $IMAGE bash <<EOF
     pip install mpmath
 
     # start testing
-    python test.py \
+    python test_gan2.py \
     --dataroot /home/sc.uni-leipzig.de/iu71daji/thesis_gan2/train_gan2 \
     --results_dir /home/sc.uni-leipzig.de/iu71daji/thesis_gan2 \
     --phase test \

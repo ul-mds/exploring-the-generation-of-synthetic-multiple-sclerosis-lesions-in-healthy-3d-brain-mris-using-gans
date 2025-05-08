@@ -57,6 +57,42 @@ def save_png_images(np_dict, query_name, opt, web_dir):
         # Speichern
         imageio.imwrite(save_path, norm_img)
 
+def save_images(webpage, visuals, image_path, aspect_ratio=1.0, width=256):
+    """Save images to the disk.
+
+    Parameters:
+        webpage (the HTML class) -- the HTML webpage class that stores these imaegs (see html_handler.py for more details)
+        visuals (OrderedDict)    -- an ordered dictionary that stores (name, images (either tensor or numpy) ) pairs
+        image_path (str)         -- the string is used to create image paths
+        aspect_ratio (float)     -- the aspect ratio of saved images
+        width (int)              -- the images will be resized to width x width
+
+    This function will save images stored in 'visuals' to the HTML file specified by 'webpage'.
+    """
+    image_dir = webpage.get_image_dir()
+    short_path = ntpath.basename(image_path[0])
+    name = os.path.splitext(short_path)[0]
+
+    webpage.add_header(name)
+    ims, txts, links = [], [], []
+
+    for label, im_data in visuals.items():
+        print("Debug print 4: ", visuals.items())
+        print("Debug print 5: ", visuals.keys())
+        im = util.tensor2im(im_data)
+        if im is None:
+            print(f"Skipping {label} because tensor2im returned None")
+            continue
+        print("Debug print 3 im shape; ", im.shape)
+        #TODO only save label 'B_fake' images and throw away the others
+        image_name = '%s_%s.nii' % (name, label)
+        save_path = os.path.join(image_dir, image_name)
+        #util.save_image_to_nii(im, save_path, aspect_ratio=aspect_ratio)
+        ims.append(image_name)
+        txts.append(label)
+        links.append(image_name)
+    webpage.add_images(ims, txts, links, width=width)
+
 
 if __name__ == '__main__':
     opt = TestOptions().parse()  # get test options
@@ -114,6 +150,7 @@ if __name__ == '__main__':
             #save_web_nifti(webpage, np_post, img_path, opt.show_plots, width=opt.display_winsize)
         else:
             save_images(webpage, visuals, img_path, aspect_ratio=opt.aspect_ratio, width=opt.display_winsize)
+            save_png_images(np_post, query_name_noext, opt, web_dir)
     webpage.save()  # save the HTML
     end_time = round(time.time() - init_time, 3)
     print_timestamped("The testing process took " + str(end_time) + "s.")

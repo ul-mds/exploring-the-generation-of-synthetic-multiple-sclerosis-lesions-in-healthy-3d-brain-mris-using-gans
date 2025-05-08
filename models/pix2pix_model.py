@@ -174,7 +174,7 @@ class Pix2PixModel(BaseModel):
         self.loss_G_L2_T = self.criterionL1(self.fake_B * (1-self.mask),
                                                self.real_B * (1-self.mask)) * self.opt.gamma_TMSE
         
-        print(self.loss_G_L1, self.loss_G_L2_T)
+        #print(self.loss_G_L1, self.loss_G_L2_T)
 
         # TODO maybe it helps to load a brain mask as input['mask'] 
         #self.loss_G_L1 = zero_division(self.loss_G_L1, torch.sum(self.mask))

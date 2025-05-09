@@ -42,17 +42,14 @@ def save_png_images(np_dict, query_name, opt, web_dir):
         'fake_B': f"{query_name}_fake_B"
         }
 
-    base_path = os.path.join(web_dir, query_name)
-    os.makedirs(base_path, exist_ok=True)
+    os.makedirs(web_dir, exist_ok=True)
 
     for label, image in np_dict.items():
-        if "truth" in label:
-            continue
     
         # In 8-bit umwandeln
         image = image.astype('uint8')
         # Pfad setzen
-        save_path = os.path.join(base_path, new_names[label] + ".png")
+        save_path = os.path.join(web_dir, new_names[label] + ".png")
         # Speichern
         imageio.imwrite(save_path, image)
 
@@ -96,14 +93,14 @@ def save_images(webpage, visuals, image_path, aspect_ratio=1.0, width=256):
 if __name__ == '__main__':
     
     # Fimos debugpy
-    import debugpy
+    #import debugpy
     # Starte den Debugging-Server
-    debugpy.listen(("0.0.0.0", 5678))
-    print("🚀 Warten auf Debugger Attach auf Port 5678...")
+    #debugpy.listen(("0.0.0.0", 5678))
+    #print("🚀 Warten auf Debugger Attach auf Port 5678...")
 
     # Optional: hier anhalten bis sich dein Debugger verbunden hat
-    debugpy.wait_for_client()
-    print("✅ Debugger verbunden!")
+    #debugpy.wait_for_client()
+    #print("✅ Debugger verbunden!")
 
 
     opt = TestOptions().parse()  # get test options

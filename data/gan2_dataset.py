@@ -109,17 +109,16 @@ class Gan2Dataset(BaseDataset):
         target_tensor = torch.tensor(flair_img, dtype=torch.float32).unsqueeze(0)
 
         # Lesion-Mask: [1, H, W]
-        mask_tensor = torch.tensor(lsmsk_img, dtype=torch.float32).unsqueeze(0)
-
-        #print("Source Tensor shape: ", source_tensor.shape)
-        #print("Target Tensor shape: ", target_tensor.shape)
-        #print("Mask Tensor shape: ", mask_tensor.shape)
+        # mask_tensor = torch.tensor(lsmsk_img, dtype=torch.float32).unsqueeze(0)
 
 
         if self.is_test: 
              return {"A": source_tensor, "A_paths": flair_path}
         else: 
-             return {"A": source_tensor, "B": target_tensor, "mask": mask_tensor, 
+            # get "BrainMask" -> area where source_tensor != 0. 
+            brainmask_tensor = (source_tensor != 0).float()
+
+            return {"A": source_tensor, "B": target_tensor, "mask": brainmask_tensor, 
                         "A_paths": flair_path, "B_paths": flair_path}
 
 

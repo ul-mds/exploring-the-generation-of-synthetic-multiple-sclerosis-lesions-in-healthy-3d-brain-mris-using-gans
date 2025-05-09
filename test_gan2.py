@@ -95,6 +95,18 @@ def save_images(webpage, visuals, image_path, aspect_ratio=1.0, width=256):
 
 
 if __name__ == '__main__':
+    
+    # Fimos debugpy
+    import debugpy
+    # Starte den Debugging-Server
+    debugpy.listen(("0.0.0.0", 5678))
+    print("🚀 Warten auf Debugger Attach auf Port 5678...")
+
+    # Optional: hier anhalten bis sich dein Debugger verbunden hat
+    debugpy.wait_for_client()
+    print("✅ Debugger verbunden!")
+
+
     opt = TestOptions().parse()  # get test options
     # hard-code some parameters for test
     opt.num_threads = 0  # test code only supports num_threads = 0

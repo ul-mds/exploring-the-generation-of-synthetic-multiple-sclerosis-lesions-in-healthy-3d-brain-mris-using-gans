@@ -92,10 +92,12 @@ if __name__ == '__main__':
             print(f"[DEBUG] model input has been set.")
             model.optimize_parameters(i)  # calculate loss functions, get gradients, update network weights
             print(f"[DEBUG] model optimize_params has been called.")
+            """
             if total_iters % opt.display_freq == 0:  # display images on visdom and save images to a HTML file
                 save_result = total_iters % opt.update_html_freq == 0
                 model.compute_visuals()
                 print(f"[DEBUG] visuals were computed.")
+                 
                 visuals = model.get_current_visuals()
 
                 # debug check of visuals: 
@@ -108,7 +110,7 @@ if __name__ == '__main__':
                     else:
                         print(" (kein Tensor)")
                 visualizer.display_current_results(visuals, epoch, save_result)
-
+                """
             if total_iters % opt.print_freq == 0:  # print training losses and save logging information to the disk
                 losses = model.get_current_losses()
                 t_comp = (time.time() - iter_start_time) / opt.batch_size

@@ -16,7 +16,7 @@ from options.test_options import TestOptions
 from data import create_dataset
 from models import create_model
 from util.evaluation import ExcelEvaluate
-from util.visualizer import save_images, save_nifti_images, save_web_nifti
+#from util.visualizer import save_images, save_nifti_images, save_web_nifti
 from util import html_handler
 from util.util import postprocess_images, print_timestamped
 import time

@@ -42,6 +42,9 @@ def postprocess_images(visuals, opt, original_shape):
     np_dict = {}
     # Transform images
     for label, image in visuals.items():
+        if image is None:
+            print(f"[SKIP] {label} is None – skipping")
+            continue
         np_dict[label] = image.detach().cpu().numpy().reshape(image.shape[2:])
 
     # Add the brain mask to the new image

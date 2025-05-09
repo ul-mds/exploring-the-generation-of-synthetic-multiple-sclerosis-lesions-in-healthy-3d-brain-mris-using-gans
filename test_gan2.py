@@ -39,7 +39,8 @@ def save_png_images(np_dict, query_name, opt, web_dir):
     new_names = {
         'real_A': f"{query_name}_real_A",
         'real_B': f"{query_name}_real_B",
-        'fake_B': f"{query_name}_fake_B"
+        'fake_B': f"{query_name}_fake_B",
+        'truth': f"{query_name}_truth"
         }
 
     os.makedirs(web_dir, exist_ok=True)
@@ -52,42 +53,6 @@ def save_png_images(np_dict, query_name, opt, web_dir):
         save_path = os.path.join(web_dir, new_names[label] + ".png")
         # Speichern
         imageio.imwrite(save_path, image)
-
-def save_images(webpage, visuals, image_path, aspect_ratio=1.0, width=256):
-    """Save images to the disk.
-
-    Parameters:
-        webpage (the HTML class) -- the HTML webpage class that stores these imaegs (see html_handler.py for more details)
-        visuals (OrderedDict)    -- an ordered dictionary that stores (name, images (either tensor or numpy) ) pairs
-        image_path (str)         -- the string is used to create image paths
-        aspect_ratio (float)     -- the aspect ratio of saved images
-        width (int)              -- the images will be resized to width x width
-
-    This function will save images stored in 'visuals' to the HTML file specified by 'webpage'.
-    """
-    image_dir = webpage.get_image_dir()
-    short_path = ntpath.basename(image_path[0])
-    name = os.path.splitext(short_path)[0]
-
-    webpage.add_header(name)
-    ims, txts, links = [], [], []
-
-    for label, im_data in visuals.items():
-        print("Debug print 4: ", visuals.items())
-        print("Debug print 5: ", visuals.keys())
-        im = util.tensor2im(im_data)
-        if im is None:
-            print(f"Skipping {label} because tensor2im returned None")
-            continue
-        print("Debug print 3 im shape; ", im.shape)
-        #TODO only save label 'B_fake' images and throw away the others
-        image_name = '%s_%s.nii' % (name, label)
-        save_path = os.path.join(image_dir, image_name)
-        #util.save_image_to_nii(im, save_path, aspect_ratio=aspect_ratio)
-        ims.append(image_name)
-        txts.append(label)
-        links.append(image_name)
-    webpage.add_images(ims, txts, links, width=width)
 
 
 if __name__ == '__main__':
@@ -146,19 +111,16 @@ if __name__ == '__main__':
         img_path = model.get_image_paths()  # get image paths
         if i % 5 == 0:  # save images to an HTML file
             print('processing (%04d)-th image... %s' % (i, img_path))
-        if True:
-            query_name = os.path.basename(img_path[0])
-            # Postprocess the results to numpy arrays
-            np_post = postprocess_images(visuals, opt, dataset.dataset.original_shape)
-            query_name_noext = query_name.split(".")[0]
-            if 'real_B' in np_post:
-                # Evaluate the results
-                exc_eval.evaluate(np_post, query_name_noext, opt.smoothing)
-            save_png_images(np_post, query_name_noext, opt, web_dir)
-            #save_web_nifti(webpage, np_post, img_path, opt.show_plots, width=opt.display_winsize)
-        else:
-            save_images(webpage, visuals, img_path, aspect_ratio=opt.aspect_ratio, width=opt.display_winsize)
-            save_png_images(np_post, query_name_noext, opt, web_dir)
+        
+        query_name = os.path.basename(img_path[0])
+        # Postprocess the results to numpy arrays
+        np_post = postprocess_images(visuals, opt, dataset.dataset.original_shape)
+        query_name_next = query_name.split(".")[0]
+        if 'real_B' in np_post:
+            # Evaluate the results
+            exc_eval.evaluate(np_post, query_name_next, opt.smoothing)
+        save_png_images(np_post, query_name_next, opt, web_dir)
+    
     webpage.save()  # save the HTML
     end_time = round(time.time() - init_time, 3)
     print_timestamped("The testing process took " + str(end_time) + "s.")

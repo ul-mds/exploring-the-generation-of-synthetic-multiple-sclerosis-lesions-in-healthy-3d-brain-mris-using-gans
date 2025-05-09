@@ -14,11 +14,6 @@ opt = DummyOpt()
 dataset = Gan2Dataset(opt)
 loader = DataLoader(dataset, batch_size=1, shuffle=False)
 
-
-# === 1. Bild laden (Graustufen-PNG) ===
-#img_path = "msseg_patient05_center07_flair_slice_095.png"  # Pfad zu deinem Testbild
-
-
 # === 4. Ein Batch anschauen ===
 batch = next(iter(loader))
 A = batch['A']  # masked flair

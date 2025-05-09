@@ -49,8 +49,8 @@ def save_png_images(np_dict, query_name, opt, web_dir):
         if "truth" in label:
             continue
     
-        # Skalieren und in 8-bit umwandeln
-        image = (image * 255).clip(0, 255).astype('uint8')
+        # In 8-bit umwandeln
+        image = image.astype('uint8')
         # Pfad setzen
         save_path = os.path.join(base_path, new_names[label] + ".png")
         # Speichern

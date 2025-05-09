@@ -35,13 +35,14 @@ def save_png_images(np_dict, query_name, opt, web_dir):
         opt: Optionen, inkl. mapping_source, mapping_target, smoothing, postprocess
         web_dir: Pfad zum Zielverzeichnis
     """
+    """ 
     new_names = {
-        'real_A': f"{query_name}_{opt.mapping_source}",
-        'real_B': f"{query_name}_{opt.mapping_target}",
-        'fake_B': f"{query_name}_{opt.mapping_target}_learned",
+        'real_A': f"{query_name}_Areal",
+        'real_B': f"{query_name}_Breal",
+        'fake_B': f"{query_name}_Bfake",
         'fake_B_smoothed': f"{query_name}_{opt.mapping_target}_learned_{opt.smoothing}",
     }
-
+    """
     base_path = os.path.join(web_dir, query_name)
     os.makedirs(base_path, exist_ok=True)
 

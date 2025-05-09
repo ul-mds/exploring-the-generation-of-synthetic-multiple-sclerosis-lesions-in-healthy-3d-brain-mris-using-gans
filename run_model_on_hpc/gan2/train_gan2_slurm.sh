@@ -49,5 +49,6 @@ apptainer exec --nv $IMAGE bash <<EOF
     --upsampling deconvolution \
     --preprocess none \
     --no_flip \
+    --display_id 0 \
     --verbose
 EOF

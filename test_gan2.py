@@ -35,28 +35,26 @@ def save_png_images(np_dict, query_name, opt, web_dir):
         opt: Optionen, inkl. mapping_source, mapping_target, smoothing, postprocess
         web_dir: Pfad zum Zielverzeichnis
     """
-    """ 
+
     new_names = {
-        'real_A': f"{query_name}_Areal",
-        'real_B': f"{query_name}_Breal",
-        'fake_B': f"{query_name}_Bfake",
-        'fake_B_smoothed': f"{query_name}_{opt.mapping_target}_learned_{opt.smoothing}",
-    }
-    """
+        'real_A': f"{query_name}_real_A",
+        'real_B': f"{query_name}_real_B",
+        'fake_B': f"{query_name}_fake_B"
+        }
+
     base_path = os.path.join(web_dir, query_name)
     os.makedirs(base_path, exist_ok=True)
 
     for label, image in np_dict.items():
         if "truth" in label:
             continue
-        # Normalisieren
-        norm_img = util.normalize_with_opt(image, opt.postprocess)
+    
         # Skalieren und in 8-bit umwandeln
-        norm_img = (norm_img * 255).clip(0, 255).astype('uint8')
+        image = (image * 255).clip(0, 255).astype('uint8')
         # Pfad setzen
         save_path = os.path.join(base_path, new_names[label] + ".png")
         # Speichern
-        imageio.imwrite(save_path, norm_img)
+        imageio.imwrite(save_path, image)
 
 def save_images(webpage, visuals, image_path, aspect_ratio=1.0, width=256):
     """Save images to the disk.

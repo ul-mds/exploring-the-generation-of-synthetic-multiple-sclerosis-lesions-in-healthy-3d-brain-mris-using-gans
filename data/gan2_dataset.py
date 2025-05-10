@@ -53,6 +53,7 @@ class Gan2Dataset(BaseDataset):
         Returns:
             the modified parser.
         """
+        parser.add_argument('--L1_lesions_only', action='store_true', help='Computes L1 only for lesion areas.')
         return parser
 
 

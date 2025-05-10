@@ -34,11 +34,11 @@ apptainer exec --nv $IMAGE bash <<EOF
     --update_html_freq 200 \
     --save_epoch_freq 50 \
     --print_model_info \
-    --name gan2_1_clara \
+    --name gan2_3 \
     --model pix2pix \
     --dataset_mode gan2 \
     --norm instance \
-    --lambda_L1 300 \
+    --lambda_L1 200 \
     --gamma_TMSE 0 \
     --input_nc 1 \
     --output_nc 1 \
@@ -50,5 +50,6 @@ apptainer exec --nv $IMAGE bash <<EOF
     --preprocess none \
     --no_flip \
     --display_id 0 \
-    --verbose
+    --verbose \
+    --L1_lesions_only
 EOF

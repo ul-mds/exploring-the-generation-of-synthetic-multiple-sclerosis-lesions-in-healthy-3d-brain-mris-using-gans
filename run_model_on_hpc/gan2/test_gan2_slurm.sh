@@ -27,7 +27,7 @@ apptainer exec --nv $IMAGE bash <<EOF
     --results_dir /home/sc.uni-leipzig.de/iu71daji/thesis_gan2 \
     --phase test \
     --lambda_L1 300 \
-    --name gan2_2_clara \
+    --name gan2_4paula \
     --model pix2pix \
     --dataset_mode gan2 \
     --norm instance \

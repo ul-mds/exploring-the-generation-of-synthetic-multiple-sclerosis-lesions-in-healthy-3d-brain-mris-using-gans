@@ -2,6 +2,7 @@ import torch
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 from data.gan2_dataset import Gan2Dataset
+import numpy as np
 
 
 class DummyOpt:
@@ -23,6 +24,10 @@ mask = batch['mask']
 print("A shape:", A.shape)
 print("B shape:", B.shape)
 print("Mask shape:", mask.shape)
+
+print("labels mask: ", np.unique(mask))
+print("labels A: ", np.unique(A))
+print("labels B: ", np.unique(B))
 
 def show_tensor(tensor, title, subplot_index):
     img = tensor.squeeze().numpy()

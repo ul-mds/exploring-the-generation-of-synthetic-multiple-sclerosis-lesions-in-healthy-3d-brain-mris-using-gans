@@ -34,14 +34,12 @@ apptainer exec --nv $IMAGE bash <<EOF
     --update_html_freq 200 \
     --save_epoch_freq 50 \
     --print_model_info \
-    --name gan2_6p \
+    --name gan2_7p \
     --model pix2pix \
     --dataset_mode gan2 \
     --norm instance \
     --lambda_L1 100 \
     --gamma_TMSE 0 \
-    --input_nc 1 \
-    --output_nc 1 \
     --netG unet_256 \
     --ngf 32 \
     --ndf 32 \

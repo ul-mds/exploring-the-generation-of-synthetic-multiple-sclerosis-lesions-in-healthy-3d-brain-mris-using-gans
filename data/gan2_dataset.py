@@ -85,6 +85,7 @@ class Gan2Dataset(BaseDataset):
         """
 
         basename = self.flairnames[index]
+
         # load the flair img and it's corresponding lesion mask
         flair_path = os.path.join(self.flair_dir, basename + ".png")
         ls_msk_path = os.path.join(self.lsmsk_dir, basename.replace("flair", "mask") + ".png")
@@ -97,17 +98,25 @@ class Gan2Dataset(BaseDataset):
         lsmsk_img = Image.open(ls_msk_path).convert('L')
         lsmsk_img = np.array(lsmsk_img)
 
-
-        masked_flair = flair_img.copy()
-        masked_flair[lsmsk_img != 0] = 255
-
         self.original_shape = lsmsk_img.shape
 
-        # Source Tensor: orignal mri with lesionregions labeled as 255 [1, H, W]
-        source_tensor = torch.tensor(masked_flair, dtype=torch.float32).unsqueeze(0)
+        # mask lesions with zeros
+        masked_flair = flair_img.copy()
+        masked_flair[lsmsk_img != 0] = 0
 
-        # Target Tensor: only original mri [1, H, W]
-        target_tensor = torch.tensor(flair_img, dtype=torch.float32).unsqueeze(0)
+        #empty channel
+        empty = np.zeros_like(flair_img)
+
+        # Source Tensor: orignal mri with lesionregions labeled as 0 [3, H, W]
+        # 3 channels -> masked flair, lsmsk_img, empty
+        
+        source_array = np.stack([masked_flair, lsmsk_img, empty], axis=0)
+        source_tensor = torch.tensor(source_array dtype=torch.float32)
+
+        # Target Tensor: only original mri [3, H, W]
+        # 3 channels -> unmasked flair, lsmsk_img, empty
+        target_array = np.stack([flair_img, lsmsk_img, empty], axis=0)
+        target_tensor = torch.tensor(target_array, dtype=torch.float32)
 
         # Lesion-Mask: [1, H, W]
         # mask_tensor = torch.tensor(lsmsk_img, dtype=torch.float32).unsqueeze(0)

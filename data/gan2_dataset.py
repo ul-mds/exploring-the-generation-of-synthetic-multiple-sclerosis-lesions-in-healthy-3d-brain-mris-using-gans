@@ -107,6 +107,11 @@ class Gan2Dataset(BaseDataset):
         #empty channel
         empty = np.zeros_like(flair_img)
 
+        # ---- SKALIERUNG [-1, 1] ----
+        masked_flair = masked_flair.astype(np.float32) / 127.5 - 1.0
+        flair_img     = flair_img.astype(np.float32) / 127.5 - 1.0
+        lsmsk_img     = lsmsk_img.astype(np.float32) / 127.5 - 1.0
+
         # Source Tensor: orignal mri with lesionregions labeled as 0 [3, H, W]
         # 3 channels -> masked flair, lsmsk_img, empty
         

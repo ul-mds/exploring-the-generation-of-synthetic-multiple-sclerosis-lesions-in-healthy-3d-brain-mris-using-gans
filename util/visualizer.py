@@ -233,7 +233,9 @@ class Visualizer():
                     image_numpy = image.data[0].cpu().float().numpy().reshape(image.shape[2:])
                     plot_3d(image_numpy, os.path.basename(img_path), img_path, False)
                 else:
-                    image_numpy = util.tensor2im(image)
+                    # modified visualization, only take first channel, no rgb 
+                    if image.shape[1] == 3: 
+                        image_numpy = image[0, 0].detach().cpu().numpy()
                     util.save_image(image_numpy, img_path)
             # update website
             webpage = html_handler.HTML(self.web_dir, 'Experiment name = %s' % self.name, refresh=1)

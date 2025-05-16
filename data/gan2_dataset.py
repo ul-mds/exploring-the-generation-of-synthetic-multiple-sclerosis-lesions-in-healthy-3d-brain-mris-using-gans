@@ -111,7 +111,7 @@ class Gan2Dataset(BaseDataset):
         # 3 channels -> masked flair, lsmsk_img, empty
         
         source_array = np.stack([masked_flair, lsmsk_img, empty], axis=0)
-        source_tensor = torch.tensor(source_array dtype=torch.float32)
+        source_tensor = torch.tensor(source_array, dtype=torch.float32)
 
         # Target Tensor: only original mri [3, H, W]
         # 3 channels -> unmasked flair, lsmsk_img, empty

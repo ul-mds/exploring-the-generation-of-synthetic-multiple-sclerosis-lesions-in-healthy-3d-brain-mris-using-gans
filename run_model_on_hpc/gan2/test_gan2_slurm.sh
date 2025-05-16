@@ -26,8 +26,8 @@ apptainer exec --nv $IMAGE bash <<EOF
     --dataroot /home/sc.uni-leipzig.de/iu71daji/thesis_gan2/train_gan2 \
     --results_dir /home/sc.uni-leipzig.de/iu71daji/thesis_gan2 \
     --phase test \
-    --lambda_L1 300 \
-    --name gan2_4paula \
+    --lambda_L1 100 \
+    --name gan2_7p \
     --model pix2pix \
     --dataset_mode gan2 \
     --norm instance \
@@ -38,7 +38,7 @@ apptainer exec --nv $IMAGE bash <<EOF
     --preprocess none \
     --no_flip \
     --num_test 100 \
-    --output_nc 1 \
-    --input_nc 1 \
+    --output_nc 3 \
+    --input_nc 3 \
     --verbose
 EOF

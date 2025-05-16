@@ -150,7 +150,7 @@ class BaseModel(ABC):
 
                 # make sure we have an np_array
                 if isinstance(img, torch.Tensor): 
-                    arr = img.cpu().numpy()
+                    arr = img.detach().cpu().numpy()
                 else: 
                     arr = img
 

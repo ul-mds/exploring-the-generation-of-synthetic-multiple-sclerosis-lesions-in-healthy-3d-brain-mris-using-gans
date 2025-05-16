@@ -165,21 +165,21 @@ class Pix2PixModel(BaseModel):
         # First, G(A) should fake the discriminator
         fake_AB = torch.cat((self.real_A, self.fake_B), 1)
         pred_fake = self.netD(fake_AB)
-        # self.loss_G_GAN = self.criterionGAN(pred_fake, True)
-        self.loss_G_GAN = 0 
+        self.loss_G_GAN = self.criterionGAN(pred_fake, True)
+    
         # Second, G(A) = B
         # Compute the L1 loss only on the masked values
         self.loss_G_L1 = self.criterionL1(self.fake_B[:, 0:1, :,:] * self.mask,
                                           self.real_B[:, 0:1, :, :] * self.mask) * self.opt.lambda_L1
 
         # I use T Loss for penalizing background instead of Tumor (all background, not just WM or brain mask.)
-        #self.loss_G_L2_T = self.criterionL1(self.fake_B * (1-self.mask),
-        #                                       self.real_B * (1-self.mask)) * self.opt.gamma_TMSE
-        self.loss_G_L2_T = 0
+        self.loss_G_L2_T = self.criterionL1(self.fake_B * (1-self.mask),
+                                               self.real_B * (1-self.mask)) * self.opt.gamma_TMSE
+        
         #print(self.loss_G_L1, self.loss_G_L2_T)
 
         # TODO maybe it helps to load a brain mask as input['mask'] 
-        #self.loss_G_L1 = zero_division(self.loss_G_L1, torch.sum(self.mask))
+        self.loss_G_L1 = zero_division(self.loss_G_L1, torch.sum(self.mask))
         
         # print(self.loss_G_L1, self.loss_G_L2_T)
         # combine loss and calculate gradients

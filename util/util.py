@@ -45,7 +45,15 @@ def postprocess_images(visuals, opt, original_shape):
         if image is None:
             print(f"[SKIP] {label} is None – skipping")
             continue
-        np_dict[label] = image.detach().cpu().numpy().reshape(image.shape[2:])
+        np_image = image.detach().cpu().numpy()
+        # if img has 3 channels, first channel is taken.
+        if np_image.shape[0] > 1:
+            np_image = np_image[0]
+        else:
+            np_image = np_image[0]
+        np_dict[label] = np_image
+
+    #np_dict[label] = image.detach().cpu().numpy().reshape(image.shape[2:])
 
     # Add the brain mask to the new image
     zero_brain_mask = np.where(np_dict['real_A'] == np_dict['real_A'].min())

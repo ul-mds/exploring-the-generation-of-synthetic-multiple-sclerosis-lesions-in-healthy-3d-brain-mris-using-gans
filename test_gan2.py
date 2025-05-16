@@ -46,12 +46,12 @@ def save_png_images(np_dict, query_name, opt, web_dir):
     os.makedirs(web_dir, exist_ok=True)
 
     for label, image in np_dict.items():
-    
-        # In 8-bit umwandeln
+        if image.ndim == 3: 
+            image = image[0]
         image = image.astype('uint8')
-        # Pfad setzen
+        
         save_path = os.path.join(web_dir, new_names[label] + ".png")
-        # Speichern
+        # save img
         imageio.imwrite(save_path, image)
 
 

@@ -3,7 +3,7 @@ import torch
 from collections import OrderedDict
 from abc import ABC, abstractmethod
 from . import networks
-
+import numpy as np
 
 class BaseModel(ABC):
     """This class is an abstract base class (ABC) for models.
@@ -129,13 +129,44 @@ class BaseModel(ABC):
         lr = self.optimizers[0].param_groups[0]['lr']
         print('learning rate %.7f -> %.7f' % (old_lr, lr))
 
+
+    """ 
+    orig function: 
     def get_current_visuals(self):
-        """Return visualization images. train.py will display these images with visdom, and save the images to a HTML"""
+        Return visualization images. train.py will display these images with visdom, and save the images to a HTML
         visual_ret = OrderedDict()
         for name in self.visual_names:
             if isinstance(name, str):
                 visual_ret[name] = getattr(self, name)
         return visual_ret
+    """
+        
+    def get_current_visuals(self):
+        """Return visualization images. train.py will display these images with visdom, and save the images to a HTML"""
+        visual_ret = OrderedDict()
+        for name in self.visual_names:
+            if isinstance(name, str):
+                img = getattr(self, name)
+
+                # make sure we have an np_array
+                if isinstance(img, torch.Tensor): 
+                    arr = img.cpu().numpy()
+                else: 
+                    arr = img
+
+                # rescale the img, if [-1,1]
+                if np.issubdtype(arr.dtype, np.floating) and arr.min() >= -1.1 and arr.max() <= 1.1:
+                    arr = (arr + 1.0) * 127.5
+                    arr = np.clip(arr, 0, 255).astype(np.uint8)
+
+                # convert back to tensor
+                if isinstance(img, torch.Tensor):
+                    img = torch.from_numpy(arr).to(img.device)
+                else:
+                    img = arr
+            visual_ret[name] = img
+        return visual_ret
+        
 
     def get_current_losses(self):
         """Return traning losses / errors. train.py will print out these errors on console, and save them to a file"""

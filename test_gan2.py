@@ -22,6 +22,7 @@ from util.util import postprocess_images, print_timestamped
 import time
 import imageio
 from util import util
+import numpy as np
 
 
 # FIMOS: 
@@ -47,12 +48,10 @@ def save_png_images(visuals, query_name, opt, web_dir):
 
     import matplotlib.pyplot as plt
 
-for label, image in visuals.items():
-    img_path = os.path.join(web_dir, f"{query_name}_{label}.png")
+    for label, image in visuals.items():
+        img_path = os.path.join(web_dir, f"{query_name}_{label}.png")
 
-    if len(image.shape) > 4:
-        continue  # Volumen überspringen
-    else:
+
         # Trainingslogik: nur Kanal 0
         if image.shape[1] == 3:
             image_numpy = image[0, 0].detach().cpu().numpy()
@@ -70,14 +69,14 @@ for label, image in visuals.items():
 if __name__ == '__main__':
     
     # Fimos debugpy
-    import debugpy
+    #import debugpy
     # Starte den Debugging-Server
-    debugpy.listen(("0.0.0.0", 5678))
-    print("🚀 Warten auf Debugger Attach auf Port 5678...")
+    #debugpy.listen(("0.0.0.0", 5678))
+    #print("🚀 Warten auf Debugger Attach auf Port 5678...")
 
     # Optional: hier anhalten bis sich dein Debugger verbunden hat
-    debugpy.wait_for_client()
-    print("✅ Debugger verbunden!")
+    #debugpy.wait_for_client()
+    #print("✅ Debugger verbunden!")
 
 
     opt = TestOptions().parse()  # get test options

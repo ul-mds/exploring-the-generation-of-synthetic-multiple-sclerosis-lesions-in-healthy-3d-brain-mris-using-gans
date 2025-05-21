@@ -25,7 +25,7 @@ from util import util
 
 
 # FIMOS: 
-def save_png_images(np_dict, query_name, opt, web_dir):
+def save_png_images(visuals, query_name, opt, web_dir):
     """
     Speichert 2D-Bilder als PNG-Dateien statt als NIfTI.
 
@@ -45,14 +45,26 @@ def save_png_images(np_dict, query_name, opt, web_dir):
 
     os.makedirs(web_dir, exist_ok=True)
 
-    for label, image in np_dict.items():
-        if image.ndim == 3: 
-            image = image[0]
-        image = image.astype('uint8')
-        
-        save_path = os.path.join(web_dir, new_names[label] + ".png")
-        # save img
-        imageio.imwrite(save_path, image)
+    import matplotlib.pyplot as plt
+
+for label, image in visuals.items():
+    img_path = os.path.join(web_dir, f"{query_name}_{label}.png")
+
+    if len(image.shape) > 4:
+        continue  # Volumen überspringen
+    else:
+        # Trainingslogik: nur Kanal 0
+        if image.shape[1] == 3:
+            image_numpy = image[0, 0].detach().cpu().numpy()
+        else:
+            image_numpy = image[0].detach().cpu().numpy()
+
+        image_numpy = image_numpy.astype(np.uint8)
+
+        # Speichern mit imageio
+        imageio.imwrite(img_path, image_numpy)
+
+
 
 
 if __name__ == '__main__':
@@ -113,13 +125,15 @@ if __name__ == '__main__':
             print('processing (%04d)-th image... %s' % (i, img_path))
         
         query_name = os.path.basename(img_path[0])
+        query_name = query_name.split(".")[0]
+
+        save_png_images(visuals, query_name, opt, web_dir)
         # Postprocess the results to numpy arrays
-        np_post = postprocess_images(visuals, opt, dataset.dataset.original_shape)
-        query_name_next = query_name.split(".")[0]
-        if 'real_B' in np_post:
-            # Evaluate the results
-            exc_eval.evaluate(np_post, query_name_next, opt.smoothing)
-        save_png_images(np_post, query_name_next, opt, web_dir)
+        # np_post = postprocess_images(visuals, opt, dataset.dataset.original_shape)
+        #if 'real_B' in np_post:
+        #    # Evaluate the results
+        #    exc_eval.evaluate(np_post, query_name_next, opt.smoothing)
+        
     
     webpage.save()  # save the HTML
     end_time = round(time.time() - init_time, 3)

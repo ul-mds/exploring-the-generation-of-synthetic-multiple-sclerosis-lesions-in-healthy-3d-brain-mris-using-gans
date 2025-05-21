@@ -50,7 +50,7 @@ def postprocess_images(visuals, opt, original_shape):
         if np_image.shape[0] > 1:
             np_image = np_image.squeeze(0)[0]
         else:
-            np_image = np_image[0]
+            np_image = np_image.squeeze(0)
         np_dict[label] = np_image
 
     #np_dict[label] = image.detach().cpu().numpy().reshape(image.shape[2:])

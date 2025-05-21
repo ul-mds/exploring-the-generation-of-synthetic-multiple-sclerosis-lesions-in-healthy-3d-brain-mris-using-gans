@@ -48,7 +48,7 @@ def postprocess_images(visuals, opt, original_shape):
         np_image = image.detach().cpu().numpy()
         # if img has 3 channels, first channel is taken.
         if np_image.shape[0] > 1:
-            np_image = np_image[0]
+            np_image = np_image.squeeze(0)[0]
         else:
             np_image = np_image[0]
         np_dict[label] = np_image

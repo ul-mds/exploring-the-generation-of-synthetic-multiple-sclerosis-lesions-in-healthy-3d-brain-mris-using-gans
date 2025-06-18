@@ -1,6 +1,6 @@
 """ 
 This class is meant to load in the data to train and test GAN2. Gan2 learns to create 
-realistic looking synthetic lesions in a greyscale 3D MRI, from a lesion mask. 
+realistic looking synthetic lesions in a grayscale 3D MRI, from a lesion mask. 
 source input: Brain MRI with lesion mask on top (areas labeld with one's where the lesions are 
 supposed to be.) 
 target_output: The same Brain MRI but the lesion mask areas replaced by synthetic lesions. 
@@ -11,25 +11,18 @@ The data class expects a dataroot which has two dirs:
 
 names have to match and it's the same no matter if it is test or training images.
 
-The given Images are already 2D slices and only slices which contain lesion voxels are 
- used. The Lesion masks are dialated and lesion_mask and mri have the same basename. 
+The given Images have to be already 2D slices and only slices, which contain lesion voxels are 
+used. The Lesion masks are already dilated and lesion_mask and mri have the same basename. 
+Images are expected to be in PNG format. See preprocessing for more details.
 
  -> load them in, arrange source and target. 
-        ( source: channel 1: greyscale mri, but deleted where lesion mask is + lesion_mask in channel 2)
-        (traget: mri like it is in training.)
+        (source: channel 1: grayscale mri, but deleted where lesion mask is + lesion_mask in channel 2)
+        (target: the original mri with real lesions in training / synthetic ones in testing.)
 
-* Preprocessing:
-    * slice the 3D image into 2D slices. 
-    * only take slices which do contain eighter brain voxels or lesion mask voxels ? 
-    * dilatation of the lesion mask to capture border artefacts. 
-    * Channels: Channel1: MRI with zero where Lesions would be. 
-                Channel2: Lesionmask. (0,255)
+* Lesion mask is a binary mask with values [0,1].
+* Flair images are grayscale images with values in [0,255], 
+    they are normalized to [-1, 1] for the model.
     
-    Maybe the easyiest option is to slice the data and save the results in a temporary 
-    directory. Than to load the pairs in again ? 
-
-    TODO Channels and stuff doesn't matter for the moment, we care about when we load the data in. 
-        TODO Same here: Then delete voxels where Lesions are in first channel..
 """
 
 
@@ -42,6 +35,9 @@ import numpy as np
 from PIL import Image
 
 class Gan2Dataset(BaseDataset):
+
+    K = 5  # Number of folds for cross-validation
+
     @staticmethod
     def modify_commandline_options(parser, is_train):
         """Add new dataset-specific options, and rewrite default values for existing options.
@@ -54,6 +50,7 @@ class Gan2Dataset(BaseDataset):
             the modified parser.
         """
         parser.add_argument('--L1_lesions_only', action='store_true', help='Computes L1 only for lesion areas.')
+        parser.add_argument('--k_fold ', type=int, default=-1, help='K-fold cross-validation. -1: no k-fold, 0-4: use fold_x).')
         return parser
 
 
@@ -61,56 +58,64 @@ class Gan2Dataset(BaseDataset):
         """Initialisiert das Dataset"""
         super().__init__(opt)
 
-        self.flair_dir = os.path.join(opt.dataroot, "flair_slices")
-        self.lsmsk_dir = os.path.join(opt.dataroot, "lesion_slices")
-
-        flair_files = [f for f in os.listdir(self.flair_dir) if f.endswith(".png")]
-
-        # naming: umcl_patient01_flair_slice_051.png umcl_patient25_mask_slice_112.png
-        self.flairnames = sorted([f.replace(".png", "") for f in flair_files])
-        
-        self.is_test = opt.phase == 'test'
+        self.samples = []
         self.original_shape = None
+        self.is_test = opt.phase == 'test'
+        self.fold_idx = opt.k_fold if opt.k_fold >= 0 else -1
 
+        # TODO implemment k=-1 for no k-fold
 
-        #print("flair_path: ", self.flair_dir)
-        #print("ls_path: ", self.lsmsk_dir)
-        #print("ls path exists: ", os.path.exists(self.lsmsk_dir))
-        #print("flair path existsi? : ", os.path.exists(self.flair_dir))
-        #print("no files; ", len(self.flairnames))
+        if self.is_test: 
+            folds = [self.fold_idx]        
+        else: 
+            folds = [i for i in range(self.K) if i != self.fold_idx]
+
+        for fold in folds: 
+            flair_dir = os.path.join(opt.dataroot, f"fold_{fold}", "flair_slices")
+            lsmsk_dir = os.path.join(opt.dataroot, f"fold_{fold}", "lesion_slices")
+            # naming: umcl_patient01_flair_slice_051.png umcl_patient25_mask_slice_112.png
+            for fname in os.listdir(flair_dir):
+                if fname.endswith(".png"):
+                    flair_path = os.path.join(flair_dir, fname)
+                    lsmsk_path = os.path.join(lsmsk_dir, fname.replace("flair", "mask"))
+                    if os.path.exists(lsmsk_path):
+                        self.samples.append(
+                            {
+                            "fold" : fold,
+                            "basename": fname.replace(".png", "").replace("flair", ""),
+                            "flair_path": flair_path,
+                            "lsmsk_path": lsmsk_path
+                            })
+    
 
     def __getitem__(self, index):
         """
-        Lädt ein Bildpaar (source & target) und konvertiert sie in Tensoren.
+        Loads an image pair (source & target) and converts them into tensors.
         """
 
-        basename = self.flairnames[index]
-
-        # load the flair img and it's corresponding lesion mask
-        flair_path = os.path.join(self.flair_dir, basename + ".png")
-        ls_msk_path = os.path.join(self.lsmsk_dir, basename.replace("flair", "mask") + ".png")
+        sample = self.samples[index]
 
         
-        flair_img = Image.open(flair_path).convert('L')  # 'L' für Graustufen
+        flair_img = Image.open(sample["flair_path"]).convert('L')  # 'L' for grayscale
         flair_img = np.array(flair_img)
 
 
-        lsmsk_img = Image.open(ls_msk_path).convert('L')
+        lsmsk_img = Image.open(sample["lsmsk_path"]).convert('L')
         lsmsk_img = np.array(lsmsk_img)
+        assert lsmsk_img.unique().tolist() == [0, 1], "Lesion mask should be binary with values 0 and 1."
 
         self.original_shape = lsmsk_img.shape
 
-        # mask lesions with zeros
+        # mask lesions in flair img with zeros
         masked_flair = flair_img.copy()
         masked_flair[lsmsk_img != 0] = 0
 
         #empty channel
         empty = np.zeros_like(flair_img)
 
-        # ---- SKALIERUNG [-1, 1] ----
+        # scale flair to [-1, 1]
         masked_flair = masked_flair.astype(np.float32) / 127.5 - 1.0
         flair_img     = flair_img.astype(np.float32) / 127.5 - 1.0
-        lsmsk_img     = lsmsk_img.astype(np.float32) / 127.5 - 1.0
 
         # Source Tensor: orignal mri with lesionregions labeled as 0 [3, H, W]
         # 3 channels -> masked flair, lsmsk_img, empty
@@ -118,24 +123,20 @@ class Gan2Dataset(BaseDataset):
         source_array = np.stack([masked_flair, lsmsk_img, empty], axis=0)
         source_tensor = torch.tensor(source_array, dtype=torch.float32)
 
-        # Target Tensor: only original mri [3, H, W]
-        # 3 channels -> unmasked flair, lsmsk_img, empty
-        target_array = np.stack([flair_img, lsmsk_img, empty], axis=0)
-        target_tensor = torch.tensor(target_array, dtype=torch.float32)
-
-        # Lesion-Mask: [1, H, W]
-        # mask_tensor = torch.tensor(lsmsk_img, dtype=torch.float32).unsqueeze(0)
-
-
         if self.is_test: 
-             return {"A": source_tensor, "A_paths": flair_path}
+             return {"A": source_tensor, "A_paths": sample["flair_path"]}
         else: 
-            # get "BrainMask" -> area where source_tensor != 0. 
-            brainmask_tensor = (source_tensor != 0).float()
+            # Target Tensor: only original mri [3, H, W]
+            # 3 channels -> unmasked flair, lsmsk_img, empty
+            target_array = np.stack([flair_img, lsmsk_img, empty], axis=0)
+            target_tensor = torch.tensor(target_array, dtype=torch.float32)
+
+            # get "BrainMask" / non-background area -> area where flair_img != 0. 
+            brainmask_tensor = (flair_img != 0).float()
 
             return {"A": source_tensor, "B": target_tensor, "mask": brainmask_tensor, 
-                        "A_paths": flair_path, "B_paths": flair_path}
+                        "A_paths": sample["flair_path"], "B_paths": sample["flair_path"]}
 
 
     def __len__(self):
-        return len(self.flairnames)
+        return len(self.samples)

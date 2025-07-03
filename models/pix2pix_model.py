@@ -33,7 +33,7 @@ class Pix2PixModel(BaseModel):
         # changing the default values to match the pix2pix paper (https://phillipi.github.io/pix2pix/)
         parser.set_defaults(norm='batch', netG='unet_256', dataset_mode='aligned')
         parser.add_argument('--lambda_L1', type=float, default=100.0, help='weight for L1 loss')
-        parser.add_argument('--gamma_TMSE', type=float, default=100.0, help='weight for L2 truth loss in tumor area')
+        parser.add_argument('--lambda_L2_background', type=float, default=100.0, help='weight for L2 truth loss in background area.')
         if is_train:
             parser.set_defaults(pool_size=0, gan_mode='vanilla')
 
@@ -53,7 +53,7 @@ class Pix2PixModel(BaseModel):
         self.fp16 = opt.fp16
         # specify the training losses you want to print out.
         # The training/test scripts will call <BaseModel.get_current_losses>
-        self.loss_names = ['G_GAN', 'G_L1', 'G_L2_T', 'D_real', 'D_fake']
+        self.loss_names = ['G_GAN', 'G_L1', 'G_L2_BG', 'D_real', 'D_fake']
         # specify the images you want to save/display.
         
         # specify the models you want to save to the disk.
@@ -86,8 +86,8 @@ class Pix2PixModel(BaseModel):
         if self.isTrain:
             # define loss functions
             self.criterionGAN = networks.GANLoss(opt.gan_mode).to(self.device)
-            self.criterionL1 = torch.nn.L1Loss(reduction=red_param)
-            self.criterionTumor = torch.nn.MSELoss(reduction=red_param)
+            self.criterionL1_ls = torch.nn.L1Loss(reduction=red_param)
+            self.criterionL2_bg = torch.nn.MSELoss(reduction=red_param)
             # initialize optimizers; schedulers will be automatically created by function <BaseModel.setup>.
             self.optimizer_G = torch.optim.Adam(self.netG.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
             self.optimizer_D = torch.optim.Adam(self.netD.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
@@ -127,9 +127,10 @@ class Pix2PixModel(BaseModel):
         if self.nifti or L1_lesions_only:
             self.mask = input['mask']
         else:
-            # If we are not using nifti the mask is just the image itself
+            # If we calculate L1 for all pixels, we don't need a mask
             self.mask = torch.ones(self.real_A.shape, dtype=torch.uint8)
         self.mask = self.mask.to(self.device)
+
         if self.nifti and 'truth' in input and input['truth'] is not None:
             self.truth = input['truth']
         else:
@@ -171,21 +172,20 @@ class Pix2PixModel(BaseModel):
     
         # Second, G(A) = B
         # Compute the L1 loss only on the masked values
-        self.loss_G_L1 = self.criterionL1(self.fake_B[:, 0:1, :,:] * self.mask,
+        self.loss_G_L1 = self.criterionL1_ls(self.fake_B[:, 0:1, :,:] * self.mask,
                                           self.real_B[:, 0:1, :, :] * self.mask) * self.opt.lambda_L1
-
-        # I use T Loss for penalizing background instead of Tumor (all background, not just WM or brain mask.)
-        self.loss_G_L2_T = self.criterionL1(self.fake_B * (1-self.mask),
-                                               self.real_B * (1-self.mask)) * self.opt.gamma_TMSE
-        
-        #print(self.loss_G_L1, self.loss_G_L2_T)
-
-        # TODO maybe it helps to load a brain mask as input['mask'] 
         self.loss_G_L1 = zero_division(self.loss_G_L1, torch.sum(self.mask))
+
+        # edge cases: 
+        # if mask is all ones, L1 is calculated on all pixels, L2 is not calculated. 
+        # if mask is all zeroes, l1 is not calculated, L2 is calculated on all pixels.
         
-        # print(self.loss_G_L1, self.loss_G_L2_T)
+        # compute L2 loss in background area
+        self.loss_G_L_BG = self.criterionL2_bg(self.fake_B * (1 - self.mask),
+                                             self.real_B * (1 - self.mask) * self.opt.lambda_L2_background)
+        self.loss_G_L_BG = zero_division(self.loss_G_L_BG, torch.sum(1 - self.mask))
         # combine loss and calculate gradients
-        self.loss_G = self.loss_G_GAN + self.loss_G_L1  + self.loss_G_L2_T
+        self.loss_G = self.loss_G_GAN + self.loss_G_L1  + self.loss_G_L_BG
         if self.fp16:
             from apex import amp
             with amp.scale_loss(self.loss_G, self.optimizer_G, loss_id=1) as scaled_loss:

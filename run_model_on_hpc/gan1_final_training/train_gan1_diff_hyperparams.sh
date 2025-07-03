@@ -1,12 +1,12 @@
 #!/bin/bash
 
 #SBATCH --job-name="gan1_Lhyperparam_training"
-#SBATCH --time=04-00:00:00
-#SBATCH --partition=clara
+#SBATCH --time=02-00:00:00
+#SBATCH --partition=paula
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=12
-#SBATCH --gpus=rtx2080ti
+#SBATCH --gpus=a30
 #SBATCH --mem-per-cpu=8G
 #SBATCH --output=slurm-%x-%j.out
 #SBATCH --error=slurm-%x-%j.err 
@@ -33,7 +33,7 @@ apptainer exec --nv $IMAGE bash <<EOF
     --print_model_info \
     --name gan1_${SLURM_ARRAY_TASK_ID}_L1ls${LAMBDA_LESION}_L2bg${LAMBDA_BG}_up${UPSAMPLING}_ngf${NGF} \
     --model pix2pix3d \
-    --dataset_mode gan1_dataset \
+    --dataset_mode gan1 \
     --norm instance \
     --lambda_L1 "$LAMBDA_LESION" \
     --lambda_L2_background "$LAMBDA_BG" \

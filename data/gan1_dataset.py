@@ -3,22 +3,24 @@ import torch
 import nibabel as nib
 from data.base_dataset import BaseDataset
 
-class GAN1Dataset(BaseDataset):
-    """Dataset für Pix2Pix mit NifTi-Bildern"""
+class MyNiftiDataset(BaseDataset):
+    """
+    Dataset class for loading Nifti images for GAN training/testing. This class is written to import data to train or test the GAN1 model, which 
+    is a 3D U-Net model for brain lesion generation.
+    """
 
     @staticmethod
     def modify_commandline_options(parser, is_train):
-        """Fügt spezifische Optionen für das Dataset hinzu."""
+        """Adds command line options for the dataset"""
         parser.add_argument('--L1_lesions_only', action='store_true', help='Computes L1 only for lesion areas.')
         parser.add_argument('--crop_imgs', action='store_true', help='Croppes the input images to a 128³ cube. Use unet_128 if true.')
-        parser.add_argument('--lambda_L2_background', type=int, default=0, help='lambda for L2 background calculation.')
         return parser
 
     def __init__(self, opt):
-        """Initialisiert das Dataset"""
+        
         super().__init__(opt)
 
-        # Speicherorte der Bilder
+        # where images are stored
         self.source_dir = os.path.join(opt.dataroot, "train_gan1", "source")
         self.target_dir = os.path.join(opt.dataroot, "train_gan1", "target")
 

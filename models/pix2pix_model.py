@@ -181,11 +181,11 @@ class Pix2PixModel(BaseModel):
         # if mask is all zeroes, l1 is not calculated, L2 is calculated on all pixels.
         
         # compute L2 loss in background area
-        self.loss_G_L_BG = self.criterionL2_bg(self.fake_B * (1 - self.mask),
+        self.loss_G_L2_BG = self.criterionL2_bg(self.fake_B * (1 - self.mask),
                                              self.real_B * (1 - self.mask) * self.opt.lambda_L2_background)
-        self.loss_G_L_BG = zero_division(self.loss_G_L_BG, torch.sum(1 - self.mask))
+        self.loss_G_L2_BG = zero_division(self.loss_G_L2_BG, torch.sum(1 - self.mask))
         # combine loss and calculate gradients
-        self.loss_G = self.loss_G_GAN + self.loss_G_L1  + self.loss_G_L_BG
+        self.loss_G = self.loss_G_GAN + self.loss_G_L1  + self.loss_G_L2_BG
         if self.fp16:
             from apex import amp
             with amp.scale_loss(self.loss_G, self.optimizer_G, loss_id=1) as scaled_loss:

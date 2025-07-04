@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name="gan1_Lhyperparam_training"
+#SBATCH --job-name="gan1_hyperparam_training"
 #SBATCH --time=02-00:00:00
 #SBATCH --partition=paula
 #SBATCH --nodes=1
@@ -11,6 +11,8 @@
 #SBATCH --output=slurm-%x-%j.out
 #SBATCH --error=slurm-%x-%j.err 
 #SBATCH --array=1-30
+
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
 IMAGE="/home/sc.uni-leipzig.de/iu71daji/masterthesis/containers/nifti_img.sif"
 WORKDIR="/home/sc.uni-leipzig.de/iu71daji/masterthesis/Pix2PixNIfTI"

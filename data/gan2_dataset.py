@@ -13,7 +13,7 @@ names have to match and it's the same no matter if it is test or training images
 
 The given Images have to be already 2D slices and only slices, which contain lesion voxels are 
 used. The Lesion masks are already dilated and lesion_mask and mri have the same basename. 
-Images are expected to be in PNG format. See preprocessing for more details.
+Images are expected to be 2d numpy arrays. saved as '.npy'. See preprocessing for more details.
 
  -> load them in, arrange source and target. 
         (source: channel 1: grayscale mri, but deleted where lesion mask is + lesion_mask in channel 2)
@@ -73,16 +73,16 @@ class Gan2Dataset(BaseDataset):
         for fold in folds: 
             flair_dir = os.path.join(opt.dataroot, f"fold_{fold}", "flair_slices")
             lsmsk_dir = os.path.join(opt.dataroot, f"fold_{fold}", "lesion_slices")
-            # naming: umcl_patient01_flair_slice_051.png umcl_patient25_mask_slice_112.png
+            # naming: umcl_patient01_flair_slice_051.npy umcl_patient25_mask_slice_112.npy
             for fname in os.listdir(flair_dir):
-                if fname.endswith(".png"):
+                if fname.endswith(".npy"):
                     flair_path = os.path.join(flair_dir, fname)
                     lsmsk_path = os.path.join(lsmsk_dir, fname.replace("flair", "mask"))
                     if os.path.exists(lsmsk_path):
                         self.samples.append(
                             {
                             "fold" : fold,
-                            "basename": fname.replace(".png", "").replace("flair", ""),
+                            "basename": fname.replace(".npy", "").replace("flair", ""),
                             "flair_path": flair_path,
                             "lsmsk_path": lsmsk_path
                             })
@@ -95,13 +95,9 @@ class Gan2Dataset(BaseDataset):
 
         sample = self.samples[index]
 
+        flair_img = np.load(sample["flair_path"])
+        lsmsk_img = np.load(sample["lsmsk_path"])
         
-        flair_img = Image.open(sample["flair_path"]).convert('L')  # 'L' for grayscale
-        flair_img = np.array(flair_img)
-
-
-        lsmsk_img = Image.open(sample["lsmsk_path"]).convert('L')
-        lsmsk_img = np.array(lsmsk_img)
         assert lsmsk_img.unique().tolist() == [0, 1], "Lesion mask should be binary with values 0 and 1."
 
         self.original_shape = lsmsk_img.shape

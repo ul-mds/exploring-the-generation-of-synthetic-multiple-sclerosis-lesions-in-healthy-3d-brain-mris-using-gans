@@ -196,6 +196,15 @@ def save_image(image_numpy, image_path, aspect_ratio=1.0):
         image_path (str)          -- the path of the image
     """
 
+    if image_numpy.dtype != np.uint8:
+        min_val = float(image_numpy.min())
+        max_val = float(image_numpy.max())
+        if max_val - min_val > 1e-5:  # avoid divide-by-zero image_numpy =
+            (image_numpy - min_val) / (max_val - min_val)
+        else: 
+            image_numpy = np.zeros_like(image_numpy)  # flat image
+            image_numpy = (image_numpy * 255).astype(np.uint8)
+    
     image_pil = Image.fromarray(image_numpy)
 
     h, w = image_numpy.shape[:2]
@@ -224,7 +233,6 @@ def print_numpy(x, val=True, shp=False):
     """Print the mean, min, max, median, std, and size of a numpy array
 
     Parameters:
-        val (bool) -- if print the values of the numpy array
         shp (bool) -- if print the shape of the numpy array
     """
     x = x.astype(np.float64)
@@ -255,5 +263,5 @@ def mkdir(path):
     Parameters:
         path (str) -- a single directory path
     """
-    if not os.path.exists(path):
-        os.makedirs(path)
+
+    os.makedirs(path, exist_ok = True)

@@ -23,7 +23,7 @@ LAMBDA_LESION=300
 UPSAMPLING="deconvolution"
 NGF=32
 ALL_FOLDS=(0 1 2 3 4)
-FOLD=${ALL_FOLDS[$((SLURM_ARRAY_TASK_ID - 1))]}
+FOLD=${ALL_FOLDS[$(($SLURM_ARRAY_TASK_ID - 1))]}
 apptainer exec --nv $IMAGE bash <<EOF
     cd $WORKDIR
     pip install --upgrade pip
@@ -35,9 +35,9 @@ apptainer exec --nv $IMAGE bash <<EOF
     python train.py \
     --dataroot /home/sc.uni-leipzig.de/iu71daji/thesis_gan2/train_gan2 \
     --phase train \
-    --save_epoch_freq 100 \
+    --save_epoch_freq 50 \
     --print_model_info \
-    --name gan2_$left_out_fold{SLURM_ARRAY_TASK_ID-1}_L1ls${LAMBDA_LESION}_L2bg${LAMBDA_BG}_up${UPSAMPLING}_ngf${NGF} \
+    --name gan2_left_out_fold${FOLD}_L1${LAMBDA_LESION}_L2${LAMBDA_BG}_${UPSAMPLING}_ngf${NGF} \
     --model pix2pix \
     --dataset_mode gan2 \
     --norm instance \

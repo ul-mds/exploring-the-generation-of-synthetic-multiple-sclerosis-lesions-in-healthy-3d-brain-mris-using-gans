@@ -202,7 +202,7 @@ def save_image(image_numpy, image_path, aspect_ratio=1.0):
             image_numpy = (image_numpy - min_val) / (max_val - min_val)
         else: 
             image_numpy = np.zeros_like(image_numpy)  # flat image
-            image_numpy = (image_numpy * 255).astype(np.uint8)
+        image_numpy = (image_numpy * 255).astype(np.uint8)
     
     image_pil = Image.fromarray(image_numpy)
 

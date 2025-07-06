@@ -27,15 +27,15 @@ import time
 import torch
 
 # Fimos trying to debug the container: 
-import debugpy
+#import debugpy
 
 # Starte den Debugging-Server
-debugpy.listen(("0.0.0.0", 5678))
-print("🚀 Warten auf Debugger Attach auf Port 5678...")
+#debugpy.listen(("0.0.0.0", 5678))
+#print("🚀 Warten auf Debugger Attach auf Port 5678...")
 
 # Optional: hier anhalten bis sich dein Debugger verbunden hat
-debugpy.wait_for_client()
-print("✅ Debugger verbunden!")
+#debugpy.wait_for_client()
+#print("✅ Debugger verbunden!")
 
 # end of Fimos stuff. 
 

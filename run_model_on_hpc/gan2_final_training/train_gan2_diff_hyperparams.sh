@@ -18,12 +18,12 @@ IMAGE="/home/sc.uni-leipzig.de/iu71daji/masterthesis/containers/nifti_img.sif"
 WORKDIR="/home/sc.uni-leipzig.de/iu71daji/masterthesis/Pix2PixNIfTI"
 
 #read LAMBDA_LESION LAMBDA_BG UPSAMPLING NGF < <(sed -n "${SLURM_ARRAY_TASK_ID}p" hyperparams.txt)
-LAMBDA_BG = 100 
-LAMBDA_LESION = 300 
+LAMBDA_BG=100 
+LAMBDA_LESION=300 
 UPSAMPLING="deconvolution"
 NGF=32
-ALL_FOLDS = (0 1 2 3 4)
-FOLD =${ALL_FOLDS[$((SLURM_ARRAY_TASK_ID - 1))]}
+ALL_FOLDS=(0 1 2 3 4)
+FOLD=${ALL_FOLDS[$((SLURM_ARRAY_TASK_ID - 1))]}
 apptainer exec --nv $IMAGE bash <<EOF
     cd $WORKDIR
     pip install --upgrade pip
@@ -33,7 +33,7 @@ apptainer exec --nv $IMAGE bash <<EOF
 
     # start training
     python train.py \
-    --dataroot /home/sc.uni-leipzig.de/iu71daji/thesis_gan2 \
+    --dataroot /home/sc.uni-leipzig.de/iu71daji/thesis_gan2/train_gan2 \
     --phase train \
     --save_epoch_freq 100 \
     --print_model_info \
@@ -43,8 +43,6 @@ apptainer exec --nv $IMAGE bash <<EOF
     --norm instance \
     --lambda_L1 "$LAMBDA_LESION" \
     --lambda_L2_background "$LAMBDA_BG" \
-    --input_nc 1 \
-    --output_nc 1 \
     --netG unet_256 \
     --ngf ${NGF} \
     --ndf 16 \

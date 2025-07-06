@@ -33,7 +33,7 @@ apptainer exec --nv $IMAGE bash <<EOF
     --phase train \
     --save_epoch_freq 100 \
     --print_model_info \
-    --name gan1_${SLURM_ARRAY_TASK_ID}_L1ls${LAMBDA_LESION}_L2bg${LAMBDA_BG}_up${UPSAMPLING}_ngf${NGF} \
+    --name gan1_${SLURM_ARRAY_TASK_ID}_L1{LAMBDA_LESION}_L2${LAMBDA_BG}_${UPSAMPLING}_ngf${NGF}_060725 \
     --model pix2pix3d \
     --dataset_mode gan1 \
     --norm instance \
@@ -51,5 +51,6 @@ apptainer exec --nv $IMAGE bash <<EOF
     --preprocess none \
     --no_flip \
     --verbose \
-    --L1_lesions_only
+    --L1_lesions_only \
+    --checkpoints_dir /work/iu71daji-model_checkpoints 
 EOF

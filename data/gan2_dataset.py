@@ -50,7 +50,7 @@ class Gan2Dataset(BaseDataset):
             the modified parser.
         """
         parser.add_argument('--L1_lesions_only', action='store_true', help='Computes L1 only for lesion areas.')
-        parser.add_argument('--k_fold ', type=int, default=-1, help='K-fold cross-validation. -1: no k-fold, 0-4: use fold_x).')
+        #parser.add_argument('--k_fold', type=int, default=-1, help='K-fold cross-validation. -1: no k-fold, 0-4: use fold_x).')
         return parser
 
 
@@ -72,12 +72,12 @@ class Gan2Dataset(BaseDataset):
 
         for fold in folds: 
             flair_dir = os.path.join(opt.dataroot, f"fold_{fold}", "flair_slices")
-            lsmsk_dir = os.path.join(opt.dataroot, f"fold_{fold}", "lesion_slices")
+            lsmsk_dir = os.path.join(opt.dataroot, f"fold_{fold}", "mask_slices")
             # naming: umcl_patient01_flair_slice_051.npy umcl_patient25_mask_slice_112.npy
             for fname in os.listdir(flair_dir):
                 if fname.endswith(".npy"):
                     flair_path = os.path.join(flair_dir, fname)
-                    lsmsk_path = os.path.join(lsmsk_dir, fname.replace("flair", "mask"))
+                    lsmsk_path = os.path.join(lsmsk_dir, fname.replace("flair", "lsmsk"))
                     if os.path.exists(lsmsk_path):
                         self.samples.append(
                             {
@@ -98,7 +98,7 @@ class Gan2Dataset(BaseDataset):
         flair_img = np.load(sample["flair_path"])
         lsmsk_img = np.load(sample["lsmsk_path"])
         
-        assert lsmsk_img.unique().tolist() == [0, 1], "Lesion mask should be binary with values 0 and 1."
+        assert np.unique(lsmsk_img).tolist() == [0, 1], "Lesion mask should be binary with values 0 and 1."
 
         self.original_shape = lsmsk_img.shape
 
@@ -110,13 +110,13 @@ class Gan2Dataset(BaseDataset):
         empty = np.zeros_like(flair_img)
 
         # scale flair to [-1, 1]
-        masked_flair = masked_flair.astype(np.float32) / 127.5 - 1.0
-        flair_img     = flair_img.astype(np.float32) / 127.5 - 1.0
+        masked_flair_scaled = masked_flair.astype(np.float32) / 127.5 - 1.0
+        flair_img_scaled     = flair_img.astype(np.float32) / 127.5 - 1.0
 
         # Source Tensor: orignal mri with lesionregions labeled as 0 [3, H, W]
         # 3 channels -> masked flair, lsmsk_img, empty
         
-        source_array = np.stack([masked_flair, lsmsk_img, empty], axis=0)
+        source_array = np.stack([masked_flair_scaled, lsmsk_img, empty], axis=0)
         source_tensor = torch.tensor(source_array, dtype=torch.float32)
 
         if self.is_test: 
@@ -124,11 +124,11 @@ class Gan2Dataset(BaseDataset):
         else: 
             # Target Tensor: only original mri [3, H, W]
             # 3 channels -> unmasked flair, lsmsk_img, empty
-            target_array = np.stack([flair_img, lsmsk_img, empty], axis=0)
+            target_array = np.stack([flair_img_scaled, lsmsk_img, empty], axis=0)
             target_tensor = torch.tensor(target_array, dtype=torch.float32)
 
             # get "BrainMask" / non-background area -> area where flair_img != 0. 
-            brainmask_tensor = (flair_img != 0).float()
+            brainmask_tensor = torch.tensor(flair_img != 0, dtype=torch.float32)
 
             return {"A": source_tensor, "B": target_tensor, "mask": brainmask_tensor, 
                         "A_paths": sample["flair_path"], "B_paths": sample["flair_path"]}

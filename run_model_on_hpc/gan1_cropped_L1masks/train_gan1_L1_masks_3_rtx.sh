@@ -52,5 +52,5 @@ apptainer exec --nv $IMAGE bash <<EOF
     --preprocess none \
     --no_flip \
     --verbose \
-    --L1_lesions_only
+    --L1_mask_only
 EOF

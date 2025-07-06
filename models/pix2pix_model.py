@@ -33,8 +33,9 @@ class Pix2PixModel(BaseModel):
         # changing the default values to match the pix2pix paper (https://phillipi.github.io/pix2pix/)
         parser.set_defaults(norm='batch', netG='unet_256', dataset_mode='aligned')
         parser.add_argument('--lambda_L1', type=float, default=100.0, help='weight for L1 loss')
-        parser.add_argument('--lambda_L2_background', type=float, default=100.0, help='weight for L2 truth loss in background area.')
+        parser.add_argument('--lambda_L2', type=float, default=100.0, help='weight for L2 truth loss in background area.')
         parser.add_argument('--k_fold', type=int, default=-1, help='fold which is not used for training, but saved for testing.')
+        parser.add_argument('--gan2', action='store_true', help='Use GAN2 model, which has a different loss function.')
         if is_train:
             parser.set_defaults(pool_size=0, gan_mode='vanilla')
 
@@ -88,7 +89,7 @@ class Pix2PixModel(BaseModel):
             # define loss functions
             self.criterionGAN = networks.GANLoss(opt.gan_mode).to(self.device)
             self.criterionL1_ls = torch.nn.L1Loss(reduction=red_param)
-            self.criterionL2_bg = torch.nn.MSELoss(reduction=red_param)
+            self.criterionL2 = torch.nn.MSELoss(reduction=red_param)
             # initialize optimizers; schedulers will be automatically created by function <BaseModel.setup>.
             self.optimizer_G = torch.optim.Adam(self.netG.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
             self.optimizer_D = torch.optim.Adam(self.netD.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
@@ -108,7 +109,7 @@ class Pix2PixModel(BaseModel):
         if len(opt.gpu_ids) > 0:
             self.netG = torch.nn.DataParallel(self.netG, opt.gpu_ids)  # multi-GPUs
 
-    def set_input(self, input, L1_lesions_only=False):
+    def set_input(self, input, L1_mask_only=False):
         """Unpack input data from the dataloader and perform necessary pre-processing steps.
 
         Parameters:
@@ -125,7 +126,7 @@ class Pix2PixModel(BaseModel):
             self.real_A = input['A'].to(self.device)
             self.real_B = None
 
-        if self.nifti or L1_lesions_only:
+        if self.nifti or L1_mask_only:
             self.mask = input['mask']
         else:
             # If we calculate L1 for all pixels, we don't need a mask
@@ -166,27 +167,32 @@ class Pix2PixModel(BaseModel):
 
     def backward_G(self):
         """Calculate GAN and L1 loss for the generator"""
-        # First, G(A) should fake the discriminator
+
+        # 1. GAN loss: G(A) should fool the discriminator
         fake_AB = torch.cat((self.real_A, self.fake_B), 1)
         pred_fake = self.netD(fake_AB)
         self.loss_G_GAN = self.criterionGAN(pred_fake, True)
     
-        # Second, G(A) = B
-        # Compute the L1 loss only on the masked values
+        # # 2. L1 loss in lesion or brain regions, depending on gan type (if flag L1_mask_only is set, otherwise mask is all ones)
         self.loss_G_L1 = self.criterionL1_ls(self.fake_B[:, 0:1, :,:] * self.mask,
                                           self.real_B[:, 0:1, :, :] * self.mask) * self.opt.lambda_L1
         self.loss_G_L1 = zero_division(self.loss_G_L1, torch.sum(self.mask))
-
-        # edge cases: 
-        # if mask is all ones, L1 is calculated on all pixels, L2 is not calculated. 
-        # if mask is all zeroes, l1 is not calculated, L2 is calculated on all pixels.
         
-        # compute L2 loss in background area
-        self.loss_G_L2_BG = self.criterionL2_bg(self.fake_B * (1 - self.mask),
-                                             self.real_B * (1 - self.mask) * self.opt.lambda_L2_background)
-        self.loss_G_L2_BG = zero_division(self.loss_G_L2_BG, torch.sum(1 - self.mask))
+         # 3. L2 loss in background or lesion regions, depending on gan type
+        if self.opt.gan2:
+            # calculate L2 loss for lesion areas,  # in gan2: lesion mask is in channel 1 of real_B
+            lsmsk_tensor = self.real_B[:, 1:2, :, :]
+            self.loss_G_L2 = self.criterionL2(self.fake_B * lsmsk_tensor,
+                                              self.real_B * lsmsk_tensor) * self.opt.lambda_L2
+            self.loss_G_L2 = zero_division(self.loss_G_L2, torch.sum(lsmsk_tensor))
+        else: 
+            # calculate L2 loss for background, using (1-mask)
+            self.loss_G_L2 = self.criterionL2(self.fake_B * (1 - self.mask),
+                                             self.real_B * (1 - self.mask)) * self.opt.lambda_L2
+            self.loss_G_L2 = zero_division(self.loss_G_L2, torch.sum(1 - self.mask))
+
         # combine loss and calculate gradients
-        self.loss_G = self.loss_G_GAN + self.loss_G_L1  + self.loss_G_L2_BG
+        self.loss_G = self.loss_G_GAN + self.loss_G_L1  + self.loss_G_L2
         if self.fp16:
             from apex import amp
             with amp.scale_loss(self.loss_G, self.optimizer_G, loss_id=1) as scaled_loss:

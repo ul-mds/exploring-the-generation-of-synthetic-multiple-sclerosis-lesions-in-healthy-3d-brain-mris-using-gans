@@ -51,5 +51,5 @@ apptainer exec --nv $IMAGE bash <<EOF
     --verbose \
     --n_epochs_decay 0 \
     --n_epochs 50 \
-    --L1_lesions_only
+    --L1_mask_only
 EOF

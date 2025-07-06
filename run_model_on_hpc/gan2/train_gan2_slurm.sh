@@ -51,7 +51,7 @@ apptainer exec --nv $IMAGE bash <<EOF
     --no_flip \
     --display_id 0 \
     --verbose \
-    --L1_lesions_only \
+    --L1_mask_only \
     --n_epochs_decay 0 \
     --n_epochs 50
 EOF

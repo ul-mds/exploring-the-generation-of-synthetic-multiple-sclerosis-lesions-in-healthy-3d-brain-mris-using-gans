@@ -17,7 +17,7 @@ export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 IMAGE="/home/sc.uni-leipzig.de/iu71daji/masterthesis/containers/nifti_img.sif"
 WORKDIR="/home/sc.uni-leipzig.de/iu71daji/masterthesis/Pix2PixNIfTI"
 
-read LAMBDA_LESION LAMBDA_BG UPSAMPLING NGF < <(sed -n "${SLURM_ARRAY_TASK_ID}p" hyperparams.txt)
+read LAMBDA_LESION LAMBDA_BG UPSAMPLING NGF < <(sed -n "${SLURM_ARRAY_TASK_ID}p" gan1_hyperparams.txt)
 
 
 apptainer exec --nv $IMAGE bash <<EOF
@@ -38,7 +38,7 @@ apptainer exec --nv $IMAGE bash <<EOF
     --dataset_mode gan1 \
     --norm instance \
     --lambda_L1 "$LAMBDA_LESION" \
-    --lambda_L2_background "$LAMBDA_BG" \
+    --lambda_L2 "$LAMBDA_BG" \
     --input_nc 1 \
     --output_nc 1 \
     --netG unet_256 \
@@ -51,5 +51,5 @@ apptainer exec --nv $IMAGE bash <<EOF
     --preprocess none \
     --no_flip \
     --verbose \
-    --L1_lesions_only
+    --L1_mask_only
 EOF

@@ -12,7 +12,7 @@ class Gan1Dataset(BaseDataset):
     @staticmethod
     def modify_commandline_options(parser, is_train):
         """Adds command line options for the dataset"""
-        parser.add_argument('--L1_lesions_only', action='store_true', help='Computes L1 only for lesion areas.')
+        parser.add_argument('--L1_mask_only', action='store_true', help='Computes L1 only for mask area (e.g. Brain or lesion mask).')
         parser.add_argument('--crop_imgs', action='store_true', help='Croppes the input images to a 128³ cube. Use unet_128 if true.')
         return parser
 
@@ -31,7 +31,7 @@ class Gan1Dataset(BaseDataset):
             self.basenames = []
         
         # Lesion mask only for L1 
-        self.L1_lesions_only = opt.L1_lesions_only
+        self.L1_mask_only = opt.L1_mask_only
 
         # crop imgs from 256 to 128 ? 
         self.crop_imgs = opt.crop_imgs
@@ -87,7 +87,7 @@ class Gan1Dataset(BaseDataset):
             target_tensor = torch.tensor(target_img, dtype=torch.float32).unsqueeze(0)
             
             # the mask for L1 == target_gan1, it's the same Input. 
-            if self.L1_lesions_only: 
+            if self.L1_mask_only: 
                 mask_tensor = target_tensor.clone()
                 return {"A": source_tensor, "B": target_tensor, "mask": mask_tensor, 
                         "A_paths": source_path, "B_paths": target_path}

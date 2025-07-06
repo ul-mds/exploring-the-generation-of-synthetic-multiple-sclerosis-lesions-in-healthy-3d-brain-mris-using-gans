@@ -49,7 +49,7 @@ class Gan2Dataset(BaseDataset):
         Returns:
             the modified parser.
         """
-        parser.add_argument('--L1_lesions_only', action='store_true', help='Computes L1 only for lesion areas.')
+        parser.add_argument('--L1_mask_only', action='store_true', help='Computes L1 only for lesion areas.')
         #parser.add_argument('--k_fold', type=int, default=-1, help='K-fold cross-validation. -1: no k-fold, 0-4: use fold_x).')
         return parser
 

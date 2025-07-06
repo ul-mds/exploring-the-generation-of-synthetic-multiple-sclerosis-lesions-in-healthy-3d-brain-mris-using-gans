@@ -17,9 +17,8 @@ export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 IMAGE="/home/sc.uni-leipzig.de/iu71daji/masterthesis/containers/nifti_img.sif"
 WORKDIR="/home/sc.uni-leipzig.de/iu71daji/masterthesis/Pix2PixNIfTI"
 
-#read LAMBDA_LESION LAMBDA_BG UPSAMPLING NGF < <(sed -n "${SLURM_ARRAY_TASK_ID}p" hyperparams.txt)
-LAMBDA_BG=100 
-LAMBDA_LESION=300 
+LAMBDA_LS=100 
+LAMBDA_BRAIN=300 
 UPSAMPLING="deconvolution"
 NGF=32
 ALL_FOLDS=(0 1 2 3 4)
@@ -37,12 +36,12 @@ apptainer exec --nv $IMAGE bash <<EOF
     --phase train \
     --save_epoch_freq 100 \
     --print_model_info \
-    --name gan2_$left_out_fold{SLURM_ARRAY_TASK_ID-1}_L1ls${LAMBDA_LESION}_L2bg${LAMBDA_BG}_up${UPSAMPLING}_ngf${NGF} \
+    --name gan2_$left_out_fold{SLURM_ARRAY_TASK_ID-1}_L1ls${LAMBDA_BRAIN}_L2bg${LAMBDA_LS}_up${UPSAMPLING}_ngf${NGF} \
     --model pix2pix \
     --dataset_mode gan2 \
     --norm instance \
-    --lambda_L1 "$LAMBDA_LESION" \
-    --lambda_L2_background "$LAMBDA_BG" \
+    --lambda_L1 "$LAMBDA_BRAIN" \
+    --lambda_L2 "$LAMBDA_LS" \
     --netG unet_256 \
     --ngf ${NGF} \
     --ndf 16 \
@@ -54,6 +53,7 @@ apptainer exec --nv $IMAGE bash <<EOF
     --no_flip \
     --display_id 0 \
     --verbose \
-    --L1_lesions_only \
-    --k_fold $FOLD
+    --L1_mask_only \
+    --k_fold $FOLD \
+    --gan2
 EOF

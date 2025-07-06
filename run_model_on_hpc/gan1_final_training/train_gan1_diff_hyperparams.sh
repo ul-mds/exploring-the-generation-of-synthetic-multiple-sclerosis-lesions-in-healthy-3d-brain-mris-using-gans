@@ -10,7 +10,7 @@
 #SBATCH --mem-per-cpu=8G
 #SBATCH --output=slurm-%x-%j.out
 #SBATCH --error=slurm-%x-%j.err 
-#SBATCH --array=1-30
+#SBATCH --array=1-10
 
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
@@ -51,6 +51,5 @@ apptainer exec --nv $IMAGE bash <<EOF
     --preprocess none \
     --no_flip \
     --verbose \
-    --L1_lesions_only \
-    --checkpoints_dir /work/iu71daji-model_checkpoints 
+    --L1_lesions_only
 EOF

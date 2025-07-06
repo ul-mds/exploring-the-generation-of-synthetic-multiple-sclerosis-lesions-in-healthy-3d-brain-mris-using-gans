@@ -3,7 +3,7 @@ import torch
 import nibabel as nib
 from data.base_dataset import BaseDataset
 
-class MyNiftiDataset(BaseDataset):
+class Gan1Dataset(BaseDataset):
     """
     Dataset class for loading Nifti images for GAN training/testing. This class is written to import data to train or test the GAN1 model, which 
     is a 3D U-Net model for brain lesion generation.

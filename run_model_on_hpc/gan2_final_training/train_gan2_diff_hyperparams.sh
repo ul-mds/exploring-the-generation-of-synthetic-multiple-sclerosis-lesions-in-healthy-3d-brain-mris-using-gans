@@ -17,12 +17,8 @@ export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 IMAGE="/home/sc.uni-leipzig.de/iu71daji/masterthesis/containers/nifti_img.sif"
 WORKDIR="/home/sc.uni-leipzig.de/iu71daji/masterthesis/Pix2PixNIfTI"
 
-LAMBDA_LS=100 
-LAMBDA_BRAIN=300 
-UPSAMPLING="deconvolution"
-NGF=32
-ALL_FOLDS=(0 1 2 3 4)
-FOLD=${ALL_FOLDS[$(($SLURM_ARRAY_TASK_ID - 1))]}
+read LAMBDA_LS LAMBDA_BRAIN UPSAMPLING NGF FOLD < <(sed -n "${SLURM_ARRAY_TASK_ID}p" gan2_hyperparams.txt)
+
 apptainer exec --nv $IMAGE bash <<EOF
     cd $WORKDIR
     pip install --upgrade pip
@@ -36,24 +32,24 @@ apptainer exec --nv $IMAGE bash <<EOF
     --phase train \
     --save_epoch_freq 50 \
     --print_model_info \
-    --name gan2_$left_out_fold{FOLD}_L1${LAMBDA_BRAIN}_L2${LAMBDA_LS}_${UPSAMPLING}_ngf${NGF} \
+    --name gan2_left_out_fold${FOLD}_L1${LAMBDA_BRAIN}_L2${LAMBDA_LS}_${UPSAMPLING}_ngf${NGF} \
     --model pix2pix \
     --dataset_mode gan2 \
     --norm instance \
-    --lambda_L1 "$LAMBDA_BRAIN" \
-    --lambda_L2 "$LAMBDA_LS" \
+    --lambda_L1 ${LAMBDA_BRAIN} \
+    --lambda_L2 ${LAMBDA_LS} \
     --netG unet_256 \
     --ngf ${NGF} \
     --ndf 16 \
     --gan_mode 'lsgan' \
     --upsampling ${UPSAMPLING} \
     --n_epochs_decay 0 \
-    --n_epochs 800 \
+    --n_epochs 450 \
     --preprocess none \
     --no_flip \
     --display_id 0 \
     --verbose \
     --L1_mask_only \
-    --k_fold $FOLD \
+    --k_fold ${FOLD} \
     --gan2
 EOF

@@ -10,7 +10,7 @@
 #SBATCH --mem-per-cpu=8G
 #SBATCH --output=slurm-%x-%j.out
 #SBATCH --error=slurm-%x-%j.err 
-#SBATCH --array=1-5
+#SBATCH --array=1-50
 
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
@@ -50,6 +50,5 @@ apptainer exec --nv $IMAGE bash <<EOF
     --display_id 0 \
     --verbose \
     --L1_mask_only \
-    --k_fold ${FOLD} \
-    --gan2
+    --k_fold ${FOLD}
 EOF

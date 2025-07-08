@@ -1,13 +1,22 @@
+"""
+In GAN2 l1 is computed for the hole brain and l2 only for the lesion mask.
+Therefore Lesion-Areas conut twice in the loss function, if L2 is greater than zero.
+"""
 import itertools, random
 
+<<<<<<< HEAD
 ALL_LAMBDA_L1_LESIONS = [50, 100, 150, 200, 250]
 ALL_LAMBDA_L2_BACKGROUND = [0, 20, 50, 70, 100]
+=======
+ALL_LAMBDA_L1 = [20, 50, 100, 200, 300]
+ALL_LAMBDA_L2 = [0, 20, 40, 70, 100, 200]
+>>>>>>> 7654a5140bcc4208c108ce2dbbe4e26e1624c023
 ALL_UPSAMPLING = ['deconvolution', 'linear']
-ALL_NGF = [16, 32, 64]
+ALL_NGF = [16, 32]
 FOLDS = [0, 1, 2, 3, 4]
 combos = list(itertools.product(
-    ALL_LAMBDA_L1_LESIONS,
-    ALL_LAMBDA_L2_BACKGROUND,
+    ALL_LAMBDA_L1,
+    ALL_LAMBDA_L2,
     ALL_UPSAMPLING,
     ALL_NGF
 ))

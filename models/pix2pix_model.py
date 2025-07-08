@@ -35,7 +35,7 @@ class Pix2PixModel(BaseModel):
         parser.add_argument('--lambda_L1', type=float, default=100.0, help='weight for L1 loss')
         parser.add_argument('--lambda_L2', type=float, default=100.0, help='weight for L2 truth loss in background area.')
         parser.add_argument('--k_fold', type=int, default=-1, help='fold which is not used for training, but saved for testing.')
-        parser.add_argument('--gan2', action='store_true', help='Use GAN2 model, which has a different loss function.')
+        parser.add_argument('--gan2', action='store_true', default=False, help='Use GAN2 model, which has a different loss function.')
         if is_train:
             parser.set_defaults(pool_size=0, gan_mode='vanilla')
 

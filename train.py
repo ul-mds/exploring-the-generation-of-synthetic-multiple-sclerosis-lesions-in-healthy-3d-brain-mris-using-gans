@@ -80,8 +80,8 @@ if __name__ == '__main__':
             epoch_iter += opt.batch_size
 
             # unpack data from dataset and apply preprocessing
-            if hasattr(opt, 'L1_lesions_only'):
-                model.set_input(data, opt.L1_lesions_only)
+            if hasattr(opt, 'L1_mask_only'):
+                model.set_input(data, opt.L1_mask_only)
             else:
                 model.set_input(data)
 

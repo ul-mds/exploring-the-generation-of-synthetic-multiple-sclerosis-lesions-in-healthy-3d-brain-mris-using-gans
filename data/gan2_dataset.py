@@ -82,7 +82,7 @@ class Gan2Dataset(BaseDataset):
                         self.samples.append(
                             {
                             "fold" : fold,
-                            "basename": fname.replace(".npy", "").replace("flair", ""),
+                            "basename": fname.replace(".npy", "").replace("_flair", ""),
                             "flair_path": flair_path,
                             "lsmsk_path": lsmsk_path
                             })

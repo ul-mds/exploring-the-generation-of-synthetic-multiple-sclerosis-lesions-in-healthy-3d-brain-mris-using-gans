@@ -17,7 +17,7 @@ export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 IMAGE="/home/sc.uni-leipzig.de/iu71daji/masterthesis/containers/nifti_img.sif"
 WORKDIR="/home/sc.uni-leipzig.de/iu71daji/masterthesis/Pix2PixNIfTI"
 
-read LAMBDA_LS LAMBDA_BRAIN UPSAMPLING NGF FOLD < <(sed -n "${SLURM_ARRAY_TASK_ID}p" gan2_hyperparams.txt)
+read LAMBDA_LS LAMBDA_BRAIN FOLD < <(sed -n "${SLURM_ARRAY_TASK_ID}p" gan2_hyperparams.txt)
 
 apptainer exec --nv $IMAGE bash <<EOF
     cd $WORKDIR
@@ -30,7 +30,7 @@ apptainer exec --nv $IMAGE bash <<EOF
     python train.py \
     --dataroot /home/sc.uni-leipzig.de/iu71daji/thesis_gan2/train_gan2 \
     --phase train \
-    --save_epoch_freq 50 \
+    --save_epoch_freq 25 \
     --print_model_info \
     --name gan2_left_out_fold${FOLD}_L1${LAMBDA_BRAIN}_L2${LAMBDA_LS}_${UPSAMPLING}_ngf${NGF} \
     --model pix2pix \
@@ -44,7 +44,7 @@ apptainer exec --nv $IMAGE bash <<EOF
     --gan_mode 'lsgan' \
     --upsampling ${UPSAMPLING} \
     --n_epochs_decay 0 \
-    --n_epochs 450 \
+    --n_epochs 75 \
     --preprocess none \
     --no_flip \
     --display_id 0 \

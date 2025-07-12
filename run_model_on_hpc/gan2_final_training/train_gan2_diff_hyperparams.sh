@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --job-name="gan2_hyperparam_training"
-#SBATCH --time=02-00:00:00
+#SBATCH --time=01-00:00:00
 #SBATCH --partition=paula
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
@@ -32,19 +32,19 @@ apptainer exec --nv $IMAGE bash <<EOF
     --phase train \
     --save_epoch_freq 25 \
     --print_model_info \
-    --name gan2_left_out_fold${FOLD}_L1${LAMBDA_BRAIN}_L2${LAMBDA_LS}_${UPSAMPLING}_ngf${NGF} \
+    --name gan2_left_out_fold${FOLD}_L1${LAMBDA_BRAIN}_L2${LAMBDA_LS} \
     --model pix2pix \
     --dataset_mode gan2 \
     --norm instance \
     --lambda_L1 ${LAMBDA_BRAIN} \
     --lambda_L2 ${LAMBDA_LS} \
     --netG unet_256 \
-    --ngf ${NGF} \
-    --ndf 16 \
+    --ngf 32 \
+    --ndf 32 \
     --gan_mode 'lsgan' \
-    --upsampling ${UPSAMPLING} \
+    --upsampling linear \
     --n_epochs_decay 0 \
-    --n_epochs 75 \
+    --n_epochs 100 \
     --preprocess none \
     --no_flip \
     --display_id 0 \

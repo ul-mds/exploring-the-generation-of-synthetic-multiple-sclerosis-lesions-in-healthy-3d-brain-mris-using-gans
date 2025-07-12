@@ -19,7 +19,7 @@ WORKDIR="/home/sc.uni-leipzig.de/iu71daji/masterthesis/Pix2PixNIfTI"
 
 read LAMBDA_LS LAMBDA_BRAIN UPSAMPLING NGF FOLD < <(sed -n "${SLURM_ARRAY_TASK_ID}p" gan2_hyperparams.txt)
 
-gan_name=gan2_left_out_fold${FOLD}_L1${LAMBDA_BRAIN}_L2${LAMBDA_LS}_${UPSAMPLING}_ngf${NGF}
+gan_name=gan2_left_out_fold${FOLD}_L1${LAMBDA_BRAIN}_L2${LAMBDA_LS}
 
 apptainer exec --nv $IMAGE bash <<EOF
     cd $WORKDIR
@@ -39,9 +39,9 @@ apptainer exec --nv $IMAGE bash <<EOF
     --dataset_mode gan2 \
     --norm instance \
     --netG unet_256 \
-    --ngf ${NGF} \
+    --ngf 32 \
     --ndf 32 \
-    --upsampling ${UPSAMPLING} \
+    --upsampling linear \
     --preprocess none \
     --no_flip \
     --num_test 100 \

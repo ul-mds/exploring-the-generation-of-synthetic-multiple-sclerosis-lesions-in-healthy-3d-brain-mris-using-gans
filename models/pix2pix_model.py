@@ -175,7 +175,7 @@ class Pix2PixModel(BaseModel):
         # # 2. L1 loss in lesion or brain regions, depending on gan type (if flag L1_mask_only is set, otherwise mask is all ones)
         self.loss_G_L1 = self.criterionL1_ls(self.fake_B[:, 0:1, :,:],
                                           self.real_B[:, 0:1, :, :]) * self.opt.lambda_L1
-        self.loss_G_L1 = zero_division(self.loss_G_L1, torch.sum(self.mask))
+        #self.loss_G_L1 = zero_division(self.loss_G_L1, torch.sum(self.mask))
         
          # 3. L2 loss in background or lesion regions, depending on gan type
         if self.opt.dataset_mode == "gan2":

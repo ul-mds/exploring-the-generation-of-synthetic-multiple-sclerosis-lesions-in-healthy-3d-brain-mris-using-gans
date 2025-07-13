@@ -41,26 +41,33 @@ def reconstruct_3d_from_slices(slice_dir, reference_flair_path, output_path, pre
     # new empty 3d image to fill with slices
     new_3d = np.zeros(ref_flair_data.shape, dtype=ref_flair_data.dtype)
 
+    img_index = 0
     for i in range(ref_flair_data.shape[0]): 
         flair_slice = ref_flair_data[i, : , :]
         lesion_slice = lesion_data[i, : , :]
 
         # check if lesion voxels in this slice, if yes, gan2 generated a slice for it.
         if np.any(lesion_slice): 
-            # TODO this part of the function is not tested yet!
-            # make sure it works correctly, also normalization or data_types could be an issue here.
-        
             # load the corresponding gan2 slice
-            gan2_slice_path = Path(slice_dir) / fold / "flair_slices" / f"{prefix}_flair_slice_{i:03d}.png"	
-            if not gan2_slice_path.exists():
-                print(f"Warning: Slice {gan2_slice_path} was expected but does not exist.")
-                break
-            arr = np.load(gan2_slice_path)
+            gan2_slice_png = Path(slice_dir) / f"{prefix}_flair_slice_{img_index:03d}_fake_B.png"
+            gan2_slice_npy = Path(slice_dir) / f"{prefix}_flair_slice_{img_index:03d}_fake_B.npy"	
+            if gan2_slice_png.exists():
+                # load the slice as numpy array from png
+                arr = np.array(Image.open(gan2_slice_png))
+                img_index += 1
+            elif gan2_slice_npy.exists():
+                # load the slice as numpy array from npy
+                arr = np.load(gan2_slice_npy)
+                img_index += 1
+            else:
+                print(f"Warning: Slice {gan2_slice_png} or {gan2_slice_npy} was expected but does not exist.")
+                return None
             new_3d[i, :, :] = arr
 
         else: 
             # copy the slice from the reference image
             new_3d[i, :, :] = flair_slice
+
 
     # create a new NIfTI image with the reconstructed 3D volume
     output_path = Path(output_path) 

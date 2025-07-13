@@ -130,11 +130,13 @@ test_results_dir = Path("/home/sc.uni-leipzig.de/iu71daji/thesis_gan2/testresult
 train_data_dir = Path("/home/sc.uni-leipzig.de/iu71daji/thesis_gan2/train_gan2")
 
 gan2_hyperparams = (train_data_dir / "gan2_hyperparams.txt")
-
+max_lines = 50
 all_results = {}
 basenames_imgs = get_image_dict(train_data_dir) # dict with img_basenames per fold. keys "fold_0" .. 
 with open(gan2_hyperparams, "r") as f:
-    for line in f:
+    for idx, line in enumerate(f):
+        if idx >= max_lines: 
+            break
         parts = line.strip().split()
         lambda_ls, lambda_brain, fold = parts
         gan_name = f"gan2_left_out_fold{fold}_L1{lambda_brain}_L2{lambda_ls}"
@@ -147,15 +149,19 @@ with open(gan2_hyperparams, "r") as f:
                 continue 
  
             output_path = (test_results_dir / gan_name / "test_latest" / "reconstructed_3d" / f"{img_name}_testresult_reconstructed.nii")
-            (test_results_dir / gan_name / "test_latest" / "reconstructed_3d").mkdir(parents=True, exist_ok=True)
+            output_path.parent.mkdir(parents=True, exist_ok=True)
             reference_flair = (train_data_dir / "interim_results" / f"{img_name}_flair_mni_registered.mgz") 
             ref_mask_path = (train_data_dir / "interim_results"/ f"{img_name}_ls_mask_dilated.nii.gz")
-            reconstruct_3d_from_slices(slice_dir=test_result_imgs,
+            
+            if not output_path.exists():
+                reconstruct_3d_from_slices(slice_dir=test_result_imgs,
                                         reference_flair_path=reference_flair, 
                                         output_path=output_path, 
                                         prefix=img_name,
                                         ref_mask_path=ref_mask_path, 
                                         fold=fold)
+            else:
+                print(f"Reconstructed 3d img {output_path} already exists, skipping reconstruction.")
             
             # calc mse
             mse_img, mse_dialated_lsmask, mse_brain = calc_mse(output_path, reference_flair, ref_mask_path)

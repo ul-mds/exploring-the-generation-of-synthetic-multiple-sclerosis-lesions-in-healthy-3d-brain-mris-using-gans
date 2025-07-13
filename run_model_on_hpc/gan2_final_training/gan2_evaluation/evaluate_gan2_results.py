@@ -10,6 +10,7 @@ from skimage.metrics import mean_squared_error
 import nibabel as nib
 from pathlib import Path
 import pickle
+from PIL import Image
 
 import json
 
@@ -137,9 +138,13 @@ with open(gan2_hyperparams, "r") as f:
         parts = line.strip().split()
         lambda_ls, lambda_brain, fold = parts
         gan_name = f"gan2_left_out_fold{fold}_L1{lambda_brain}_L2{lambda_ls}"
-        test_result_imgs = (test_results_dir / gan_name / "test_latest" /  "images")
+        test_result_imgs = (test_results_dir / gan_name / "test_latest")
         key = f"gan2_L1_{lambda_brain}_L2_{lambda_ls}"
         for img_name in basenames_imgs[f"fold_{fold}"]:
+            # TODO folds were calculated with center08 included, but we do not use it. do it all again (?) Training, because 
+            # folds are not correctly set..
+            if "center08" in img_name: 
+                continue 
  
             output_path = (test_results_dir / gan_name / "test_latest" / "reconstructed_3d" / f"{img_name}_testresult_reconstructed.nii")
             (test_results_dir / gan_name / "test_latest" / "reconstructed_3d").mkdir(parents=True, exist_ok=True)

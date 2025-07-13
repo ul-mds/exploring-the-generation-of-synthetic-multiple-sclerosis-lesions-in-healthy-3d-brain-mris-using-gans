@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 from skimage.metrics import mean_squared_error
 import nibabel as nib
 from pathlib import Path
+import pickle
 
 import json
 
@@ -117,8 +118,8 @@ def calc_mse(output_path, reference_flair, ref_mask_path):
 
     return mse_img, mse_dialated_lsmask, mse_brain
 
-test_results_dir = Path("/mnt/c/Users/T14/Documents/Masterthesis/gan2_results/testresults")
-train_data_dir = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/train_gan2_data/final_preprocessed_data")
+test_results_dir = Path("/home/sc.uni-leipzig.de/iu71daji/thesis_gan2/testresults")
+train_data_dir = Path("/home/sc.uni-leipzig.de/iu71daji/thesis_gan2/train_gan2")
 
 gan2_hyperparams = (train_data_dir / "gan2_hyperparams.txt")
 
@@ -127,13 +128,14 @@ basenames_imgs = get_image_dict(train_data_dir) # dict with img_basenames per fo
 with open(gan2_hyperparams, "r") as f:
     for line in f:
         parts = line.strip().split()
-        lambda_ls, lambda_brain, upsampling, ngf, fold = parts
-        gan_name = f"gan2_left_out_fold{fold}_L1{lambda_brain}_L2{lambda_ls}_{upsampling}_ngf{ngf}"
+        lambda_ls, lambda_brain, fold = parts
+        gan_name = f"gan2_left_out_fold{fold}_L1{lambda_brain}_L2{lambda_ls}"
         test_result_imgs = (test_results_dir / gan_name / "test_latest" /  "images")
-        key = f"gan2_L1_{lambda_brain}_L2_{lambda_ls}_{upsampling}_ngf{ngf}"
+        key = f"gan2_L1_{lambda_brain}_L2_{lambda_ls}"
         for img_name in basenames_imgs[f"fold_{fold}"]:
  
             output_path = (test_results_dir / gan_name / "test_latest" / "reconstructed_3d" / f"{img_name}_testresult_reconstructed.nii")
+            (test_results_dir / gan_name / "test_latest" / "reconstructed_3d").mkdir(parents=True, exist_ok=True)
             reference_flair = (train_data_dir / "interim_results" / f"{img_name}_flair_mni_registered.mgz") 
             ref_mask_path = (train_data_dir / "interim_results"/ f"{img_name}_ls_mask_dilated.nii.gz")
             reconstruct_3d_from_slices(slice_dir=test_result_imgs,
@@ -161,7 +163,11 @@ with open(gan2_hyperparams, "r") as f:
                 np.mean(all_results[key]["mse_img"]),
                 np.mean(all_results[key]["mse_dialated_lsmask"]),
                 np.mean(all_results[key]["mse_brain"])
-            ]   
+            ]
+    
+with open("gan2_mse_dump.pkl", "wb") as f:
+    pickle.dump(all_results, f)
+
 
     """
     test_results naming: 

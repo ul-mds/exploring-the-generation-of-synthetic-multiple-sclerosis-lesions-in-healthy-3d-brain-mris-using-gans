@@ -79,8 +79,7 @@ def save_npy_array(visuals, query_name, opt, web_dir):
 
     for label, image in visuals.items():
         np_path = os.path.join(web_dir, f"{query_name}_{label}.npy")
-        all_channels_path = os.path.join(web_dir, f"{query_name}_{label}_all_channels.npy")
-        # Training logic: only channel 0
+        # only channel 0
         if image.shape[1] == 3:
             image_numpy = image[0, 0].detach().cpu().numpy()
         else:
@@ -88,8 +87,7 @@ def save_npy_array(visuals, query_name, opt, web_dir):
 
         # Save as numpy array
         np.save(np_path, image_numpy)
-        np.save(all_channels_path, image.detach().cpu().numpy())
-
+       
 if __name__ == '__main__':
     
     # Fimos debugpy

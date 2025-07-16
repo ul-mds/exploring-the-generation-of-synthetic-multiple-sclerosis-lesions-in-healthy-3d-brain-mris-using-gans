@@ -157,7 +157,7 @@ class BaseModel(ABC):
                 # rescale the img, if [-1,1]
                 if np.issubdtype(arr.dtype, np.floating) and arr.min() >= -1.1 and arr.max() <= 1.1:
                     arr = (arr + 1.0) * 127.5
-                    arr = np.clip(arr, 0, 255).astype(np.uint8)
+                    arr = np.clip(arr, 0, 255).astype(np.float32)
 
                 # convert back to tensor
                 if isinstance(img, torch.Tensor):

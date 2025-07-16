@@ -25,18 +25,18 @@ apptainer exec --nv $IMAGE bash <<EOF
 
     # Start testing
     python test.py \
-    --dataroot /home/sc.uni-leipzig.de/iu71daji/thesis_gan1/gan1_test_imgs \
+    --dataroot /home/sc.uni-leipzig.de/iu71daji/thesis_gan1 \
     --results_dir /home/sc.uni-leipzig.de/iu71daji/thesis_gan1/testresults \
     --phase test \
     --name ${MODEL_NAME} \
     --model pix2pix3d \
-    --dataset_mode gan_1 \
+    --dataset_mode gan1 \
     --norm instance \
     --input_nc 1 \
     --output_nc 1 \
     --netG unet_256 \
     --ngf 32 \
-    --ndf 32 \
+    --ndf 16 \
     --upsampling linear \
     --preprocess none \
     --no_flip \

@@ -130,7 +130,7 @@ test_results_dir = Path("/home/sc.uni-leipzig.de/iu71daji/thesis_gan2/testresult
 train_data_dir = Path("/home/sc.uni-leipzig.de/iu71daji/thesis_gan2/train_gan2")
 
 gan2_hyperparams = (train_data_dir / "gan2_hyperparams.txt")
-max_lines = 50
+max_lines = 10
 all_results = {}
 basenames_imgs = get_image_dict(train_data_dir) # dict with img_basenames per fold. keys "fold_0" .. 
 with open(gan2_hyperparams, "r") as f:

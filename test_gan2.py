@@ -28,7 +28,7 @@ import numpy as np
 # FIMOS: 
 def save_png_images(visuals, query_name, opt, web_dir):
     """
-    Speichert 2D-Bilder als PNG-Dateien statt als NIfTI.
+   saves the 2D images as png for visual inspection.
 
     Parameter:
         np_dict: dict mit Bilddaten (z. B. {'real_A': np.array, ...})
@@ -64,7 +64,31 @@ def save_png_images(visuals, query_name, opt, web_dir):
         imageio.imwrite(img_path, image_numpy)
 
 
+def save_npy_array(visuals, query_name, opt, web_dir):
+    """
+    Saves the 2D images as numpy arrays for further processing.
 
+    Parameters:
+        visuals: dict with image data (e.g. {'real_A': np.array, ...})
+        query_name: string - base name for the files
+        opt: options, including mapping_source, mapping_target, smoothing, postprocess
+        web_dir: path to the target directory
+    """
+    
+    os.makedirs(web_dir, exist_ok=True)
+
+    for label, image in visuals.items():
+        np_path = os.path.join(web_dir, f"{query_name}_{label}.npy")
+        all_channels_path = os.path.join(web_dir, f"{query_name}_{label}_all_channels.npy")
+        # Training logic: only channel 0
+        if image.shape[1] == 3:
+            image_numpy = image[0, 0].detach().cpu().numpy()
+        else:
+            image_numpy = image[0].detach().cpu().numpy()
+
+        # Save as numpy array
+        np.save(np_path, image_numpy)
+        np.save(all_channels_path, image.detach().cpu().numpy())
 
 if __name__ == '__main__':
     
@@ -127,11 +151,7 @@ if __name__ == '__main__':
         query_name = query_name.split(".")[0]
 
         save_png_images(visuals, query_name, opt, web_dir)
-        # Postprocess the results to numpy arrays
-        # np_post = postprocess_images(visuals, opt, dataset.dataset.original_shape)
-        #if 'real_B' in np_post:
-        #    # Evaluate the results
-        #    exc_eval.evaluate(np_post, query_name_next, opt.smoothing)
+        save_npy_array(visuals, query_name, opt, web_dir)
         
     
     webpage.save()  # save the HTML

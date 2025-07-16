@@ -29,9 +29,6 @@ def reconstruct_3d_from_slices(slice_dir, reference_flair_path, output_path, pre
     - prefix: Prefix used for the gan2 generated slice filenames.
     - ref_mask_path: Path to the reference lesion mask NIfTI image, used to check which slices contain lesion voxels (has to be dialated!).
      """
-    #TODO test and check this function, it should work, but I didn't test it yet.
-    #TODO think about adding it to the class, or keep it as standalone function.
-
 
     # original flair and lesion_mask (3d before slicing)
     # make sure lesion_mask is dialated, if not, dialate it here!
@@ -52,14 +49,15 @@ def reconstruct_3d_from_slices(slice_dir, reference_flair_path, output_path, pre
             # load the corresponding gan2 slice
             gan2_slice_png = Path(slice_dir) / f"{prefix}_flair_slice_{img_index:03d}_fake_B.png"
             gan2_slice_npy = Path(slice_dir) / f"{prefix}_flair_slice_{img_index:03d}_fake_B.npy"	
-            if gan2_slice_png.exists():
-                # load the slice as numpy array from png
-                arr = np.array(Image.open(gan2_slice_png))
-                img_index += 1
-            elif gan2_slice_npy.exists():
+            if gan2_slice_npy.exists():
                 # load the slice as numpy array from npy
                 arr = np.load(gan2_slice_npy)
                 img_index += 1
+            # uncomment to allow loading from png instead of npy.
+            #elif gan2_slice_npy.exists():
+            #    # load the slice as numpy array from png
+            #    arr = np.array(Image.open(gan2_slice_png))
+            #    img_index += 1
             else:
                 print(f"Warning: Slice {gan2_slice_png} or {gan2_slice_npy} was expected but does not exist.")
                 return None

@@ -181,7 +181,7 @@ with open(gan2_hyperparams, "r") as f:
                 np.mean(all_results[key]["mse_brain"])
             ]
     
-with open("gan2_mse_dump.pkl", "wb") as f:
+with open("gan2_mse_dump_1607.pkl", "wb") as f:
     pickle.dump(all_results, f)
 
 

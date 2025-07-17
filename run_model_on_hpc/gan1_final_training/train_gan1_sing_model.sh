@@ -19,7 +19,7 @@ WORKDIR="/home/sc.uni-leipzig.de/iu71daji/masterthesis/Pix2PixNIfTI"
 #read LAMBDA_LESION LAMBDA_BG UPSAMPLING NGF < <(sed -n "${SLURM_ARRAY_TASK_ID}p" gan1_hyperparams.txt)
 
 LAMBDA_BG=0
-LAMBDA_LESION=100
+LAMBDA_LESION=300
 
 apptainer exec --nv $IMAGE bash <<EOF
     cd $WORKDIR

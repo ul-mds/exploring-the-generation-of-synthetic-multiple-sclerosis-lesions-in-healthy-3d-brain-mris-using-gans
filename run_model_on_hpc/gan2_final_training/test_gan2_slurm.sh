@@ -19,7 +19,7 @@ WORKDIR="/home/sc.uni-leipzig.de/iu71daji/masterthesis/Pix2PixNIfTI"
 
 read LAMBDA_BRAIN LAMBDA_LS FOLD < <(sed -n "${SLURM_ARRAY_TASK_ID}p" gan2_hyperparams.txt)
 
-gan_name=gan2_left_out_fold${FOLD}_L1${LAMBDA_BRAIN}_L2${LAMBDA_LS}
+gan_name=gan2_left_out_fold${FOLD}_L1${LAMBDA_LS}_L2${LAMBDA_BRAIN}
 
 apptainer exec --nv $IMAGE bash <<EOF
     cd $WORKDIR

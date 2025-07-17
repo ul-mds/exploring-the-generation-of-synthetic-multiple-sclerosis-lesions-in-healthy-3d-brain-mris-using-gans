@@ -80,15 +80,22 @@ class Pix2PixModel(BaseModel):
             self.netD = networks.define_D(opt.input_nc + opt.output_nc, opt.ndf, opt.netD,
                                           opt.n_layers_D, opt.norm, opt.init_type, opt.init_gain, self.gpu_ids, threed)
 
-        if self.nifti:
-            red_param = "sum"
-        else:
-            red_param = "mean"
         if self.isTrain:
             # define loss functions
             self.criterionGAN = networks.GANLoss(opt.gan_mode).to(self.device)
-            self.criterionL1_ls = torch.nn.L1Loss(reduction=red_param)
-            self.criterionL2 = torch.nn.MSELoss(reduction='sum')
+
+            if self.opt.dataset_mode == "gan2": 
+                # in gan2 we use L1 for the whole image, L2 for lesion areas only
+                self.criterionL1_ls = torch.nn.L1Loss(reduction='mean')
+                self.criterionL2 = torch.nn.MSELoss(reduction='sum')
+            elif self.opt.dataset_mode == "gan1":
+                # in gan1 we use L1 for lesion areas only, L2 for the whole image
+                self.criterionL1_ls = torch.nn.L1Loss(reduction='sum')
+                self.criterionL2 = torch.nn.MSELoss(reduction='mean')
+            else:
+                # standard: take mean.
+                self.criterionL1_ls = torch.nn.L1Loss(reduction='mean')
+                self.criterionL2 = torch.nn.MSELoss(reduction='mean')
             # initialize optimizers; schedulers will be automatically created by function <BaseModel.setup>.
             self.optimizer_G = torch.optim.Adam(self.netG.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
             self.optimizer_D = torch.optim.Adam(self.netD.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
@@ -171,24 +178,35 @@ class Pix2PixModel(BaseModel):
         fake_AB = torch.cat((self.real_A, self.fake_B), 1)
         pred_fake = self.netD(fake_AB)
         self.loss_G_GAN = self.criterionGAN(pred_fake, True)
-    
-        # # 2. L1 loss in lesion or brain regions, depending on gan type (if flag L1_mask_only is set, otherwise mask is all ones)
-        self.loss_G_L1 = self.criterionL1_ls(self.fake_B[:, 0:1, :,:],
-                                          self.real_B[:, 0:1, :, :]) * self.opt.lambda_L1
+        
         #self.loss_G_L1 = zero_division(self.loss_G_L1, torch.sum(self.mask))
         
          # 3. L2 loss in background or lesion regions, depending on gan type
         if self.opt.dataset_mode == "gan2":
-            # calculate L2 loss for lesion areas,  # in gan2: lesion mask is in channel 1 of real_B
+            # In gan2, L1 is computed for the whole image, L2 only for lesion areas
+            # we have 3 channels, loss is only calculated on the first channel, the others are ignored.
+            # L1 reduction method is set to 'mean' if dataset_mode == "gan2"
+            self.loss_G_L1 = self.criterionL1_ls(self.fake_B[:, 0:1, :,:],
+                                          self.real_B[:, 0:1, :, :]) * self.opt.lambda_L1
+            
             lsmsk_tensor = self.real_B[:, 1:2, :, :]
-            self.loss_G_L2 = self.criterionL2(self.fake_B * lsmsk_tensor,
-                                              self.real_B * lsmsk_tensor) * self.opt.lambda_L2
+            self.loss_G_L2 = self.criterionL2(self.fake_B[:, 0:1, :,:] * lsmsk_tensor,
+                                              self.real_B[:, 0:1, :, :] * lsmsk_tensor) * self.opt.lambda_L2
+            
+            # L2 reduction = 'sum' -> we divide by the sum of voxels manually
             self.loss_G_L2 = zero_division(self.loss_G_L2, torch.sum(lsmsk_tensor))
         else: 
-            # calculate L2 loss for background, using (1-mask)
-            self.loss_G_L2 = self.criterionL2(self.fake_B * (1 - self.mask),
-                                             self.real_B * (1 - self.mask)) * self.opt.lambda_L2
-            self.loss_G_L2 = zero_division(self.loss_G_L2, torch.sum(1 - self.mask))
+            # in gan1 L1 is computed for the lesion areas only, L2 for the background 
+            # we have one channel instead of three.
+
+            # L1 reduction = 'mean' -> we divide by the sum of lesion voxels manually
+            self.loss_G_L1 = self.criterionL1_ls(self.fake_B * self.mask,
+                                          self.real_B * self.mask) * self.opt.lambda_L1
+            self.loss_G_L1 = zero_division(self.loss_G_L1, torch.sum(self.mask))
+
+            # calculate L2 loss for whole img ( background + ls_regions)
+            # L2 reduction = 'mean' (no further division)
+            self.loss_G_L2 = self.criterionL2(self.fake_B, self.real_B) * self.opt.lambda_L2
 
         # combine loss and calculate gradients
         self.loss_G = self.loss_G_GAN + self.loss_G_L1  + self.loss_G_L2

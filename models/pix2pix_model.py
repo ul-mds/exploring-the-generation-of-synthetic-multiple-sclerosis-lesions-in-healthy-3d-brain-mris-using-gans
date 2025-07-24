@@ -86,15 +86,16 @@ class Pix2PixModel(BaseModel):
 
             if self.opt.dataset_mode == "gan2": 
                 # in gan2 we use L1 for the whole image, L2 for lesion areas only
-                self.criterionL1_ls = torch.nn.L1Loss(reduction='mean')
+                self.criterionL1 = torch.nn.L1Loss(reduction='mean')
                 self.criterionL2 = torch.nn.MSELoss(reduction='sum')
             elif self.opt.dataset_mode == "gan1":
                 # in gan1 we use L1 for lesion areas only, L2 for the whole image
-                self.criterionL1_ls = torch.nn.L1Loss(reduction='sum')
+                #TODO Set back? Experimenting with L1 reduction = 'mean' instead of sum -> no manual division.
+                self.criterionL1 = torch.nn.L1Loss(reduction='mean')
                 self.criterionL2 = torch.nn.MSELoss(reduction='mean')
             else:
                 # standard: take mean.
-                self.criterionL1_ls = torch.nn.L1Loss(reduction='mean')
+                self.criterionL1 = torch.nn.L1Loss(reduction='mean')
                 self.criterionL2 = torch.nn.MSELoss(reduction='mean')
             # initialize optimizers; schedulers will be automatically created by function <BaseModel.setup>.
             self.optimizer_G = torch.optim.Adam(self.netG.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
@@ -186,7 +187,7 @@ class Pix2PixModel(BaseModel):
             # In gan2, L1 is computed for the whole image, L2 only for lesion areas
             # we have 3 channels, loss is only calculated on the first channel, the others are ignored.
             # L1 reduction method is set to 'mean' if dataset_mode == "gan2"
-            self.loss_G_L1 = self.criterionL1_ls(self.fake_B[:, 0:1, :,:],
+            self.loss_G_L1 = self.criterionL1(self.fake_B[:, 0:1, :,:],
                                           self.real_B[:, 0:1, :, :]) * self.opt.lambda_L1
             
             lsmsk_tensor = self.real_B[:, 1:2, :, :]
@@ -200,9 +201,10 @@ class Pix2PixModel(BaseModel):
             # we have one channel instead of three.
 
             # L1 reduction = 'mean' -> we divide by the sum of lesion voxels manually
-            self.loss_G_L1 = self.criterionL1_ls(self.fake_B * self.mask,
+            self.loss_G_L1 = self.criterionL1(self.fake_B * self.mask,
                                           self.real_B * self.mask) * self.opt.lambda_L1
-            self.loss_G_L1 = zero_division(self.loss_G_L1, torch.sum(self.mask))
+            #TODO Set back? Experimenting with L1 reduction 'mean' instead of 'sum' 
+            # self.loss_G_L1 = zero_division(self.loss_G_L1, torch.sum(self.mask))
 
             # calculate L2 loss for whole img ( background + ls_regions)
             # L2 reduction = 'mean' (no further division)

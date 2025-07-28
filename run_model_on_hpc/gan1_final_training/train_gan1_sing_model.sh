@@ -18,8 +18,8 @@ WORKDIR="/home/sc.uni-leipzig.de/iu71daji/masterthesis/Pix2PixNIfTI"
 
 #read LAMBDA_LESION LAMBDA_BG UPSAMPLING NGF < <(sed -n "${SLURM_ARRAY_TASK_ID}p" gan1_hyperparams.txt)
 
-LAMBDA_BG=0
-LAMBDA_LESION=300
+LAMBDA_BG=50
+LAMBDA_LESION=100
 
 apptainer exec --nv $IMAGE bash <<EOF
     cd $WORKDIR
@@ -34,7 +34,7 @@ apptainer exec --nv $IMAGE bash <<EOF
     --phase train \
     --save_epoch_freq 25 \
     --print_model_info \
-    --name gan1_L1_${LAMBDA_LESION}_L2_${LAMBDA_BG} \
+    --name gan1_L1_${LAMBDA_LESION}_L2_${LAMBDA_BG}_1707 \
     --model pix2pix3d \
     --dataset_mode gan1 \
     --norm instance \

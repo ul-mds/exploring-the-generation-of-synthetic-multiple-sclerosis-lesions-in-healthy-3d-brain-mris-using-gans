@@ -16,7 +16,7 @@ export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 IMAGE="/home/sc.uni-leipzig.de/iu71daji/masterthesis/containers/nifti_img.sif"
 WORKDIR="/home/sc.uni-leipzig.de/iu71daji/masterthesis/Pix2PixNIfTI"
 
-LAMBDA_LS=0
+LAMBDA_LS=20
 LAMBDA_BRAIN=100
 UPSAMPLING="linear"
 NGF=32
@@ -34,17 +34,17 @@ apptainer exec --nv $IMAGE bash <<EOF
     --phase train \
     --save_epoch_freq 50 \
     --print_model_info \
-    --name gan2_left_out_fold${FOLD}_L1${LAMBDA_BRAIN}_L2${LAMBDA_LS}_${UPSAMPLING}_ngf${NGF}_noMask1207 \
+    --name gan2_left_out_fold${FOLD}_L1${LAMBDA_BRAIN}_L2${LAMBDA_LS}_1707 \
     --model pix2pix \
     --dataset_mode gan2 \
     --norm instance \
     --lambda_L1 ${LAMBDA_BRAIN} \
     --lambda_L2 ${LAMBDA_LS} \
     --netG unet_256 \
-    --ngf ${NGF} \
-    --ndf 16 \
+    --ngf 32 \
+    --ndf 32 \
     --gan_mode 'lsgan' \
-    --upsampling ${UPSAMPLING} \
+    --upsampling linear \
     --n_epochs_decay 0 \
     --n_epochs 50 \
     --preprocess none \

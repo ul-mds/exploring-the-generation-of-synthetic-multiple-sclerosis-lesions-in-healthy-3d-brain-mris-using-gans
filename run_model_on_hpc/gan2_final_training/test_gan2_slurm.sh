@@ -10,16 +10,16 @@
 #SBATCH --mem-per-cpu=8G
 #SBATCH --output=slurm-%x-%j-%a.out
 #SBATCH --error=slurm-%x-%j-%a.err 
-#SBATCH --array=1-10
+#SBATCH --array=1-80
 
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
 IMAGE="/home/sc.uni-leipzig.de/iu71daji/masterthesis/containers/nifti_img.sif"
 WORKDIR="/home/sc.uni-leipzig.de/iu71daji/masterthesis/Pix2PixNIfTI"
 
-read LAMBDA_BRAIN LAMBDA_LS FOLD < <(sed -n "${SLURM_ARRAY_TASK_ID}p" gan2_hyperparams.txt)
+read LAMBDA_L1 LAMBDA_L2 FOLD < <(sed -n "${SLURM_ARRAY_TASK_ID}p" gan2_hyperparams.txt)
 
-gan_name=gan2_left_out_fold${FOLD}_L1${LAMBDA_LS}_L2${LAMBDA_BRAIN}
+gan_name=gan2_left_out_fold${FOLD}_L1_${LAMBDA_L1}_L2_${LAMBDA_L2}
 
 apptainer exec --nv $IMAGE bash <<EOF
     cd $WORKDIR
@@ -32,8 +32,8 @@ apptainer exec --nv $IMAGE bash <<EOF
     --dataroot /home/sc.uni-leipzig.de/iu71daji/thesis_gan2/train_gan2 \
     --results_dir /home/sc.uni-leipzig.de/iu71daji/thesis_gan2/testresults \
     --phase test \
-    --lambda_L1 ${LAMBDA_BRAIN} \
-    --lambda_L2 ${LAMBDA_LS} \
+    --lambda_L1 ${LAMBDA_L1} \
+    --lambda_L2 ${LAMBDA_L2} \
     --name ${gan_name} \
     --model pix2pix \
     --dataset_mode gan2 \

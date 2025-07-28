@@ -199,7 +199,7 @@ class Pix2PixModel(BaseModel):
             # in gan1 L1 is computed for the lesion areas only, L2 for the background 
             # we have one channel instead of three.
 
-            # L1 reduction = 'mean' -> we divide by the sum of lesion voxels manually
+            # L1 reduction = 'sum' -> we divide by the sum of lesion voxels manually
             self.loss_G_L1 = self.criterionL1_ls(self.fake_B * self.mask,
                                           self.real_B * self.mask) * self.opt.lambda_L1
             self.loss_G_L1 = zero_division(self.loss_G_L1, torch.sum(self.mask))

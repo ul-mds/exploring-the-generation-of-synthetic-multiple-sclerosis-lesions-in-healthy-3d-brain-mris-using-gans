@@ -16,10 +16,10 @@ export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 IMAGE="/home/sc.uni-leipzig.de/iu71daji/masterthesis/containers/nifti_img.sif"
 WORKDIR="/home/sc.uni-leipzig.de/iu71daji/masterthesis/Pix2PixNIfTI"
 
-#read LAMBDA_LESION LAMBDA_BG UPSAMPLING NGF < <(sed -n "${SLURM_ARRAY_TASK_ID}p" gan1_hyperparams.txt)
+#read LAMBDA_L1 LAMBDA_L2 UPSAMPLING NGF < <(sed -n "${SLURM_ARRAY_TASK_ID}p" gan1_hyperparams.txt)
 
-LAMBDA_BG=50
-LAMBDA_LESION=100
+LAMBDA_L2=0
+LAMBDA_L1=100
 
 apptainer exec --nv $IMAGE bash <<EOF
     cd $WORKDIR
@@ -34,12 +34,12 @@ apptainer exec --nv $IMAGE bash <<EOF
     --phase train \
     --save_epoch_freq 25 \
     --print_model_info \
-    --name gan1_L1_${LAMBDA_LESION}_L2_${LAMBDA_BG}_1707 \
+    --name gan1_L1_${LAMBDA_L1}_L2_${LAMBDA_L2}_2807 \
     --model pix2pix3d \
     --dataset_mode gan1 \
     --norm instance \
-    --lambda_L1 "$LAMBDA_LESION" \
-    --lambda_L2 "$LAMBDA_BG" \
+    --lambda_L1 "$LAMBDA_L1" \
+    --lambda_L2 "$LAMBDA_L2" \
     --input_nc 1 \
     --output_nc 1 \
     --netG unet_256 \

@@ -10,7 +10,7 @@
 #SBATCH --mem-per-cpu=8G
 #SBATCH --output=slurm-%x-%j-%a.out
 #SBATCH --error=slurm-%x-%j-%a.err 
-#SBATCH --array=1-80
+#SBATCH --array=1-26
 
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 

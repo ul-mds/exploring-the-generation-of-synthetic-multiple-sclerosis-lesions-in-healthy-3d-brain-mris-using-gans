@@ -141,7 +141,7 @@ class BaseModel(ABC):
         return visual_ret
     """
         
-    def get_current_visuals(self):
+    def get_current_visuals(self, dataset_mode=None):
         """Return visualization images. train.py will display these images with visdom, and save the images to a HTML"""
         visual_ret = OrderedDict()
         for name in self.visual_names:
@@ -156,7 +156,7 @@ class BaseModel(ABC):
 
                 # rescale the img, if [-1,1]
                 # TODO handle masks in range[0,1] ( gan1)
-                if np.issubdtype(arr.dtype, np.floating) and arr.min() >= -1.1 and arr.max() <= 1.1:
+                if np.issubdtype(arr.dtype, np.floating) and arr.min() >= -1.1 and arr.max() <= 1.1 and dataset_mode != "gan1":
                     arr = (arr + 1.0) * 127.5
                     arr = np.clip(arr, 0, 255).astype(np.float32)
 

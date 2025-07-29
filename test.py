@@ -57,12 +57,15 @@ if __name__ == '__main__':
         model.eval()
     init_time = time.time()
     for i, data in enumerate(dataset):
+        dataset_mode = model.opt.dataset_mode
         #if i >= opt.num_test:  # only apply our model to opt.num_test images.
         #    break
         model.set_input(data)  # unpack data from data loader
         model.test()  # run inference
-        visuals = model.get_current_visuals()  # get image results
+        visuals = model.get_current_visuals(dataset_mode)  # get image results
         img_path = model.get_image_paths()  # get image paths
+        print("Debug print y: image path: ", img_path)
+        
         if i % 5 == 0:  # save images to an HTML file
             print('processing (%04d)-th image... %s' % (i, img_path))
         if nifti:

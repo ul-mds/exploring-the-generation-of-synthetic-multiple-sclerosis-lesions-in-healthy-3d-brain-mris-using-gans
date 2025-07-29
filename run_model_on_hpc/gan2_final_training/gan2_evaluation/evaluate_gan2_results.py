@@ -112,15 +112,15 @@ def calc_mse(output_path, reference_flair, ref_mask_path):
     ref_mask_img = nib.load(ref_mask_path).get_fdata()
 
     # Calculate MSE for the whole image
-    mse_img = mean_squared_error(ref_flair_img.flatten(), output_img.flatten())
+    mse_img = np.nanmean((ref_flair_img.flatten() - output_img.flatten()) ** 2)
 
     # Calculate MSE for the dilated lesion mask regions
     lesion_mask = ref_mask_img > 0
-    mse_dialated_lsmask = mean_squared_error(ref_flair_img[lesion_mask], output_img[lesion_mask])
+    mse_dialated_lsmask = np.nanmean((ref_flair_img[lesion_mask] - output_img[lesion_mask])**2)
 
     # Calculate MSE for the brain region
     brain_region = ref_flair_img > 0  # Assuming brain region is where the flair image has non-zero values
-    mse_brain = mean_squared_error(ref_flair_img[brain_region], output_img[brain_region])
+    mse_brain = np.nanmean((ref_flair_img[brain_region] - output_img[brain_region])**2)
 
     return mse_img, mse_dialated_lsmask, mse_brain
 
@@ -128,7 +128,7 @@ test_results_dir = Path("/home/sc.uni-leipzig.de/iu71daji/thesis_gan2/testresult
 train_data_dir = Path("/home/sc.uni-leipzig.de/iu71daji/thesis_gan2/train_gan2")
 
 gan2_hyperparams = (train_data_dir / "gan2_hyperparams.txt")
-max_lines = 10
+max_lines = 26
 all_results = {}
 basenames_imgs = get_image_dict(train_data_dir) # dict with img_basenames per fold. keys "fold_0" .. 
 with open(gan2_hyperparams, "r") as f:
@@ -136,13 +136,11 @@ with open(gan2_hyperparams, "r") as f:
         if idx >= max_lines: 
             break
         parts = line.strip().split()
-        lambda_ls, lambda_brain, fold = parts
-        gan_name = f"gan2_left_out_fold{fold}_L1{lambda_brain}_L2{lambda_ls}"
+        lambda_L1, lambda_L2, fold = parts
+        gan_name = f"gan2_left_out_fold{fold}_L1_{lambda_L1}_L2_{lambda_L2}"
         test_result_imgs = (test_results_dir / gan_name / "test_latest")
-        key = f"gan2_L1_{lambda_brain}_L2_{lambda_ls}"
+        key = f"gan2_L1_{lambda_L1}_L2_{lambda_L2}"
         for img_name in basenames_imgs[f"fold_{fold}"]:
-            # TODO folds were calculated with center08 included, but we do not use it. do it all again (?) Training, because 
-            # folds are not correctly set..
             if "center08" in img_name: 
                 continue 
  
@@ -176,12 +174,12 @@ with open(gan2_hyperparams, "r") as f:
             # all 4 folds for current config were evaluated
             # calculate mean mse
             all_results[key]["mean_mse_(img,lsmsk,brain)"] = [
-                np.mean(all_results[key]["mse_img"]),
-                np.mean(all_results[key]["mse_dialated_lsmask"]),
-                np.mean(all_results[key]["mse_brain"])
+                np.nanmean(all_results[key]["mse_img"]),
+                np.nanmean(all_results[key]["mse_dialated_lsmask"]),
+                np.nanmean(all_results[key]["mse_brain"])
             ]
     
-with open("gan2_mse_dump_1607.pkl", "wb") as f:
+with open("gan2_mse_dump_1to26_2907.pkl", "wb") as f:
     pickle.dump(all_results, f)
 
 

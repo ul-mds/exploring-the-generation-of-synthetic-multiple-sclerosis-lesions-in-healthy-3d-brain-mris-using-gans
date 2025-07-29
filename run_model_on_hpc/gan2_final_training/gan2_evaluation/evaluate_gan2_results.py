@@ -144,7 +144,7 @@ with open(gan2_hyperparams, "r") as f:
             if "center08" in img_name: 
                 continue 
  
-            output_path = (test_results_dir / gan_name / "test_latest" / "reconstructed_3d" / f"{img_name}_testresult_reconstructed.nii")
+            output_path = (test_results_dir / gan_name / "test_latest" / "reconstructed_3d" / f"{img_name}_testresult_reconstructed.nii.gz")
             output_path.parent.mkdir(parents=True, exist_ok=True)
             reference_flair = (train_data_dir / "interim_results" / f"{img_name}_flair_mni_registered.mgz") 
             ref_mask_path = (train_data_dir / "interim_results"/ f"{img_name}_ls_mask_dilated.nii.gz")

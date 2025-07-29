@@ -144,7 +144,7 @@ def rotate_flip(data):
 
 def np_to_pil(data):
     nifti_data = (data * 255).astype(np.uint8)
-    data = Image.fromarray(nifti_dat, "L")
+    data = Image.fromarray(nifti_data, "L")
     return data
 
 
@@ -155,13 +155,17 @@ def tensor2im(input_image, imtype=np.uint8):
         input_image (tensor) --  the input image tensor array
         imtype (type)        --  the desired type of the converted numpy array
     """
+
+    # dims vor call tensor2im:  torch.Size([1, 1, 256, 256, 256])
+    # dannach: np.shape;  (256, 256, 256) 
+    
     if not isinstance(input_image, np.ndarray):
         if isinstance(input_image, torch.Tensor):  # get the data from a variable
             image_tensor = input_image.data
         else:
             return input_image
-        if len(image_tensor.shape) == 5: 
-            image_tensor = image_tensor.squeeze(0)  # remove the batch dimension if it is 5D 
+        #if len(image_tensor.shape) == 5: 
+        #    image_tensor = image_tensor.squeeze(0)  # remove the batch dimension if it is 5D 
             
         image_numpy = image_tensor[0].cpu().float().numpy()  # convert it into a numpy array
         if image_numpy.shape[0] == 1:  # grayscale to RGB

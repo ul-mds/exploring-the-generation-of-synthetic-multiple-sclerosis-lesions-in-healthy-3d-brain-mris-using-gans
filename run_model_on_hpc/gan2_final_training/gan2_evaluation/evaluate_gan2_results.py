@@ -148,7 +148,11 @@ with open(gan2_hyperparams, "r") as f:
             output_path.parent.mkdir(parents=True, exist_ok=True)
             reference_flair = (train_data_dir / "interim_results" / f"{img_name}_flair_mni_registered.mgz") 
             ref_mask_path = (train_data_dir / "interim_results"/ f"{img_name}_ls_mask_dilated.nii.gz")
-            
+
+            # Remove possible .nii file if it exists (without .gz) TODO delete this later
+            nii_path = Path(str(output_path).replace('.nii.gz', '.nii'))
+            if nii_path.exists():
+                nii_path.unlink()
             if not output_path.exists():
                 reconstruct_3d_from_slices(slice_dir=test_result_imgs,
                                         reference_flair_path=reference_flair, 

@@ -236,6 +236,9 @@ class Visualizer():
                     # modified visualization, only take first channel, no rgb 
                     if image.shape[1] == 3: 
                         image_numpy = image[0, 0].detach().cpu().numpy()
+                    else:  
+	                    image_numpy =  util.tensor2im(image)  
+
                     util.save_image(image_numpy, img_path)
             # update website
             webpage = html_handler.HTML(self.web_dir, 'Experiment name = %s' % self.name, refresh=1)

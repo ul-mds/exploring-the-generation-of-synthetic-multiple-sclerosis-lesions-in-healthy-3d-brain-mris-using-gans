@@ -34,7 +34,7 @@ apptainer exec --nv $IMAGE bash <<EOF
     --phase train \
     --save_epoch_freq 25 \
     --print_model_info \
-    --name gan1_L1_${LAMBDA_L1}_L2_${LAMBDA_L2}_2807 \
+    --name gan1_L1_${LAMBDA_L1}_L2_${LAMBDA_L2}_2907 \
     --model pix2pix3d \
     --dataset_mode gan1 \
     --norm instance \

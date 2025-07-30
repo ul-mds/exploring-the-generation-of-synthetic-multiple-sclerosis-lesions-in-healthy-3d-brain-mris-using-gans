@@ -70,7 +70,7 @@ def save_web_nifti(webpage, visuals, image_path, show=False, width=256):
     webpage.add_images(ims, txts, links, width=width)
 
 
-def save_images(webpage, visuals, image_path, aspect_ratio=1.0, width=256):
+def save_images(webpage, visuals, image_path, aspect_ratio=1.0, width=256, dataset_mode):
     """Save images to the disk.
 
     Parameters:
@@ -92,7 +92,7 @@ def save_images(webpage, visuals, image_path, aspect_ratio=1.0, width=256):
     for label, im_data in visuals.items():
         print("Debug print 4 (tensor label): ", label)
         print("Debug print 5 (tensor shape): ", im_data.shape)
-        im = util.tensor2im(im_data)
+        im = util.tensor2im(im_data, dataset_mode)
         if im is None:
             print(f"Skipping {label} because tensor2im returned None")
             continue
@@ -101,7 +101,7 @@ def save_images(webpage, visuals, image_path, aspect_ratio=1.0, width=256):
         image_name = '%s_%s.nii' % (name, label)
         save_path = os.path.join(image_dir, image_name)
         # util.save_image_to_nii(im, save_path, aspect_ratio=aspect_ratio)
-        util.save_image(im, save_path, aspect_ratio=aspect_ratio) # try, like it was in march 2025
+        util.save_image_to_nii(im, save_path, aspect_ratio=aspect_ratio) # try, like it was in march 2025
 
         ims.append(image_name)
         txts.append(label)

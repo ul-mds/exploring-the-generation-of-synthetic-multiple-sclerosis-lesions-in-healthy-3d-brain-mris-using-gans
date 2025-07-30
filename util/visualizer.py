@@ -100,7 +100,9 @@ def save_images(webpage, visuals, image_path, aspect_ratio=1.0, width=256):
         #TODO only save label 'B_fake' images and throw away the others
         image_name = '%s_%s.nii' % (name, label)
         save_path = os.path.join(image_dir, image_name)
-        util.save_image_to_nii(im, save_path, aspect_ratio=aspect_ratio)
+        # util.save_image_to_nii(im, save_path, aspect_ratio=aspect_ratio)
+        util.save_image(im, save_path, aspect_ratio=aspect_ratio) # try, like it was in march 2025
+
         ims.append(image_name)
         txts.append(label)
         links.append(image_name)

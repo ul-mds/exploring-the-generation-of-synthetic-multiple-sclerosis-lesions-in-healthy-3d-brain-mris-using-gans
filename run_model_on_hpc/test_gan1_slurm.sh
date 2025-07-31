@@ -24,11 +24,11 @@ apptainer exec --nv $IMAGE bash <<EOF
     # Start testing
     python test.py \
     --dataroot /home/sc.uni-leipzig.de/iu71daji/thesis_gan1 \
-    --results_dir /home/sc.uni-leipzig.de/iu71daji/thesis_gan1 \
+    --results_dir /home/sc.uni-leipzig.de/iu71daji/thesis_gan1/testresults \
     --phase test \
-    --name gan1_L1_masks_3 \
+    --name gan1_L1_masks_3_L200 \
     --model pix2pix3d \
-    --dataset_mode my_nifti \
+    --dataset_mode gan1 \
     --norm instance \
     --input_nc 1 \
     --output_nc 1 \

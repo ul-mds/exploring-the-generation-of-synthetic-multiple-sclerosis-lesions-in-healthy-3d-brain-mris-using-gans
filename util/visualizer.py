@@ -70,7 +70,7 @@ def save_web_nifti(webpage, visuals, image_path, show=False, width=256):
     webpage.add_images(ims, txts, links, width=width)
 
 
-def save_images(webpage, visuals, image_path, aspect_ratio=1.0, width=256, dataset_mode):
+def save_images(webpage, visuals, image_path, dataset_mode, aspect_ratio=1.0, width=256):
     """Save images to the disk.
 
     Parameters:
@@ -92,7 +92,7 @@ def save_images(webpage, visuals, image_path, aspect_ratio=1.0, width=256, datas
     for label, im_data in visuals.items():
         print("Debug print 4 (tensor label): ", label)
         print("Debug print 5 (tensor shape): ", im_data.shape)
-        im = util.tensor2im(im_data, dataset_mode)
+        im = util.tensor2im(input_image=im_data, dataset_mode=dataset_mode)
         if im is None:
             print(f"Skipping {label} because tensor2im returned None")
             continue

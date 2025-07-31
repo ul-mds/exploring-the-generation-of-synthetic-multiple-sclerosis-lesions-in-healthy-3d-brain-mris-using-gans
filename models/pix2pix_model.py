@@ -91,7 +91,7 @@ class Pix2PixModel(BaseModel):
             elif self.opt.dataset_mode == "gan1":
                 # in gan1 we use L1 for lesion areas only, L2 for the whole image
                 #TODO Set back? Experimenting with L1 reduction = 'mean' instead of sum -> no manual division.
-                self.criterionL1 = torch.nn.L1Loss(reduction='mean')
+                self.criterionL1 = torch.nn.L1Loss(reduction='sum')
                 self.criterionL2 = torch.nn.MSELoss(reduction='mean')
             else:
                 # standard: take mean.
@@ -204,7 +204,7 @@ class Pix2PixModel(BaseModel):
             self.loss_G_L1 = self.criterionL1(self.fake_B * self.mask,
                                           self.real_B * self.mask) * self.opt.lambda_L1
             #TODO Set back? Experimenting with L1 reduction 'mean' instead of 'sum' 
-            # self.loss_G_L1 = zero_division(self.loss_G_L1, torch.sum(self.mask))
+            self.loss_G_L1 = zero_division(self.loss_G_L1, torch.sum(self.mask))
 
             # calculate L2 loss for whole img ( background + ls_regions)
             # L2 reduction = 'mean' (no further division)

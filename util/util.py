@@ -148,7 +148,7 @@ def np_to_pil(data):
     return data
 
 
-def tensor2im(input_image, imtype=np.uint8, datset_mode):
+def tensor2im(input_image,  dataset_mode = None, imtype=np.uint8):
     """"Converts a Tensor array into a numpy image array.
 
     Parameters:

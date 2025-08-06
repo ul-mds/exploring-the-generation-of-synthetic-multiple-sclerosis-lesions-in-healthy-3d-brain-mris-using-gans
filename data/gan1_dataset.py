@@ -41,7 +41,7 @@ class Gan1Dataset(BaseDataset):
         self.is_test = opt.phase == 'test'
         if os.path.isdir(self.test_dir):
             test_files = [f for f in os.listdir(self.test_dir) if f.endswith(".nii") or f.endswith(".nii.gz")]
-            self.test_basenames = sorted([f.replace("_test_gan1.nii", "")for f in test_files])
+            self.test_basenames = sorted([f.replace("_source_gan1.nii.gz", "")for f in test_files])
         else:
             self.test_basenames = []
         
@@ -52,7 +52,7 @@ class Gan1Dataset(BaseDataset):
         """Lädt ein Bildpaar (source & target) und konvertiert sie in Tensoren"""
 
         if self.is_test: 
-            test_filename = self.test_basenames[index] + "_test_gan1.nii"
+            test_filename = self.test_basenames[index] + "_source_gan1.nii.gz"
             test_path = os.path.join(self.test_dir, test_filename)
             test_img = nib.load(test_path).get_fdata()
 

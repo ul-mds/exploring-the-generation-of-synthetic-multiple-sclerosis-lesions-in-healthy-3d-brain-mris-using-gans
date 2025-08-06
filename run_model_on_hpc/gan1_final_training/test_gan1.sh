@@ -16,8 +16,7 @@ export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 IMAGE="/home/sc.uni-leipzig.de/iu71daji/masterthesis/containers/nifti_img.sif"
 WORKDIR="/home/sc.uni-leipzig.de/iu71daji/masterthesis/Pix2PixNIfTI"
 
-#MODEL_NAME="gan1_L1_100_L2_0_2907"
-MODEL_NAME="gan1_L1_100_L2_100_3107_2"
+MODEL_NAME="gan1_L1_200_L2_100_0108_3"
 
 apptainer exec --nv $IMAGE bash <<EOF
     cd $WORKDIR

@@ -10,14 +10,14 @@
 #SBATCH --mem-per-cpu=8G
 #SBATCH --output=slurm-%x-%j_%a.out
 #SBATCH --error=slurm-%x-%j_%a.err 
-#SBATCH --array=1,11,14,16,17,20-30
+#SBATCH --array=1-25
 
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
 IMAGE="/home/sc.uni-leipzig.de/iu71daji/masterthesis/containers/nifti_img.sif"
 WORKDIR="/home/sc.uni-leipzig.de/iu71daji/masterthesis/Pix2PixNIfTI"
 
-read LAMBDA_LESION LAMBDA_BG UPSAMPLING NGF < <(sed -n "${SLURM_ARRAY_TASK_ID}p" gan1_hyperparams.txt)
+read LAMBDA_L1 LAMBDA_L2 < <(sed -n "${SLURM_ARRAY_TASK_ID}p" gan1_hyperparameters.txt)
 
 
 apptainer exec --nv $IMAGE bash <<EOF
@@ -31,23 +31,23 @@ apptainer exec --nv $IMAGE bash <<EOF
     python train.py \
     --dataroot /home/sc.uni-leipzig.de/iu71daji/thesis_gan1 \
     --phase train \
-    --save_epoch_freq 100 \
+    --save_epoch_freq 150 \
     --print_model_info \
-    --name gan1_${SLURM_ARRAY_TASK_ID}_L1${LAMBDA_LESION}_L2${LAMBDA_BG}_${UPSAMPLING}_ngf${NGF}_060725 \
+    --name gan1_hyptr_L1_${LAMBDA_L1}_L2_${LAMBDA_L2} \
     --model pix2pix3d \
     --dataset_mode gan1 \
     --norm instance \
-    --lambda_L1 "$LAMBDA_LESION" \
-    --lambda_L2 "$LAMBDA_BG" \
+    --lambda_L1 "$LAMBDA_L1" \
+    --lambda_L2 "$LAMBDA_L2" \
     --input_nc 1 \
     --output_nc 1 \
     --netG unet_256 \
-    --ngf ${NGF} \
+    --ngf 32 \
     --ndf 16 \
     --gan_mode 'lsgan' \
-    --upsampling ${UPSAMPLING} \
+    --upsampling linear \
     --n_epochs_decay 0 \
-    --n_epochs 800 \
+    --n_epochs 600 \
     --preprocess none \
     --no_flip \
     --verbose \

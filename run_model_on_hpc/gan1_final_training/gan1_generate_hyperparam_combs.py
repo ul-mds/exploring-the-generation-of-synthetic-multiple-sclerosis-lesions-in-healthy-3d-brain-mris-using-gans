@@ -1,7 +1,7 @@
 import itertools, random
 
-ALL_LAMBDA_L1 = [50, 100, 150, 200]
-ALL_LAMBDA_L2 = [0, 20, 50, 70, 100]
+ALL_LAMBDA_L1 = [50, 100, 150, 200, 250]
+ALL_LAMBDA_L2 = [50, 100, 150, 200, 250]
 
 combos = list(itertools.product(
     ALL_LAMBDA_L1,

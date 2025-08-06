@@ -128,8 +128,8 @@ test_results_dir = Path("/home/sc.uni-leipzig.de/iu71daji/thesis_gan2/testresult
 train_data_dir = Path("/home/sc.uni-leipzig.de/iu71daji/thesis_gan2/train_gan2")
 
 gan2_hyperparams = (train_data_dir / "gan2_hyperparams.txt")
-min_lines = 25
-max_lines = 50
+min_lines = 50
+max_lines = 80
 all_results = {}
 basenames_imgs = get_image_dict(train_data_dir) # dict with img_basenames per fold. keys "fold_0" .. 
 with open(gan2_hyperparams, "r") as f:
@@ -186,7 +186,7 @@ with open(gan2_hyperparams, "r") as f:
                 np.nanmean(all_results[key]["mse_brain"])
             ]
     
-with open("gan2_mse_dump_26to50_2907.pkl", "wb") as f:
+with open("gan2_mse_dump_51to80_0108.pkl", "wb") as f:
     pickle.dump(all_results, f)
     print("mse results saved successfuly to: ", f)
 

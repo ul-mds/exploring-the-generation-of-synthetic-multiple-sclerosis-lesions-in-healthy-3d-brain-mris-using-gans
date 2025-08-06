@@ -18,7 +18,7 @@ WORKDIR="/home/sc.uni-leipzig.de/iu71daji/masterthesis/Pix2PixNIfTI"
 
 #read LAMBDA_L1 LAMBDA_L2 UPSAMPLING NGF < <(sed -n "${SLURM_ARRAY_TASK_ID}p" gan1_hyperparams.txt)
 
-LAMBDA_L2=100
+LAMBDA_L2=200
 LAMBDA_L1=100
 
 apptainer exec --nv $IMAGE bash <<EOF
@@ -32,9 +32,9 @@ apptainer exec --nv $IMAGE bash <<EOF
     python train.py \
     --dataroot /home/sc.uni-leipzig.de/iu71daji/thesis_gan1 \
     --phase train \
-    --save_epoch_freq 25 \
+    --save_epoch_freq 50 \
     --print_model_info \
-    --name gan1_L1_${LAMBDA_L1}_L2_${LAMBDA_L2}_3107 \
+    --name gan1_L1_${LAMBDA_L1}_L2_${LAMBDA_L2}_0108_2 \
     --model pix2pix3d \
     --dataset_mode gan1 \
     --norm instance \
@@ -46,9 +46,9 @@ apptainer exec --nv $IMAGE bash <<EOF
     --ngf 32 \
     --ndf 16 \
     --gan_mode 'lsgan' \
-    --upsampling linear \
+    --upsampling deconvolution \
     --n_epochs_decay 0 \
-    --n_epochs 100 \
+    --n_epochs 450 \
     --preprocess none \
     --no_flip \
     --verbose \

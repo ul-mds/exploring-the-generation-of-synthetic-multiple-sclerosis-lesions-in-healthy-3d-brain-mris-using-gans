@@ -44,12 +44,11 @@ apptainer exec --nv $IMAGE bash <<EOF
     --gan_mode 'lsgan' \
     --upsampling linear \
     --n_epochs_decay 0 \
-    --n_epochs 300 \
+    --n_epochs 400 \
     --preprocess none \
     --no_flip \
     --display_id 0 \
     --verbose \
     --L1_mask_only \
-    --k_fold ${FOLD} \
-    --continue_train
+    --k_fold ${FOLD}
 EOF

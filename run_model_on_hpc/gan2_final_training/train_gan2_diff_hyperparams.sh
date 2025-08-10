@@ -30,7 +30,7 @@ apptainer exec --nv $IMAGE bash <<EOF
     python train.py \
     --dataroot /home/sc.uni-leipzig.de/iu71daji/thesis_gan2/train_gan2 \
     --phase train \
-    --save_epoch_freq 25 \
+    --save_epoch_freq 100\
     --print_model_info \
     --name gan2_left_out_fold${FOLD}_L1_${LAMBDA_L1}_L2_${LAMBDA_L2} \
     --model pix2pix \
@@ -44,11 +44,12 @@ apptainer exec --nv $IMAGE bash <<EOF
     --gan_mode 'lsgan' \
     --upsampling linear \
     --n_epochs_decay 0 \
-    --n_epochs 100 \
+    --n_epochs 300 \
     --preprocess none \
     --no_flip \
     --display_id 0 \
     --verbose \
     --L1_mask_only \
-    --k_fold ${FOLD}
+    --k_fold ${FOLD} \
+    --continue_train
 EOF

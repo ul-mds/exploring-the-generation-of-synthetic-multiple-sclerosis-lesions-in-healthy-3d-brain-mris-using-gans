@@ -10,13 +10,15 @@
 #SBATCH --mem-per-cpu=16G
 #SBATCH --output=slurm-%A_%a.out
 #SBATCH --error=slurm-%A_%a.err
-
+#SBATCH --array=1-100
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
 IMAGE="/home/sc.uni-leipzig.de/iu71daji/masterthesis/containers/nifti_img.sif"
 WORKDIR="/home/sc.uni-leipzig.de/iu71daji/masterthesis/Pix2PixNIfTI"
 
-MODEL_NAME="gan1_L1_200_L2_100_0108_3"
+read LAMBDA_L1 LAMBDA_L2 < <(sed -n "${SLURM_ARRAY_TASK_ID}p" gan1_hyperparameters.txt)
+
+MODEL_NAME="gan1_hyptr_L1_${LAMBDA_L1}_L2_${LAMBDA_L2}"
 
 apptainer exec --nv $IMAGE bash <<EOF
     cd $WORKDIR
@@ -25,6 +27,7 @@ apptainer exec --nv $IMAGE bash <<EOF
     pip install mpmath
 
     # Start testing
+    for EPOCH in 150 300 450 600; do
     python test.py \
     --dataroot /home/sc.uni-leipzig.de/iu71daji/thesis_gan1 \
     --results_dir /home/sc.uni-leipzig.de/iu71daji/thesis_gan1/testresults \
@@ -41,5 +44,8 @@ apptainer exec --nv $IMAGE bash <<EOF
     --upsampling linear \
     --preprocess none \
     --no_flip \
-    --verbose
+    --verbose \
+    --epoch "\$EPOCH"
+    done
 EOF
+

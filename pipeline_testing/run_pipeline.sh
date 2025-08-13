@@ -58,10 +58,13 @@ EOF
 
 # gan2 preprocessing with new synthetic lesionmask 
 # call: 
-apptainer exec --nv $IMAGE python pipeline_testing/gan2_preprocess.py \
---flairs_path $REGISTERED_FLAIRS \
---lsmasks_path $GAN1_RESULTS_DIR \
---output_path $GAN2_SOURCE
+apptainer exec --nv $IMAGE bash <<EOF 
+	cd $WORKDIR	
+	python pipeline_testing/gan2_preprocess.py \
+	--flairs_path $REGISTERED_FLAIRS \
+	--lsmasks_path $GAN1_RESULTS_DIR \
+	--output_path $GAN2_SOURCE
+EOF
 
 # run gan2
 apptainer exec --nv $IMAGE bash <<EOF
@@ -89,8 +92,11 @@ apptainer exec --nv $IMAGE bash <<EOF
 EOF
 
 # postprocess gan2 results
-apptainer exec --nv $IMAGE python pipeline_testing/postprocess.py \
---slice_dir $GAN2_RESULTS_DIR \
---reference_flair_path $REGISTERED_FLAIRS \
---lsmasks_path $GAN1_RESULTS_DIR \
---output_path $PIPELINE_RESULTS_DIR
+apptainer exec --nv $IMAGE bash <<EOF
+	cd $WORKDIR	
+ 	python pipeline_testing/postprocessing.py \
+	--slices_dir $GAN2_RESULTS_DIR \
+	--reference_flair_path $REGISTERED_FLAIRS \
+	--lsmasks_path $GAN1_RESULTS_DIR \
+	--output_path $PIPELINE_RESULTS_DIR
+EOF 

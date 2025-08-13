@@ -141,50 +141,50 @@ with open(gan2_hyperparams, "r") as f:
         parts = line.strip().split()
         lambda_L1, lambda_L2, fold = parts
         gan_name = f"gan2_left_out_fold{fold}_L1_{lambda_L1}_L2_{lambda_L2}"
-        test_result_imgs = (test_results_dir / gan_name / "test_latest")
-        key = f"gan2_L1_{lambda_L1}_L2_{lambda_L2}"
-        for img_name in basenames_imgs[f"fold_{fold}"]:
-            if "center08" in img_name: 
-                continue 
- 
-            output_path = (test_results_dir / gan_name / "test_latest" / "reconstructed_3d" / f"{img_name}_testresult_reconstructed.nii.gz")
-            output_path.parent.mkdir(parents=True, exist_ok=True)
-            reference_flair = (train_data_dir / "interim_results" / f"{img_name}_flair_mni_registered.mgz") 
-            ref_mask_path = (train_data_dir / "interim_results"/ f"{img_name}_ls_mask_dilated.nii.gz")
 
-            # Remove possible .nii file if it exists (without .gz) TODO delete this later
-            nii_path = Path(str(output_path).replace('.nii.gz', '.nii'))
-            if nii_path.exists():
-                nii_path.unlink()
-            if not output_path.exists():
-                reconstruct_3d_from_slices(slice_dir=test_result_imgs,
-                                        reference_flair_path=reference_flair, 
-                                        output_path=output_path, 
-                                        prefix=img_name,
-                                        ref_mask_path=ref_mask_path, 
-                                        fold=fold)
-            else:
-                print(f"Reconstructed 3d img {output_path} already exists, skipping reconstruction.")
-            
-            # calc mse
-            mse_img, mse_dialated_lsmask, mse_brain = calc_mse(output_path, reference_flair, ref_mask_path)
-            if key not in all_results.keys():
-                all_results[key] = {"mse_img": [mse_img],
-                                    "mse_dialated_lsmask": [mse_dialated_lsmask],
-                                    "mse_brain": [mse_brain]
-                                    }
-            else:
-                all_results[key]["mse_img"].append(mse_img)
-                all_results[key]["mse_dialated_lsmask"].append(mse_dialated_lsmask)
-                all_results[key]["mse_brain"].append(mse_brain)                                   
-        if fold == "4": 
-            # all 4 folds for current config were evaluated
-            # calculate mean mse
-            all_results[key]["mean_mse_(img,lsmsk,brain)"] = [
-                np.nanmean(all_results[key]["mse_img"]),
-                np.nanmean(all_results[key]["mse_dialated_lsmask"]),
-                np.nanmean(all_results[key]["mse_brain"])
-            ]
+        # add epochs 
+        for epoch in [100, 200, 300, 400]:
+            test_result_imgs = (test_results_dir / gan_name / f"test_{epoch}")
+            key = f"gan2_L1_{lambda_L1}_L2_{lambda_L2}_epoch_{epoch}"
+            for img_name in basenames_imgs[f"fold_{fold}"]:
+                output_path = (test_results_dir / gan_name / f"test_{epoch}" / "reconstructed_3d" / f"{img_name}_testresult_reconstructed.nii.gz")
+                output_path.parent.mkdir(parents=True, exist_ok=True)
+                reference_flair = (train_data_dir / "interim_results" / f"{img_name}_flair_mni_registered.mgz") 
+                ref_mask_path = (train_data_dir / "interim_results"/ f"{img_name}_ls_mask_dilated.nii.gz")
+
+                # Remove possible .nii file if it exists (without .gz) TODO delete this later
+                nii_path = Path(str(output_path).replace('.nii.gz', '.nii'))
+                if nii_path.exists():
+                    nii_path.unlink()
+                if not output_path.exists():
+                    reconstruct_3d_from_slices(slice_dir=test_result_imgs,
+                                            reference_flair_path=reference_flair, 
+                                            output_path=output_path, 
+                                            prefix=img_name,
+                                            ref_mask_path=ref_mask_path, 
+                                            fold=fold)
+                else:
+                    print(f"Reconstructed 3d img {output_path} already exists, skipping reconstruction.")
+                
+                # calc mse
+                mse_img, mse_dialated_lsmask, mse_brain = calc_mse(output_path, reference_flair, ref_mask_path)
+                if key not in all_results.keys():
+                    all_results[key] = {"mse_img": [mse_img],
+                                        "mse_dialated_lsmask": [mse_dialated_lsmask],
+                                        "mse_brain": [mse_brain]
+                                        }
+                else:
+                    all_results[key]["mse_img"].append(mse_img)
+                    all_results[key]["mse_dialated_lsmask"].append(mse_dialated_lsmask)
+                    all_results[key]["mse_brain"].append(mse_brain)                                   
+            if fold == "4": 
+                # all 4 folds for current config were evaluated
+                # calculate mean mse
+                all_results[key]["mean_mse_(img,lsmsk,brain)"] = [
+                    np.nanmean(all_results[key]["mse_img"]),
+                    np.nanmean(all_results[key]["mse_dialated_lsmask"]),
+                    np.nanmean(all_results[key]["mse_brain"])
+                ]
     
 with open("gan2_mse_dump_51to80_0108.pkl", "wb") as f:
     pickle.dump(all_results, f)

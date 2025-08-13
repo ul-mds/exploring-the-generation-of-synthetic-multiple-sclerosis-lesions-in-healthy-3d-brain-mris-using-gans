@@ -90,8 +90,8 @@ def save_images(webpage, visuals, image_path, dataset_mode, aspect_ratio=1.0, wi
     ims, txts, links = [], [], []
 
     for label, im_data in visuals.items():
-        print("Debug print 4 (tensor label): ", label)
-        print("Debug print 5 (tensor shape): ", im_data.shape)
+        if label == "truth":
+            continue
         im = util.tensor2im(input_image=im_data, dataset_mode=dataset_mode)
         if im is None:
             print(f"Skipping {label} because tensor2im returned None")

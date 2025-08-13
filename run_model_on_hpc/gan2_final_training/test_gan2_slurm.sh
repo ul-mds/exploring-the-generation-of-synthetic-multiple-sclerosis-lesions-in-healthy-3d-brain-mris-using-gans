@@ -10,7 +10,7 @@
 #SBATCH --mem-per-cpu=8G
 #SBATCH --output=slurm-%x-%j-%a.out
 #SBATCH --error=slurm-%x-%j-%a.err 
-#SBATCH --array=51-80
+#SBATCH --array=1-80
 
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
@@ -28,9 +28,10 @@ apptainer exec --nv $IMAGE bash <<EOF
     pip install mpmath
 
     # start testing
+    for EPOCH in 100 200 300 400; do
     python test_gan2.py \
     --dataroot /home/sc.uni-leipzig.de/iu71daji/thesis_gan2/train_gan2 \
-    --results_dir /home/sc.uni-leipzig.de/iu71daji/thesis_gan2/testresults \
+    --results_dir /work/iu71daji-gan2_test_results \
     --phase test \
     --lambda_L1 ${LAMBDA_L1} \
     --lambda_L2 ${LAMBDA_L2} \
@@ -48,5 +49,7 @@ apptainer exec --nv $IMAGE bash <<EOF
     --output_nc 3 \
     --input_nc 3 \
     --verbose \
-    --k_fold ${FOLD}
+    --k_fold ${FOLD} \
+    --epoch "\$EPOCH"
+    done
 EOF

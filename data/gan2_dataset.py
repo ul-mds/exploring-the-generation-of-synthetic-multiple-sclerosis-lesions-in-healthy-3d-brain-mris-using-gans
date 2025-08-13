@@ -60,14 +60,28 @@ class Gan2Dataset(BaseDataset):
 
         self.samples = []
         self.original_shape = None
-        self.is_test = opt.phase == 'test'
+        self.phase = opt.phase
         self.fold_idx = opt.k_fold if opt.k_fold >= 0 else -1
 
-        # TODO implemment k=-1 for no k-fold
+        if self.phase == "inference":
+            # no k-fold validataion.
+            flair_dir = os.path.join(opt.dataroot, "flair_slices")
+            lsmsk_dir = os.path.join(opt.dataroot, "mask_slices")
+            for fname in os.listdir(flair_dir):
+                flair_path = os.path.join(flair_dir, fname)
+                lsmsk_path = os.path.join(lsmsk_dir, fname.replace("flair", "lsmsk"))
+                self.samples.append(
+                            {
+                            "fold" : None,
+                            "basename": fname.replace(".npy", "").replace("_flair", ""),
+                            "flair_path": flair_path,
+                            "lsmsk_path": lsmsk_path
+                            }) 
+            return
 
-        if self.is_test: 
-            folds = [self.fold_idx]        
-        else: 
+        elif self.phase == 'test':
+            folds = [self.fold_idx]
+        elif self.phase == 'train':
             folds = [i for i in range(self.K) if i != self.fold_idx]
 
         for fold in folds: 

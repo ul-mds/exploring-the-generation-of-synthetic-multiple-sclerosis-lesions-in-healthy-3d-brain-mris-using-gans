@@ -75,12 +75,13 @@ if __name__ == '__main__':
         if i % 5 == 0:  # save images to an HTML file
             print('processing (%04d)-th image... %s' % (i, img_path))
 
-        save_images(webpage=webpage,
-                     visuals=visuals,
-                    dataset_mode=dataset_mode,
-                    image_path=img_path, 
-                    aspect_ratio=opt.aspect_ratio,
-                      width=opt.display_winsize)
+        save_images(opt=opt,    
+            webpage=webpage,
+            visuals=visuals,
+            dataset_mode=dataset_mode,
+            image_path=img_path, 
+            aspect_ratio=opt.aspect_ratio,
+            width=opt.display_winsize)
 
     webpage.save()  # save the HTML
     end_time = round(time.time() - init_time, 3)

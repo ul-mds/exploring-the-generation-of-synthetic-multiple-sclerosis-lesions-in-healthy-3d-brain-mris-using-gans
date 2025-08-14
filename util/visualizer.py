@@ -71,7 +71,7 @@ def save_web_nifti(webpage, visuals, image_path, show=False, width=256):
     webpage.add_images(ims, txts, links, width=width)
 
 
-def save_images(webpage, visuals, image_path, dataset_mode, aspect_ratio=1.0, width=256):
+def save_images(opt, webpage, visuals, image_path, dataset_mode, aspect_ratio=1.0, width=256):
     """Save images to the disk.
 
     Parameters:

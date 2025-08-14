@@ -6,6 +6,7 @@ import time
 from .mri_viewer import plot_3d
 from . import util, html_handler
 from subprocess import Popen, PIPE
+import re
 
 if sys.version_info[0] == 2:
     VisdomExceptionBase = Exception
@@ -84,7 +85,10 @@ def save_images(webpage, visuals, image_path, dataset_mode, aspect_ratio=1.0, wi
     """
     image_dir = webpage.get_image_dir()
     short_path = ntpath.basename(image_path[0])
-    name = os.path.splitext(short_path)[0]
+    if opt.phase == 'inference':
+        name = re.sub(r'_source_gan1.*$', '', short_path)
+    else:
+        name = os.path.splitext(short_path)[0]
 
     webpage.add_header(name)
     ims, txts, links = [], [], []

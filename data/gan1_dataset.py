@@ -32,7 +32,7 @@ class Gan1Dataset(BaseDataset):
 
             if os.path.isdir(self.source_dir):
                 source_files = [f for f in os.listdir(self.source_dir) if f.endswith(".nii") or f.endswith(".nii.gz")]
-                self.basenames = sorted([f.replace("_source_gan1.nii", "").replace("_source_gan1.nii.gz", "") for f in source_files])
+                self.basenames = sorted([f.replace("_source_gan1.nii.gz", "").replace("_source_gan1.nii", "") for f in source_files])
 
         # test imgs
         elif opt.phase == 'test':

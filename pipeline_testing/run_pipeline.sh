@@ -39,8 +39,8 @@ apptainer exec --nv $IMAGE bash <<EOF
     python test.py \
     --dataroot $GAN1_SOURCE \
     --results_dir $GAN1_RESULTS_DIR \
-    --phase test \
-    --name ${GAN1_NAME} \
+    --phase inference \
+    --name $GAN1_NAME \
     --model pix2pix3d \
     --dataset_mode gan1 \
     --norm instance \
@@ -53,14 +53,14 @@ apptainer exec --nv $IMAGE bash <<EOF
     --preprocess none \
     --no_flip \
     --verbose \
-    --epoch "\$GAN1_EPOCH"
+    --epoch $GAN1_EPOCH
 EOF
 
 # gan2 preprocessing with new synthetic lesionmask 
 # call: 
 apptainer exec --nv $IMAGE bash <<EOF 
 	cd $WORKDIR	
-	python pipeline_testing/gan2_preprocess.py \
+	python pipeline_testing/intermediate_processing.py \
 	--flairs_path $REGISTERED_FLAIRS \
 	--lsmasks_path $GAN1_RESULTS_DIR \
 	--output_path $GAN2_SOURCE

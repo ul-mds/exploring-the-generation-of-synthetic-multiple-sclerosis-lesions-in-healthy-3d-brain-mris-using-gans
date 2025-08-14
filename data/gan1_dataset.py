@@ -19,40 +19,37 @@ class Gan1Dataset(BaseDataset):
     def __init__(self, opt):
         
         super().__init__(opt)
+                
+        self.L1_mask_only = opt.L1_mask_only # Lesion mask only for L1 
+        self.crop_imgs = opt.crop_imgs # crop imgs from 256 to 128 ?
 
-        # where images are stored
-        self.source_dir = os.path.join(opt.dataroot, "train_gan1", "source")
-        self.target_dir = os.path.join(opt.dataroot, "train_gan1", "target")
+        self.basenames = []
+        if opt.phase == 'train':
+            # where images are stored
+            self.source_dir = os.path.join(opt.dataroot, "train_gan1", "source")
+            self.target_dir = os.path.join(opt.dataroot, "train_gan1", "target")
 
-        if os.path.isdir(self.source_dir):
-            source_files = [f for f in os.listdir(self.source_dir) if f.endswith(".nii") or f.endswith(".nii.gz")]
-            self.basenames = sorted([f.replace("_source_gan1.nii", "").replace("_source_gan1.nii.gz", "") for f in source_files])
-        else: 
-            self.basenames = []
-        
-        # Lesion mask only for L1 
-        self.L1_mask_only = opt.L1_mask_only
-
-        # crop imgs from 256 to 128 ? 
-        self.crop_imgs = opt.crop_imgs
+            if os.path.isdir(self.source_dir):
+                source_files = [f for f in os.listdir(self.source_dir) if f.endswith(".nii") or f.endswith(".nii.gz")]
+                self.basenames = sorted([f.replace("_source_gan1.nii", "").replace("_source_gan1.nii.gz", "") for f in source_files])
 
         # test imgs
-        self.test_dir = os.path.join(opt.dataroot, "gan1_test_imgs")
-        self.is_test = opt.phase == 'test'
-        if os.path.isdir(self.test_dir):
-            test_files = [f for f in os.listdir(self.test_dir) if f.endswith(".nii") or f.endswith(".nii.gz")]
-            self.test_basenames = sorted([f.replace("_source_gan1.nii.gz", "")for f in test_files])
-        else:
-            self.test_basenames = []
-        
-        
+        elif opt.phase == 'test':
+            self.test_dir = os.path.join(opt.dataroot, "gan1_test_imgs")
+            if os.path.isdir(self.test_dir):
+                test_files = [f for f in os.listdir(self.test_dir) if f.endswith(".nii") or f.endswith(".nii.gz")]
+                self.basenames = sorted([f.replace("_source_gan1.nii.gz", "")for f in test_files])
 
+        elif opt.phase == 'inference':
+            self.test_dir = os.path(opt.dataroot)
+            source_files = [f for f in os.listdir(self.test_dir) if f.endswith(".nii") or f.endswith(".nii.gz")]
+            self.basenames = sorted([f.replace("_source_gan1.nii.gz", "") for f in source_files])
 
     def __getitem__(self, index):
         """Lädt ein Bildpaar (source & target) und konvertiert sie in Tensoren"""
 
-        if self.is_test: 
-            test_filename = self.test_basenames[index] + "_source_gan1.nii.gz"
+        if opt.phase == 'test' or opt.phase == 'inference':
+            test_filename = self.basenames[index] + "_source_gan1.nii.gz"
             test_path = os.path.join(self.test_dir, test_filename)
             test_img = nib.load(test_path).get_fdata()
 
@@ -97,7 +94,7 @@ class Gan1Dataset(BaseDataset):
 
     def __len__(self):
         """Gibt die Anzahl der Bilder zurück"""
-        if self.is_test:
+        if opt.phase == 'test':
             return len(self.test_basenames) 
         else: 
             return len(self.basenames)

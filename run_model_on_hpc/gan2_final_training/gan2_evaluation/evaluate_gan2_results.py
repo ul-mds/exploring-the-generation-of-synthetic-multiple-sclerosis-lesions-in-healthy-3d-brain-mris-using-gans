@@ -11,7 +11,7 @@ import nibabel as nib
 from pathlib import Path
 import pickle
 from PIL import Image
-
+import argparse
 import json
 
 
@@ -125,11 +125,13 @@ def calc_mse(output_path, reference_flair, ref_mask_path):
     return mse_img, mse_dialated_lsmask, mse_brain
 
 
-
 parser = argparse.ArgumentParser(description='GAN2 Eval Script.')
-parser.add_argument('--min_line' type=int, required=True, help='minimum line of gan2_hyperparams to read in. Defining window of models to evaluate.')
-parser.add_argument('--max_line' type=int, required=True, help='Max line of gan2_hyperparams to read in. Defining window of models to evaluate.')
-parser.add_argument('--results_name', type=str, required=True help='Name for eval_results pickle file.')
+parser.add_argument('--min_line', type=int, required=True, help='minimum line of gan2_hyperparams to read in. Defining window of models to evaluate.')
+parser.add_argument('--max_line', type=int, required=True, help='Max line of gan2_hyperparams to read in. Defining window of models to evaluate.')
+parser.add_argument('--results_name', type=str, required=True, help='Name for eval_results pickle file.')
+args = parser.parse_args()
+
+
 test_results_dir = Path("/home/sc.uni-leipzig.de/iu71daji/thesis_gan2/testresults")
 train_data_dir = Path("/home/sc.uni-leipzig.de/iu71daji/thesis_gan2/train_gan2")
 

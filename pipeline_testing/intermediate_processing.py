@@ -54,13 +54,17 @@ parser = argparse.ArgumentParser(description='GAN2 Preprocessing Script')
 parser.add_argument('--flairs_path', type=str, required=True, help='Path to registered flairs')
 parser.add_argument('--lsmasks_path', type=str, required=True, help='Path to synthetic lesion masks.')
 parser.add_argument('--output_path', type=str, required=True, help='Output path for flair and mask slices.')
+parser.add_argument('--gan1_epoch', type=str, required=True, help='Needed to complete path to GAN1 results.')
+parser.add_argument('--gan1_name', type=str, required=True, help='Needed to complete path to GAN1 results.')
+parser.add_argument('--gan1_phase', type=str, required=True, help='Needed to complete path to GAN1 results.')
 
 args = parser.parse_args()
 
+lsmask_path = Path(args.lsmasks_path) / args.gan1_name / f"{args.gan1_phase}_{args.gan1_epoch}" / "images"
+
 for file in Path(args.flairs_path).glob("*.mgz"):
-    basename = file.stem.replace('flair_mni_registered', '')
+    basename = file.stem.replace('_flair_mni_registered', '')
     create_gan2_source_target(basename, flair_slice_path= file, 
-                              lsmask_path= Path(args.lsmasks_path) / f"{basename}_source_gan1.nii.gz", 
+                              lsmask_path= lsmask_path / f"{basename}_source_gan1.nii.gz", 
                               output_path= Path(args.output_path)
-                              )
-    
+                              )    

@@ -63,7 +63,10 @@ apptainer exec --nv $IMAGE bash <<EOF
 	python pipeline_testing/intermediate_processing.py \
 	--flairs_path $REGISTERED_FLAIRS \
 	--lsmasks_path $GAN1_RESULTS_DIR \
-	--output_path $GAN2_SOURCE
+	--output_path $GAN2_SOURCE \
+    --gan1_epoch $GAN1_EPOCH \
+    --gan1_name $GAN1_NAME \
+    --gan1_phase inference 
 EOF
 
 # run gan2
@@ -99,4 +102,4 @@ apptainer exec --nv $IMAGE bash <<EOF
 	--reference_flair_path $REGISTERED_FLAIRS \
 	--lsmasks_path $GAN1_RESULTS_DIR \
 	--output_path $PIPELINE_RESULTS_DIR
-EOF 
+EOF

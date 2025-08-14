@@ -10,7 +10,7 @@ import nibabel as nib
 import argparse
 from pathlib import Path
 
-def create_gan2_source_target(basename, flair_slice_path, lsmask_path, output_path):
+def create_gan2_source_target(basename, flair_path, lsmask_path, output_path):
         """
         Slices the 3D FLAIR and lesion mask images into 2D numpy arrays for GAN2 training.
         Only slices containing at least one lesion voxel are saved. This function is 
@@ -18,7 +18,7 @@ def create_gan2_source_target(basename, flair_slice_path, lsmask_path, output_pa
         Changes made in this code should be applied to the reconstruction function as well.
         """
 
-        flair_img = nib.load(str(flair_slice_path)).get_fdata()
+        flair_img = nib.load(str(flair_path)).get_fdata()
         lesion_img = nib.load(str(lsmask_path)).get_fdata()
 
         if flair_img.shape != lesion_img.shape:
@@ -64,7 +64,8 @@ lsmask_path = Path(args.lsmasks_path) / args.gan1_name / f"{args.gan1_phase}_{ar
 
 for file in Path(args.flairs_path).glob("*.mgz"):
     basename = file.stem.replace('_flair_mni_registered', '')
-    create_gan2_source_target(basename, flair_slice_path= file, 
-                              lsmask_path= lsmask_path / f"{basename}_source_gan1.nii.gz", 
+    create_gan2_source_target(basename, 
+                              flair_path= file, 
+                              lsmask_path= lsmask_path / f"{basename}__fake_B.nii", 
                               output_path= Path(args.output_path)
                               )    

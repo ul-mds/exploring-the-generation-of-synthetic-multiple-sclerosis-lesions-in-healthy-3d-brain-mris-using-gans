@@ -39,12 +39,12 @@ class Gan1Dataset(BaseDataset):
             self.test_dir = os.path.join(opt.dataroot, "gan1_test_imgs")
             if os.path.isdir(self.test_dir):
                 test_files = [f for f in os.listdir(self.test_dir) if f.endswith(".nii") or f.endswith(".nii.gz")]
-                self.basenames = sorted([f.replace("_source_gan1.nii.gz", "")for f in test_files])
+                self.basenames = sorted([f.replace("_source_gan1.nii.gz", "").replace("_source_gan1.nii", "") for f in test_files])
 
         elif opt.phase == 'inference':
             self.test_dir = opt.dataroot
             source_files = [f for f in os.listdir(self.test_dir) if f.endswith(".nii") or f.endswith(".nii.gz")]
-            self.basenames = sorted([f.replace("_source_gan1.nii.gz", "") for f in source_files])
+            self.basenames = sorted([f.replace("_source_gan1.nii.gz", "").replace("_source_gan1.nii", "") for f in source_files])
 
         print("Debug print, basenames:") 
         print(self.basenames)

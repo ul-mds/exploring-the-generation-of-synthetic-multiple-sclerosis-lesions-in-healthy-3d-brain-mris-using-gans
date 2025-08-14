@@ -18,4 +18,4 @@ WORKDIR="/home/sc.uni-leipzig.de/iu71daji/masterthesis/Pix2PixNIfTI/run_model_on
 
 cd $WORKDIR
 
-apptainer exec --nv $IMAGE python evaluate_gan2_results.py --min_line 0 --max_line 45 --results_name "gan2_mse_dump_0to45_140825"
+apptainer exec --nv $IMAGE python evaluate_gan2_results.py --min_line 0 --max_line 20 --results_name "gan2_mse_dump_0to20_140825"

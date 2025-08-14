@@ -22,6 +22,7 @@ class Gan1Dataset(BaseDataset):
                 
         self.L1_mask_only = opt.L1_mask_only # Lesion mask only for L1 
         self.crop_imgs = opt.crop_imgs # crop imgs from 256 to 128 ?
+        self.phase = opt.phase
 
         self.basenames = []
         if opt.phase == 'train':
@@ -41,14 +42,18 @@ class Gan1Dataset(BaseDataset):
                 self.basenames = sorted([f.replace("_source_gan1.nii.gz", "")for f in test_files])
 
         elif opt.phase == 'inference':
-            self.test_dir = os.path(opt.dataroot)
+            self.test_dir = opt.dataroot
             source_files = [f for f in os.listdir(self.test_dir) if f.endswith(".nii") or f.endswith(".nii.gz")]
             self.basenames = sorted([f.replace("_source_gan1.nii.gz", "") for f in source_files])
 
+        print("Debug print, basenames:") 
+        print(self.basenames)
+
     def __getitem__(self, index):
         """Lädt ein Bildpaar (source & target) und konvertiert sie in Tensoren"""
-
-        if opt.phase == 'test' or opt.phase == 'inference':
+        print("debug print, getitem: ")
+        print(self.basenames[index])
+        if self.phase == 'test' or self.phase == 'inference':
             test_filename = self.basenames[index] + "_source_gan1.nii.gz"
             test_path = os.path.join(self.test_dir, test_filename)
             test_img = nib.load(test_path).get_fdata()
@@ -94,10 +99,9 @@ class Gan1Dataset(BaseDataset):
 
     def __len__(self):
         """Gibt die Anzahl der Bilder zurück"""
-        if opt.phase == 'test':
-            return len(self.test_basenames) 
-        else: 
-            return len(self.basenames)
+         
+        return len(self.basenames) 
+
         
     def crop_image(self, img):
         """

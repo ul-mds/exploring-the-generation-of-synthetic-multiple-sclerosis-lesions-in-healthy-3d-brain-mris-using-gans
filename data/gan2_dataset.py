@@ -133,7 +133,7 @@ class Gan2Dataset(BaseDataset):
         source_array = np.stack([masked_flair_scaled, lsmsk_img, empty], axis=0)
         source_tensor = torch.tensor(source_array, dtype=torch.float32)
 
-        if self.is_test: 
+        if self.phase == "inference" or self.phase == "test": 
              return {"A": source_tensor, "A_paths": sample["flair_path"]}
         else: 
             # Target Tensor: only original mri [3, H, W]

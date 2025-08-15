@@ -66,6 +66,6 @@ for file in Path(args.flairs_path).glob("*.mgz"):
     basename = file.stem.replace('_flair_mni_registered', '')
     create_gan2_source_target(basename, 
                               flair_path= file, 
-                              lsmask_path= lsmask_path / f"{basename}__fake_B.nii", 
+                              lsmask_path= lsmask_path / f"{basename}_fake_B.nii", 
                               output_path= Path(args.output_path)
                               )    

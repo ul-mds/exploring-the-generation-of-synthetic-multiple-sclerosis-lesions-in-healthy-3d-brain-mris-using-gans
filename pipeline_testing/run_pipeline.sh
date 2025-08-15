@@ -64,9 +64,9 @@ apptainer exec --nv $IMAGE bash <<EOF
 	--flairs_path $REGISTERED_FLAIRS \
 	--lsmasks_path $GAN1_RESULTS_DIR \
 	--output_path $GAN2_SOURCE \
-    --gan1_epoch $GAN1_EPOCH \
-    --gan1_name $GAN1_NAME \
-    --gan1_phase inference 
+    	--gan1_epoch $GAN1_EPOCH \
+    	--gan1_name $GAN1_NAME \
+    	--gan1_phase inference 
 EOF
 
 # run gan2

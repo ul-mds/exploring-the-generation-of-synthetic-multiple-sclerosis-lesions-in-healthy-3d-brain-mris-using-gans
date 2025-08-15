@@ -97,7 +97,7 @@ argument_parser.add_argument('--lsmasks_path', type=str, required=True, help='Pa
 args = argument_parser.parse_args()
 
 for flair_img in Path(args.reference_flair_path).glob("*.mgz"):
-    basename = flair_img.stem.replace('flair_mni_registered', '')
+    basename = flair_img.stem.replace('_flair_mni_registered', '')
     reconstruct_3d_from_slices(
         slice_dir=Path(args.slices_dir),
         reference_flair_path=flair_img,

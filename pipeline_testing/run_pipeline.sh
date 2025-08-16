@@ -101,5 +101,8 @@ apptainer exec --nv $IMAGE bash <<EOF
 	--slices_dir $GAN2_RESULTS_DIR \
 	--reference_flair_path $REGISTERED_FLAIRS \
 	--lsmasks_path $GAN1_RESULTS_DIR \
-	--output_path $PIPELINE_RESULTS_DIR
+	--output_path $PIPELINE_RESULTS_DIR \
+        --gan1_epoch $GAN1_EPOCH \
+        --gan1_name $GAN1_NAME \
+        --gan1_phase inference
 EOF

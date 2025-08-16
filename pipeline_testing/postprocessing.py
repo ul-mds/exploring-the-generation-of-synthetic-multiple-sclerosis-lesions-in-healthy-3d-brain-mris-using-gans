@@ -101,11 +101,11 @@ argument_parser.add_argument('--gan1_phase', type=str, required=True, help='Need
 args = argument_parser.parse_args()
 
 lsmask_path = Path(args.lsmasks_path) / args.gan1_name / f"{args.gan1_phase}_{args.gan1_epoch}" / "images"
-
+slice_dir = Path(args.slices_dir) / "gan2_left_out_fold3_L1_150_L2_70" / "inference_200"   #TODO PATHING KORRIGIEREN! KURZ MAL HARDCODED!
 for flair_img in Path(args.reference_flair_path).glob("*.mgz"):
     basename = flair_img.stem.replace('_flair_mni_registered', '')
     reconstruct_3d_from_slices(
-        slice_dir=Path(args.slices_dir),
+        slice_dir=slice_dir,
         reference_flair_path=flair_img,
         output_path=Path(args.output_path) / f"{basename}_reconstructed.nii.gz",
         basename=basename,

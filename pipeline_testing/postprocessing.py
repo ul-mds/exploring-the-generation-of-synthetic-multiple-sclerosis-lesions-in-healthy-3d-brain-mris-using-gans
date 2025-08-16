@@ -6,6 +6,7 @@ Postprocessing includes:
  * Gaussian smoothing in the direction, in which the images were sliced. 
     with sigma = 1
 """
+from html import parser
 import numpy as np
 import nibabel as nib
 import argparse
@@ -93,8 +94,13 @@ argument_parser.add_argument('--slices_dir', type=str, required=True, help='Dire
 argument_parser.add_argument('--reference_flair_path', type=str, required=True, help='Path to the reference FLAIR NIfTI image.')
 argument_parser.add_argument('--output_path', type=str, required=True, help='Path to the output directory for the reconstructed 3D NIfTI images.')
 argument_parser.add_argument('--lsmasks_path', type=str, required=True, help='Path to the directory containing the lesion masks.')
+argument_parser.add_argument('--gan1_epoch', type=str, required=True, help='Needed to complete path to GAN1 results.')
+argument_parser.add_argument('--gan1_name', type=str, required=True, help='Needed to complete path to GAN1 results.')
+argument_parser.add_argument('--gan1_phase', type=str, required=True, help='Needed to complete path to GAN1 results.')
 
 args = argument_parser.parse_args()
+
+lsmask_path = Path(args.lsmasks_path) / args.gan1_name / f"{args.gan1_phase}_{args.gan1_epoch}" / "images"
 
 for flair_img in Path(args.reference_flair_path).glob("*.mgz"):
     basename = flair_img.stem.replace('_flair_mni_registered', '')
@@ -103,7 +109,7 @@ for flair_img in Path(args.reference_flair_path).glob("*.mgz"):
         reference_flair_path=flair_img,
         output_path=Path(args.output_path) / f"{basename}_reconstructed.nii.gz",
         basename=basename,
-        lsmask_path=Path(args.lsmasks_path) / f"{basename}_source_gan1.nii_fake_B.nii"
+        lsmask_path=lsmask_path / f"{basename}_fake_B.nii"
     )
 
 # apply gaussian smoothing to the reconstructed 3D NIfTI images

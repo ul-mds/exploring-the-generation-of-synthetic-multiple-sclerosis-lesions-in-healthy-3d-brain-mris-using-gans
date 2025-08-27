@@ -35,7 +35,7 @@ def get_image_dict(training_path):
     with open((training_path / "k_fold_patients.json"), "r") as f:
         folds = json.load(f)
 
-    # Dictionary: für jeden Fold eine Liste der Basenames
+    # Dictionary: for every fold a list of basenames
     basenames_per_fold = {}
     for fold, patients in folds.items():
         basenames_per_fold[fold] = [get_basename(center, patient) for center, patient in patients]
@@ -99,14 +99,14 @@ with open(gan2_hyperparams, "r") as f:
                 path_3d_img.parent.mkdir(parents=True, exist_ok=True)
                 reference_flair = (train_data_dir / "interim_results" / f"{img_name}_flair_mni_registered.mgz") 
                 ref_mask_path = (train_data_dir / "interim_results"/ f"{img_name}_ls_mask_dilated.nii.gz")
-                postprocessed_path = Path(test_results_dir / gan_name / f"test_{epoch}" / "postprocessed")
-                postprocessed_path.mkdir(parents=True, exist_ok=True)
+                postprocessed_img_path = Path(test_results_dir / gan_name / f"test_{epoch}" / "postprocessed" / f"{img_name}_flair_synth_lesions_postprocessed.nii.gz")
+                postprocessed_img_path.parent.mkdir(parents=True, exist_ok=True)
 
                 # Remove possible .nii file if it exists (without .gz) TODO delete this later
                 nii_path = Path(str(path_3d_img).replace('.nii.gz', '.nii'))
                 if nii_path.exists():
                     nii_path.unlink()
-                if not path_3d_img.exists():
+                if not postprocessed_img_path.exists():
                     reconstruct_3d_from_slices(slice_dir=test_result_imgs,
                                             reference_flair_path=reference_flair, 
                                             output_path=path_3d_img, 
@@ -116,15 +116,23 @@ with open(gan2_hyperparams, "r") as f:
                                             delete_slices=True)
                     
                     apply_gaussian_smoothing(reconstructed_img=path_3d_img,
-                                             output_path=postprocessed_path, 
+                                             output_path=postprocessed_img_path,
                                              basename=img_name,
-                                             ls_mask_path= ref_mask_path
+                                             ls_mask_path=ref_mask_path
                                             )
+                    
+                    if path_3d_img.exists():
+                        try:
+                            path_3d_img.unlink()
+                            print(f"Deleted reconstructed 3d img {path_3d_img}.")
+                        except Exception as e:
+                            print(f"Could not delete {path_3d_img}: {e}")
+                    
                 else:
-                    print(f"Reconstructed 3d img {path_3d_img} already exists, skipping reconstruction.")
+                    print(f"Postprocessed img {postprocessed_img_path} already exists, skipping reconstruction and postprocessing.")
                 
                 # calc mse
-                mse_img, mse_dialated_lsmask, mse_brain = calc_mse(path_3d_img, reference_flair, ref_mask_path)
+                mse_img, mse_dialated_lsmask, mse_brain = calc_mse(postprocessed_img_path, reference_flair, ref_mask_path)
                 if key not in all_results.keys():
                     all_results[key] = {"mse_img": [mse_img],
                                         "mse_dialated_lsmask": [mse_dialated_lsmask],
@@ -146,21 +154,3 @@ with open(gan2_hyperparams, "r") as f:
             with open(f"{args.results_name}.pkl", "wb") as f:
                 pickle.dump(all_results, f)
                 print("mse results saved successfuly to: ", f)
-
-    """
-    test_results naming: 
-    msseg_patient01_center01_flair_slice_002_truth.png
-
-    ... fake.png
-
-    ref_flair: 
-    interim_results/msseg_patient02_center01_flair_mni_registered.mgz
-
-    ref_lesion_mask: 
-    interim_results/msseg_patient02_center01_ls_mask_dilated.nii
-
-    base names: 
-    name=f"msseg_patient{p:02}_center{c:02}"
-    name=f"msseg2_patient{pid}
-    name=f"umcl_patient{k:02}
-    """

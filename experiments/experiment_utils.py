@@ -82,6 +82,6 @@ def apply_gaussian_smoothing(reconstructed_img, output_path, basename, ls_mask_p
     flair_post = flair.copy()
     flair_post[mask] = smoothed[mask]
 
-    out_path = output_path / "postprocessed" / f"{basename}_flair_synth_lesions_postprocessed.nii.gz"
-    nib.save(nib.Nifti1Image(flair_post, flair_img.affine, flair_img.header), out_path)
-    print(f"Saved Output as {out_path}")
+    nib.save(nib.Nifti1Image(flair_post, flair_img.affine, flair_img.header), output_path)
+    
+    print(f"Saved Output as {output_path}")

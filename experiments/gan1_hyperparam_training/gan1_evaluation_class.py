@@ -9,6 +9,7 @@ from scipy.ndimage import label, generate_binary_structure
 from scipy.linalg import sqrtm
 from scipy.ndimage import binary_erosion
 
+
 """
 This class calculates metrics for different data sets and allows to compare the distributions of the
 calculated attributes.
@@ -280,47 +281,84 @@ class LesionMetrics:
             feature_matrix.append(img_feature_vector)
 
         return np.array(feature_matrix, dtype=np.float64)
-    
+     
 
-    def compare_distributions_fid(self, second_dataset:"LesionMetrics", attributes=None) -> dict:
+
+    def compare_distributions_fid(self, second_dataset: "LesionMetrics", attributes=None) -> float:
         """
-        Compares the distributions of given attributes between the two datasets.
-        Metric used is the Fréchet Inception Distance (FID).
+        Compares the distributions of given attributes between two datasets using Fréchet Inception Distance (FID).
+        Returns np.nan if the calculation is not possible (e.g., due to NaNs, singular matrices, or sqrtm failure).
+        All diagnostic messages are printed to stdout.
         """
+        # 1. Set default attributes
         if attributes is None:
             attributes = [
-                            'lesion_count_per_img', 
-                            'lesion_voxels_per_img', 
-                            'lesion_min_size', 
-                            'lesion_max_size', 
-                            'lesion_mean_size', 
-                            'lesion_min_sphericity', 
-                            'lesion_max_sphericity', 
-                            'lesion_mean_sphericity',
-                            'lesion_min_surface_to_volume_ratio', 
-                            'lesion_max_surface_to_volume_ratio', 
-                            'lesion_mean_surface_to_volume_ratio']
+                'lesion_count_per_img',
+                'lesion_voxels_per_img',
+                'lesion_min_size',
+                'lesion_max_size',
+                'lesion_mean_size',
+                'lesion_min_sphericity',
+                'lesion_max_sphericity',
+                'lesion_mean_sphericity',
+                'lesion_min_surface_to_volume_ratio',
+                'lesion_max_surface_to_volume_ratio',
+                'lesion_mean_surface_to_volume_ratio'
+            ]
 
-        # calc FID: 
+        # 2. Calculate feature matrices
         X = self.calculate_feature_matrix(self, attributes)
         Y = self.calculate_feature_matrix(second_dataset, attributes)
+
+        # 3. Remove NaN and Inf values
+        if np.any(np.isnan(X)) or np.any(np.isnan(Y)):
+            print("Warning: Feature matrices contain NaN values. They are replaced with 0.")
+        if np.any(np.isinf(X)) or np.any(np.isinf(Y)):
+            print("Warning: Feature matrices contain Inf values. They are replaced with 0.")
+        X = np.nan_to_num(X, nan=0.0, posinf=0.0, neginf=0.0)
+        Y = np.nan_to_num(Y, nan=0.0, posinf=0.0, neginf=0.0)
+
+        # 4. Remove zero-variance features
+        var_X = np.var(X, axis=0)
+        var_Y = np.var(Y, axis=0)
+        valid_cols = np.where((var_X > 0) & (var_Y > 0))[0]
+        if len(valid_cols) == 0:
+            print("Error: No common features with variance. FID cannot be calculated.")
+            return np.nan
+        X = X[:, valid_cols]
+        Y = Y[:, valid_cols]
+
+        # 5. Compute means and covariances
         mean_X = np.mean(X, axis=0)
         mean_Y = np.mean(Y, axis=0)
         cov_X = np.cov(X, rowvar=False)
         cov_Y = np.cov(Y, rowvar=False)
 
-        # Regularize covariance matrices
-        eps = 1e-6
+        # 6. Regularize covariance matrices
+        eps = 1e-4
         cov_X += np.eye(cov_X.shape[0]) * eps
         cov_Y += np.eye(cov_Y.shape[0]) * eps
 
-        # sqrtm (matix square root) of the product of covariance matrices
-        covmean = sqrtm(cov_X.dot(cov_Y))
-        
-        if np.iscomplexobj(covmean):
-            covmean = covmean.real
-        
+        # 7. Matrix square root with error checking
+        try:
+            covmean = sqrtm(cov_X @ cov_Y)
+            if np.isnan(covmean).any():
+                print("Error: sqrtm result contains NaNs. FID calculation not possible.")
+                return np.nan
+            if np.iscomplexobj(covmean):
+                if np.max(np.abs(np.imag(covmean))) > 1e-6:
+                    print("Error: sqrtm result is significantly complex. FID calculation not possible.")
+                    return np.nan
+                covmean = covmean.real
+        except Exception as e:
+            print(f"Error: sqrtm failed with exception: {e}. FID cannot be calculated.")
+            return np.nan
+
+        # 8. Calculate FID
         fid = np.sum((mean_X - mean_Y) ** 2) + np.trace(cov_X + cov_Y - 2 * covmean)
+        if np.isnan(fid) or np.isinf(fid):
+            print("Error: FID calculation resulted in NaN or Inf. Check data and calculation steps.")
+            return np.nan
 
         return float(fid)
 

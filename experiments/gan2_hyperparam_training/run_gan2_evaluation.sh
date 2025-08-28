@@ -14,8 +14,8 @@
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
 IMAGE="/home/sc.uni-leipzig.de/iu71daji/masterthesis/containers/nifti_img.sif"
-WORKDIR="/home/sc.uni-leipzig.de/iu71daji/masterthesis/Pix2PixNIfTI/run_model_on_hpc/gan2_final_training/gan2_evaluation"
+WORKDIR="/home/sc.uni-leipzig.de/iu71daji/masterthesis/Pix2PixNIfTI/experiments/gan2_hyperparam_training"
 
 cd $WORKDIR
 
-apptainer exec --nv $IMAGE python evaluate_gan2_results.py --min_line 20 --max_line 80 --results_name "gan2_mse_dump_21to80_150825"
+apptainer exec --nv $IMAGE python evaluate_gan2_results.py --min_line 40 --max_line 80 --results_name "gan2_mse_dump_40to80_270825"

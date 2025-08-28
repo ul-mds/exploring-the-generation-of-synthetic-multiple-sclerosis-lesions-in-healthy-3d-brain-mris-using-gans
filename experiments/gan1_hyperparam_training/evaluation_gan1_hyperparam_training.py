@@ -83,6 +83,6 @@ for hyperparam in hyperparams:
                                                                             mse_heatmap=mse_heatmap)
 
 # save results
-results_path = RESULTS_PATH / "gan1_eval_hyperparam_training_results.pkl"
+results_path = RESULTS_PATH / "gan1_eval_hyperparam_training_results_270_2708.pkl"
 with open(results_path, 'wb') as f:
     pickle.dump(results, f)

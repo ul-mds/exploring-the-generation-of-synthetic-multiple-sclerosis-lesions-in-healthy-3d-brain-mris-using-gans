@@ -13,6 +13,9 @@ import pickle
 from PIL import Image
 import argparse
 import json
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from experiment_utils import reconstruct_3d_from_slices, apply_gaussian_smoothing
 
 

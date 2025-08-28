@@ -16,8 +16,8 @@ export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 IMAGE="/home/sc.uni-leipzig.de/iu71daji/masterthesis/containers/nifti_img.sif"
 WORKDIR="/home/sc.uni-leipzig.de/iu71daji/masterthesis/Pix2PixNIfTI"
 
-LAMBDA_LS=70
-LAMBDA_BRAIN=150
+LAMBDA_L1=70
+LAMBDA_L2=150
 EPOCHS=100
 
 apptainer exec --nv $IMAGE bash <<EOF
@@ -29,7 +29,7 @@ apptainer exec --nv $IMAGE bash <<EOF
 
     # start training
     python train.py \
-    --dataroot /home/sc.uni-leipzig.de/iu71daji/thesis_gan2/train_gan2 \
+    --dataroot /home/sc.uni-leipzig.de/iu71daji/thesis_gan2/train_gan2/all_traindata \
     --phase train \
     --save_epoch_freq 100\
     --print_model_info \

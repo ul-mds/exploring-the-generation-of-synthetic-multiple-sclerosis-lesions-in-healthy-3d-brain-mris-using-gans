@@ -13,7 +13,7 @@
 
 # Variables to set: 
 GAN1_SOURCE="/home/sc.uni-leipzig.de/iu71daji/test_pipeline/test_imgs/gan1_source"
-GAN1_NAME="gan1_hyptr_L1_200_L2_250"
+GAN1_NAME="gan1_hyptr_L1_250_L2_250"
 GAN1_EPOCH=600
 GAN1_RESULTS_DIR="/home/sc.uni-leipzig.de/iu71daji/test_pipeline/gan1results_synthetic_masks"
 
@@ -21,7 +21,7 @@ GAN1_RESULTS_DIR="/home/sc.uni-leipzig.de/iu71daji/test_pipeline/gan1results_syn
 REGISTERED_FLAIRS="/home/sc.uni-leipzig.de/iu71daji/test_pipeline/test_imgs/registered_flairs"
 GAN2_SOURCE="/home/sc.uni-leipzig.de/iu71daji/test_pipeline/test_imgs/gan2_source"
 GAN2_RESULTS_DIR="/home/sc.uni-leipzig.de/iu71daji/test_pipeline/gan2results"
-GAN2_NAME="gan2_left_out_fold1_L1_150_L2_70"
+GAN2_NAME="gan2_final_model_L1_150_L2_70"
 GAN2_EPOCH=100
 
 PIPELINE_RESULTS_DIR="/home/sc.uni-leipzig.de/iu71daji/test_pipeline/final_pipeline_results"
@@ -104,5 +104,7 @@ apptainer exec --nv $IMAGE bash <<EOF
 	--output_path $PIPELINE_RESULTS_DIR \
         --gan1_epoch $GAN1_EPOCH \
         --gan1_name $GAN1_NAME \
-        --gan1_phase inference
+        --gan1_phase inference \
+        --gan2_name $GAN2_NAME \
+        --gan2_epoch $GAN2_EPOCH
 EOF

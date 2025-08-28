@@ -23,11 +23,13 @@ argument_parser.add_argument('--lsmasks_path', type=str, required=True, help='Pa
 argument_parser.add_argument('--gan1_epoch', type=str, required=True, help='Needed to complete path to GAN1 results.')
 argument_parser.add_argument('--gan1_name', type=str, required=True, help='Needed to complete path to GAN1 results.')
 argument_parser.add_argument('--gan1_phase', type=str, required=True, help='Needed to complete path to GAN1 results.')
+argument_parser.add_argument('--gan2_name', type=str, required=True, help='Needed to complete path to GAN2 results.')
+argument_parser.add_argument('--gan2_epoch', type=str, required=True, help='Needed to complete path to GAN2 results.')
 
 args = argument_parser.parse_args()
 
 lsmask_path = Path(args.lsmasks_path) / args.gan1_name / f"{args.gan1_phase}_{args.gan1_epoch}" / "images"
-slice_dir = Path(args.slices_dir) / "gan2_left_out_fold3_L1_150_L2_70" / "inference_200"   #TODO PATHING KORRIGIEREN! KURZ MAL HARDCODED!
+slice_dir = Path(args.slices_dir) / args.gan2_name / f"inference_{args.gan2_epoch}"
 for flair_img in Path(args.reference_flair_path).glob("*.mgz"):
     basename = flair_img.stem.replace('_flair_mni_registered', '')
     reconstruct_3d_from_slices(

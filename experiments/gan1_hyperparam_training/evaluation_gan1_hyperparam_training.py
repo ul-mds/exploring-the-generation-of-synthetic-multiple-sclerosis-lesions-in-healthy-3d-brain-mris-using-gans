@@ -12,6 +12,7 @@ import pickle
 
 sys.path.append(os.path.abspath(os.path.join(os.getcwd(), '..')))
 from gan1_evaluation_class import LesionMetrics
+
 REF_LSMSKS = Path("/home/sc.uni-leipzig.de/iu71daji/thesis_gan1/evaluation_results/registered_lesionmasks")
 RESULTS_PATH = Path("/home/sc.uni-leipzig.de/iu71daji/thesis_gan1/evaluation_results/final_evaluation_results")
 TEST_RESULTS_PATH = Path("/home/sc.uni-leipzig.de/iu71daji/thesis_gan1/testresults")

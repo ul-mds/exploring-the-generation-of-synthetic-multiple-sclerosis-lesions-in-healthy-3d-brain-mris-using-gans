@@ -8,6 +8,7 @@ import nibabel as nib
 import datetime
 import matplotlib.pyplot as plt
 import time 
+from pathlib import Path
 
 OKBLUE = '\033[94m'
 OKGREEN = '\033[92m'
@@ -232,10 +233,17 @@ def save_image_to_nii(image_numpy, image_path, aspect_ratio=1.0):
         image_numpy (numpy array) -- input numpy array
         image_path (str)          -- the path of the image
     """
+    try: 
+        template_path = Path("data/templates/icbm_avg_152_t1_tal_lin_resampled.nii")
+        template = nib.load(str(template_path))
+        affine = template.affine
+    except Exception as e:
+        print(f"Could not load template nifti from {template_path}: {e}")
+        affine = np.eye(4)
 
-    nifti_img = nib.Nifti1Image(image_numpy, affine=np.eye(4))  # Identitätsmatrix als Dummy-Affine: TODO get the real one. 
-    
-    # Speichere das Bild als .nii oder .nii.gz
+    nifti_img = nib.Nifti1Image(image_numpy, affine=affine)
+
+    # save image
     nib.save(nifti_img, image_path)
 
 

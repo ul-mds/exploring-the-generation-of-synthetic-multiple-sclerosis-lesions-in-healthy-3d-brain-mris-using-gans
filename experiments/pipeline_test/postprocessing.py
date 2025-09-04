@@ -12,6 +12,12 @@ import nibabel as nib
 import argparse
 from pathlib import Path
 from scipy.ndimage import gaussian_filter1d
+import sys
+import os
+
+# add toplevel directory to system path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from experiment_utils import reconstruct_3d_from_slices, apply_gaussian_smoothing
 
 
@@ -30,21 +36,31 @@ args = argument_parser.parse_args()
 
 lsmask_path = Path(args.lsmasks_path) / args.gan1_name / f"{args.gan1_phase}_{args.gan1_epoch}" / "images"
 slice_dir = Path(args.slices_dir) / args.gan2_name / f"inference_{args.gan2_epoch}"
+
+reconstructed_dir = Path(args.output_path) / "reconstructed" 
+reconstructed_dir.mkdir(parents=True, exist_ok=True)
+
 for flair_img in Path(args.reference_flair_path).glob("*.mgz"):
-    basename = flair_img.stem.replace('_flair_mni_registered', '')
+    basename = flair_img.stem.replace('_flair_mni_registered', '').replace('.','')
+    print("basename flair :", basename)
     reconstruct_3d_from_slices(
         slice_dir=slice_dir,
         reference_flair_path=flair_img,
-        output_path=Path(args.output_path) / f"{basename}_reconstructed.nii.gz",
-        basename=basename,
-        lsmask_path=lsmask_path / f"{basename}_fake_B.nii"
+        output_path= reconstructed_dir / f"{basename}_reconstructed.nii.gz",
+        prefix=basename,
+        ref_mask_path=lsmask_path / f"{basename}_fake_B.nii"
     )
 
 # apply gaussian smoothing to the reconstructed 3D NIfTI images
+
+postprocessed_dir = Path(args.output_path) / "postprocessed"
+postprocessed_dir.mkdir(parents=True, exist_ok=True)
+
 for reconstructed_img in Path(args.output_path).glob("*_reconstructed.nii.gz"):
-    basename = reconstructed_img.stem.replace('_reconstructed', '')
+    basename = reconstructed_img.name.replace('_reconstructed.nii.gz', '')
+    print("basename reconstructed :", basename)
     apply_gaussian_smoothing(reconstructed_img, 
-                             output_path=Path(args.output_path), 
+            output_path= postprocessed_dir / f"{basename}_postprocessed.nii.gz", 
                              basename=basename,
-                             ls_mask_path=Path(args.lsmasks_path) / f"{basename}_source_gan1.nii_fake_B.nii"
+                             ls_mask_path= lsmask_path / f"{basename}_fake_B.nii"
     )

@@ -23,7 +23,6 @@ GAN2_SOURCE="/home/sc.uni-leipzig.de/iu71daji/test_pipeline/test_imgs/gan2_sourc
 GAN2_RESULTS_DIR="/home/sc.uni-leipzig.de/iu71daji/test_pipeline/gan2results"
 GAN2_NAME="gan2_final_model_L1_150_L2_70"
 GAN2_EPOCH=100
-
 PIPELINE_RESULTS_DIR="/home/sc.uni-leipzig.de/iu71daji/test_pipeline/final_pipeline_results"
 
 
@@ -60,7 +59,7 @@ EOF
 # call: 
 apptainer exec --nv $IMAGE bash <<EOF 
 	cd $WORKDIR	
-	python pipeline_testing/intermediate_processing.py \
+	python experiments/pipeline_test/intermediate_processing.py \
 	--flairs_path $REGISTERED_FLAIRS \
 	--lsmasks_path $GAN1_RESULTS_DIR \
 	--output_path $GAN2_SOURCE \
@@ -97,7 +96,7 @@ EOF
 # postprocess gan2 results
 apptainer exec --nv $IMAGE bash <<EOF
 	cd $WORKDIR	
- 	python pipeline_testing/postprocessing.py \
+ 	python experiments/pipeline_test/postprocessing.py \
 	--slices_dir $GAN2_RESULTS_DIR \
 	--reference_flair_path $REGISTERED_FLAIRS \
 	--lsmasks_path $GAN1_RESULTS_DIR \

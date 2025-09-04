@@ -7,7 +7,7 @@ from pathlib import Path
 import numpy as np
 from scipy.ndimage import gaussian_filter1d
 
-def reconstruct_3d_from_slices(slice_dir, reference_flair_path, output_path, prefix, ref_mask_path, fold, delete_slices=False):
+def reconstruct_3d_from_slices(slice_dir, reference_flair_path, output_path, prefix, ref_mask_path, delete_slices=False):
     """ 
     Reconstructs a 3D NIfTI image from sorted 2D numpy arrays (gan2 output).
     The slices are expected to be named with the given prefix and sorted by their index. Reference NIfTI

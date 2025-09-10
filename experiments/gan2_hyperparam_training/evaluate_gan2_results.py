@@ -18,6 +18,17 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from experiment_utils import reconstruct_3d_from_slices, apply_gaussian_smoothing
 
+def normalize(img):
+    """
+    Normalize a numpy array to [0, 1]. Min-Max normalization.
+    """
+    img_min = np.nanmin(img)
+    img_max = np.nanmax(img)
+    # Avoid division by zero if image is constant
+    if img_max - img_min == 0:
+        return np.zeros_like(img)
+    return (img - img_min) / (img_max - img_min)
+
 
 def get_basename(center, patient):
     if center == "umcl" and isinstance(patient, str):
@@ -54,16 +65,20 @@ def calc_mse(output_path, reference_flair, ref_mask_path):
     ref_flair_img = nib.load(reference_flair).get_fdata()
     ref_mask_img = nib.load(ref_mask_path).get_fdata()
 
+    # Normalize images to [0, 1]
+    output_img_norm = normalize(output_img)
+    ref_flair_img_norm = normalize(ref_flair_img)
+
     # Calculate MSE for the whole image
-    mse_img = np.nanmean((ref_flair_img.flatten() - output_img.flatten()) ** 2)
+    mse_img = np.nanmean((ref_flair_img_norm.flatten() - output_img_norm.flatten()) ** 2)
 
     # Calculate MSE for the dilated lesion mask regions
     lesion_mask = ref_mask_img > 0
-    mse_dialated_lsmask = np.nanmean((ref_flair_img[lesion_mask] - output_img[lesion_mask])**2)
+    mse_dialated_lsmask = np.nanmean((ref_flair_img_norm[lesion_mask] - output_img_norm[lesion_mask])**2)
 
     # Calculate MSE for the brain region
-    brain_region = ref_flair_img > 0  # Assuming brain region is where the flair image has non-zero values
-    mse_brain = np.nanmean((ref_flair_img[brain_region] - output_img[brain_region])**2)
+    brain_region = ref_flair_img_norm > 0  # Assuming brain region is where the flair image has non-zero values
+    mse_brain = np.nanmean((ref_flair_img_norm[brain_region] - output_img_norm[brain_region])**2)
 
     return mse_img, mse_dialated_lsmask, mse_brain
 

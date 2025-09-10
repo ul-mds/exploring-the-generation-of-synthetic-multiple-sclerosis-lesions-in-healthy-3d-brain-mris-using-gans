@@ -26,7 +26,7 @@ from base_preprocessing import ImgPreprocessing
 
 # general paths 
 
-results_dir = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/train_gan1_data/preprocessing_results_03072025")
+results_dir = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/train_gan1_data/preprocessing_results_04092025")
 if not results_dir.exists():
     results_dir.mkdir(parents=True, exist_ok=True)
 

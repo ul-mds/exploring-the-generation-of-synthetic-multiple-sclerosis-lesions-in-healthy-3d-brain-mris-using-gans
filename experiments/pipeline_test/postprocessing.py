@@ -56,7 +56,7 @@ for flair_img in Path(args.reference_flair_path).glob("*.mgz"):
 postprocessed_dir = Path(args.output_path) / "postprocessed"
 postprocessed_dir.mkdir(parents=True, exist_ok=True)
 
-for reconstructed_img in Path(args.output_path).glob("*_reconstructed.nii.gz"):
+for reconstructed_img in Path(args.reconstructed_dir).glob("*_reconstructed.nii.gz"):
     basename = reconstructed_img.name.replace('_reconstructed.nii.gz', '')
     print("basename reconstructed :", basename)
     apply_gaussian_smoothing(reconstructed_img, 

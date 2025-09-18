@@ -45,7 +45,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from base_preprocessing import ImgPreprocessing
 
-results_dir = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/train_gan2_data/final_preprocessing_17072025")
+results_dir = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/train_gan2_data/final_preprocessing_18092025")
 #------------------------------------------------------------
 #                k == 5 fold cross validation:        -------
 #------------------------------------------------------------

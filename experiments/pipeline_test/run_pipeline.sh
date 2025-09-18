@@ -2,18 +2,18 @@
 
 #SBATCH --job-name="run_pipeline"
 #SBATCH --time=02-00:00:00
-#SBATCH --partition=clara
+#SBATCH --partition=paula
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=12
-#SBATCH --gpus=rtx2080ti
+#SBATCH --gpus=a30
 #SBATCH --mem-per-cpu=16G
 #SBATCH --output=slurm-%A_%a.out
 #SBATCH --error=slurm-%A_%a.err
 
 # Variables to set: 
 GAN1_SOURCE="/home/sc.uni-leipzig.de/iu71daji/test_pipeline/test_imgs/gan1_source"
-GAN1_NAME="gan1_hyptr_L1_250_L2_250"
+GAN1_NAME="gan1_hyptr_L1_250_L2_200"
 GAN1_EPOCH=600
 GAN1_RESULTS_DIR="/home/sc.uni-leipzig.de/iu71daji/test_pipeline/gan1results_synthetic_masks"
 

@@ -10,6 +10,7 @@ from PIL import Image
 import logging
 import os
 import time
+import pandas as pd
 
 
 def setup_logger(results_dir):
@@ -272,13 +273,23 @@ class ImgPreprocessing():
         if flair_img.shape != lesion_img.shape:
             raise ValueError("Dimension mismatch between FLAIR and lesion mask.")
         
-        # TODO If you want to normalize the flair_img, do it globaly, not just slices. and do the same 
-        # in reconstruct_3d_from_slices. Otherwise the normalization will not be consistent.
+        # Normalize flair_img to [0, 255] using min-max normalization
+        flair_img = (flair_img - flair_img.min()) / (np.ptp(flair_img) + 1e-8) * 255
 
-        # normalize flair_img before slicing
-        #flair_img = (flair_img - flair_img.min()) / (flair_img.ptp() + 1e-8) * 255
+        # save min and max for later denormalization
+        csv_path = Path(self.result_dir) / "flair_minmax.csv"
 
-        # TODO: If you want to visualize the lesion mask, set the values to [0, 255] instead of [0, 1]
+        if csv_path.exists():
+            df = pd.read_csv(csv_path)
+        else:
+            df = pd.DataFrame(columns=["name", "min", "max"])
+
+        # add new row
+        new_row = {"name": self.name, "min": float(flair_img.min()), "max": float(flair_img.max())}
+        df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
+        df.to_csv(csv_path, index=False)
+
+        # Ensure lesion mask is binary
         assert np.all(np.isin(lesion_img, [0, 1])), "Lesion mask should be binary (0 or 1)."
 
         # create result_dirs if they don't exist yet.

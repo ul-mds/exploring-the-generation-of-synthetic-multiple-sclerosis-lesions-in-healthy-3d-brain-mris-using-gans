@@ -19,7 +19,7 @@ from base_preprocessing import ImgPreprocessing
 #########################################################################
 #                                 MSSEG2                                #
 #########################################################################
-"""
+
 msseg_orig_flairs = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/gan1_eval_lesion_masks/msseg2/orig_flair_mris")
 msseg_orig_lsmsks = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/gan1_eval_lesion_masks/msseg2/orig_lesionmasks")
 results_folder = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/gan1_eval_lesion_masks/msseg2/registered_lesionmasks")
@@ -41,9 +41,7 @@ for file in msseg_orig_flairs.iterdir():
                                )
         img.calc_transform_mni152(image_key='flair')
         img.apply_mni_transform(image_key='ls_mask')
-        
-         
-"""         
+
 
 #########################################################################
 #                                 ISIBI                                 #

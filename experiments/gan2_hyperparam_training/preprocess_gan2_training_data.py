@@ -45,7 +45,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from base_preprocessing import ImgPreprocessing
 
-results_dir = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/train_gan2_data/final_preprocessing_17072025")
+results_dir = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/train_gan2_data/final_preprocessing_18092025")
 #------------------------------------------------------------
 #                k == 5 fold cross validation:        -------
 #------------------------------------------------------------
@@ -119,7 +119,7 @@ lesions_path = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/original_data/
 t1s_path = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/original_data/umcl/orig_tw1_mris")
 brainmasks_path = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/original_data/umcl/orig_brainmasks")
 
-for k in range(1,31):
+for k in range(13,31):
     #break  # TODO: remove this line to process umcl patients
     # expected naming: patient12_consensus_gt.nii, patient12_FLAIR.nii
     flair_path=(flairs_path / f"patient{k:02}_FLAIR.nii.gz")

@@ -9,6 +9,7 @@ import numpy as np
 import nibabel as nib
 import argparse
 from pathlib import Path
+import pandas as pd
 
 def create_gan2_source_target(basename, flair_path, lsmask_path, output_path):
         """
@@ -26,6 +27,22 @@ def create_gan2_source_target(basename, flair_path, lsmask_path, output_path):
 
         if not np.all(np.isin(lesion_img, [0, 1])):
             raise ValueError("Lesion mask should be binary (0 or 1).")
+
+        # Normalize flair_img to [0, 255] using min-max normalization
+        flair_img = (flair_img - flair_img.min()) / (np.ptp(flair_img) + 1e-8) * 255
+
+        # save min and max for later denormalization
+        csv_path = Path(output_path) / "flair_minmax.csv"
+
+        if csv_path.exists():
+            df = pd.read_csv(csv_path)
+        else:
+            df = pd.DataFrame(columns=["name", "min", "max"])
+        
+        # add new row
+        new_row = {"name": basename, "min": float(flair_img.min()), "max": float(flair_img.max())}
+        df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
+        df.to_csv(csv_path, index=False)
 
         # create result_dirs if they don't exist yet.
         output_flairs = output_path / "flair_slices"

@@ -128,7 +128,7 @@ with open(gan2_hyperparams, "r") as f:
                     reconstruct_3d_from_slices(slice_dir=test_result_imgs,
                                             reference_flair_path=reference_flair, 
                                             output_path=path_3d_img, 
-                                            prefix=img_name,
+                                            basename=img_name,
                                             ref_mask_path=ref_mask_path, 
                                             fold=fold,
                                             delete_slices=True)

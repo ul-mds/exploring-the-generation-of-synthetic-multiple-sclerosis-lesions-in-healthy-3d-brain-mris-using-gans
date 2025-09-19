@@ -274,7 +274,7 @@ class ImgPreprocessing():
             raise ValueError("Dimension mismatch between FLAIR and lesion mask.")
         
         # Normalize flair_img to [0, 255] using min-max normalization
-        flair_img = (flair_img - flair_img.min()) / (flair_img.ptp() + 1e-8) * 255
+        flair_img = (flair_img - flair_img.min()) / (np.ptp(flair_img) + 1e-8) * 255
 
         # save min and max for later denormalization
         csv_path = Path(self.result_dir) / "flair_minmax.csv"

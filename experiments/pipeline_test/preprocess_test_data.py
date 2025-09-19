@@ -21,12 +21,12 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from base_preprocessing import ImgPreprocessing
 
-process_cermp = False
-process_ppmi = False
+process_cermp = True
+process_ppmi = True
 process_oasis = True
-process_icbm = False
+process_icbm = True
 
-results_dir = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/test_pipeline_data/test_data_preprocessing210825")
+results_dir = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/test_pipeline_data/test_data_preprocessing190925")
 freesurfer_dir = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/test_pipeline_data/freesurfer_results06082025")
 if not results_dir.exists():
     results_dir.mkdir(parents=True, exist_ok=True)

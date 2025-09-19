@@ -8,7 +8,7 @@ import numpy as np
 from scipy.ndimage import gaussian_filter1d
 import pandas as pd
 
-def reconstruct_3d_from_slices(min_max_csv, slice_dir, reference_flair_path, output_path, prefix, ref_mask_path, delete_slices=False):
+def reconstruct_3d_from_slices(min_max_csv, slice_dir, reference_flair_path, output_path, basename, ref_mask_path, delete_slices=False):
     """ 
     Reconstructs a 3D NIfTI image from sorted 2D numpy arrays (gan2 output).
     The slices are expected to be named with the given prefix and sorted by their index. Reference NIfTI
@@ -34,8 +34,8 @@ def reconstruct_3d_from_slices(min_max_csv, slice_dir, reference_flair_path, out
     with open(min_max_csv, "r") as file:
         
         df = pd.read_csv(file)
-        min_intensity = df.loc[df['name'] == prefix, 'min'].iloc[0]
-        max_intensity = df.loc[df['name'] == prefix, 'max'].iloc[0]
+        min_intensity = df.loc[df['name'] == basename, 'min'].iloc[0]
+        max_intensity = df.loc[df['name'] == basename, 'max'].iloc[0]
 
     # new empty 3d image to fill with slices
     new_3d = np.zeros(ref_flair_data.shape, dtype=ref_flair_data.dtype)
@@ -48,8 +48,8 @@ def reconstruct_3d_from_slices(min_max_csv, slice_dir, reference_flair_path, out
         # check if lesion voxels in this slice, if yes, gan2 generated a slice for it.
         if np.any(lesion_slice): 
             # load the corresponding gan2 slice
-            gan2_slice_png = Path(slice_dir) / f"{prefix}_flair_slice_{img_index:03d}_fake_B.png"
-            gan2_slice_npy = Path(slice_dir) / f"{prefix}_flair_slice_{img_index:03d}_fake_B.npy"	
+            gan2_slice_png = Path(slice_dir) / f"{basename}_flair_slice_{img_index:03d}_fake_B.png"
+            gan2_slice_npy = Path(slice_dir) / f"{basename}_flair_slice_{img_index:03d}_fake_B.npy"	
             if gan2_slice_npy.exists():
                 # load the slice as numpy array from npy
                 arr = np.load(gan2_slice_npy)

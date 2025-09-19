@@ -44,10 +44,11 @@ for flair_img in Path(args.reference_flair_path).glob("*.mgz"):
     basename = flair_img.stem.replace('_flair_mni_registered', '').replace('.','')
     print("basename flair :", basename)
     reconstruct_3d_from_slices(
+        min_max_csv=Path(args.output_path) / "flair_minmax.csv",
         slice_dir=slice_dir,
         reference_flair_path=flair_img,
         output_path= reconstructed_dir / f"{basename}_reconstructed.nii.gz",
-        prefix=basename,
+        basename=basename,
         ref_mask_path=lsmask_path / f"{basename}_fake_B.nii"
     )
 

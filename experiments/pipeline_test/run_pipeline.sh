@@ -24,6 +24,7 @@ GAN2_RESULTS_DIR="/home/sc.uni-leipzig.de/iu71daji/test_pipeline/gan2results"
 GAN2_NAME="gan2_final_model_L1_150_L2_70"
 GAN2_EPOCH=100
 PIPELINE_RESULTS_DIR="/home/sc.uni-leipzig.de/iu71daji/test_pipeline/final_pipeline_results"
+MIN_MAX_CSV_PATH="/home/sc.uni-leipzig.de/iu71daji/test_pipeline/test_imgs/gan2_source/flair_minmax.csv"
 
 
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
@@ -105,5 +106,6 @@ apptainer exec --nv $IMAGE bash <<EOF
         --gan1_name $GAN1_NAME \
         --gan1_phase inference \
         --gan2_name $GAN2_NAME \
-        --gan2_epoch $GAN2_EPOCH
+        --gan2_epoch $GAN2_EPOCH \
+        --min_max_csv $MIN_MAX_CSV_PATH
 EOF

@@ -31,6 +31,7 @@ argument_parser.add_argument('--gan1_name', type=str, required=True, help='Neede
 argument_parser.add_argument('--gan1_phase', type=str, required=True, help='Needed to complete path to GAN1 results.')
 argument_parser.add_argument('--gan2_name', type=str, required=True, help='Needed to complete path to GAN2 results.')
 argument_parser.add_argument('--gan2_epoch', type=str, required=True, help='Needed to complete path to GAN2 results.')
+argument_parser.add_argument('--min_max_csv', type=str, required=True, help='Path to the CSV file containing min-max values for normalization.')    
 
 args = argument_parser.parse_args()
 
@@ -44,7 +45,7 @@ for flair_img in Path(args.reference_flair_path).glob("*.mgz"):
     basename = flair_img.stem.replace('_flair_mni_registered', '').replace('.','')
     print("basename flair :", basename)
     reconstruct_3d_from_slices(
-        min_max_csv=Path(args.output_path) / "flair_minmax.csv",
+        min_max_csv=Path(args.min_max_csv),
         slice_dir=slice_dir,
         reference_flair_path=flair_img,
         output_path= reconstructed_dir / f"{basename}_reconstructed.nii.gz",

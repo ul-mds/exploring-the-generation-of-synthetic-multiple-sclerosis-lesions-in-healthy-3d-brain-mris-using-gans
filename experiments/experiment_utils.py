@@ -54,8 +54,17 @@ def reconstruct_3d_from_slices(min_max_csv, slice_dir, reference_flair_path, out
                 # load the slice as numpy array from npy
                 arr = np.load(gan2_slice_npy)
 
-                # denormalize the slice
-                arr = arr / 255 * (max_intensity - min_intensity) + min_intensity
+                print(f"\nSlice {gan2_slice_npy} geladen.")
+                print(f"  dtype: {arr.dtype}, shape: {arr.shape}, min: {arr.min()}, max: {arr.max()}")
+
+                print(f"  min_intensity (CSV): {min_intensity}, max_intensity (CSV): {max_intensity}")
+
+                # Denormalisierung
+                arr_denorm = arr / 255 * (max_intensity - min_intensity) + min_intensity
+                print(f"  Nach Denormalisierung: min={arr_denorm.min()}, max={arr_denorm.max()}, dtype={arr_denorm.dtype}")
+
+                # Vergleich mit Referenzslice
+                print(f"  Referenz-FLAIR-Slice: min={flair_slice.min()}, max={flair_slice.max()}, dtype={flair_slice.dtype}")
 
                 img_index += 1
                 if delete_slices:
@@ -66,8 +75,7 @@ def reconstruct_3d_from_slices(min_max_csv, slice_dir, reference_flair_path, out
             else:
                 print(f"Warning: Slice {gan2_slice_png} or {gan2_slice_npy} was expected but does not exist.")
                 return None
-            new_3d[i, :, :] = arr
-
+            new_3d[i, :, :] = arr_denorm
         else: 
             # copy the slice from the reference image
             new_3d[i, :, :] = flair_slice

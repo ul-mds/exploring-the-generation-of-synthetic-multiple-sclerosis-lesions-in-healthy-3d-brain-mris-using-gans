@@ -38,7 +38,9 @@ import random
 from sklearn.model_selection import KFold
 import json
 
-#TODO maybe use try catch block to solve the brain_extract error. Just repeat it until it works.
+process_umcl = False
+process_msseg = False
+process_msseg2 = True
 
 # add toplevel directory to system path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -113,137 +115,141 @@ with open(json_path, "w") as f:
 #-------------------------------------------------------------
 #                umcl data:                           -------
 #-------------------------------------------------------------
+if process_umcl:
+    flairs_path = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/original_data/umcl/orig_flair_mris")
+    lesions_path = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/original_data/umcl/orig_lesionmasks")
+    t1s_path = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/original_data/umcl/orig_tw1_mris")
+    brainmasks_path = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/original_data/umcl/orig_brainmasks")
 
-flairs_path = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/original_data/umcl/orig_flair_mris")
-lesions_path = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/original_data/umcl/orig_lesionmasks")
-t1s_path = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/original_data/umcl/orig_tw1_mris")
-brainmasks_path = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/original_data/umcl/orig_brainmasks")
+    for k in range(13,31):
+        # expected naming: patient12_consensus_gt.nii, patient12_FLAIR.nii
+        flair_path=(flairs_path / f"patient{k:02}_FLAIR.nii.gz")
+        ls_path=(lesions_path / f"patient{k:02}_consensus_gt.nii.gz")
+        t1_path=(t1s_path / f"patient{k:02}_T1W.nii.gz")
+        brain_path = (brainmasks_path / f"patient{k:02}_brainmask.nii.gz")
+        
+        umcl_patient = ImgPreprocessing(name=f"umcl_patient{k:02}",
+                                        result_dir = results_dir,
+                                        flair_path = flair_path,
+                                        ls_path = ls_path,
+                                        t1_path = t1_path,
+                                        brain_path=brain_path
+                                        )
+        
+        # find fold for cross validation  
+        patient_id = ('umcl', umcl_patient.name.split('_')[1])
+        fold_idx = next(idx for idx, patients in folds.items() if patient_id in patients)
 
-for k in range(13,31):
-    #break  # TODO: remove this line to process umcl patients
-    # expected naming: patient12_consensus_gt.nii, patient12_FLAIR.nii
-    flair_path=(flairs_path / f"patient{k:02}_FLAIR.nii.gz")
-    ls_path=(lesions_path / f"patient{k:02}_consensus_gt.nii.gz")
-    t1_path=(t1s_path / f"patient{k:02}_T1W.nii.gz")
-    brain_path = (brainmasks_path / f"patient{k:02}_brainmask.nii.gz")
-    
-    umcl_patient = ImgPreprocessing(name=f"umcl_patient{k:02}",
-                                    result_dir = results_dir,
-                                    flair_path = flair_path,
-                                    ls_path = ls_path,
-                                    t1_path = t1_path,
-                                    brain_path=brain_path
-                                    )
-    
-    # find fold for cross validation  
-    patient_id = ('umcl', umcl_patient.name.split('_')[1])
-    fold_idx = next(idx for idx, patients in folds.items() if patient_id in patients)
+        # bias correction and brain extraction
+        umcl_patient.bias_correction(image_key='flair')
+        umcl_patient.bias_correction(image_key='t1')
 
-    # bias correction and brain extraction
-    umcl_patient.bias_correction(image_key='flair')
-    umcl_patient.bias_correction(image_key='t1')
+        # brain masks are given in orig dataset. We use these instead of extracting the brain.
+        umcl_patient.apply_brainmask(image_key='flair')
+        umcl_patient.apply_brainmask(image_key='t1')
 
-    # brain masks are given in orig dataset. We use these instead of extracting the brain.
-    umcl_patient.apply_brainmask(image_key='flair')
-    umcl_patient.apply_brainmask(image_key='t1')
+        # register T1 and save the transform
+        umcl_patient.calc_transform_mni152('t1')
 
-    # register T1 and save the transform
-    umcl_patient.calc_transform_mni152('t1')
+        # apply the transform to flair and ls_mask
+        umcl_patient.apply_mni_transform(image_key='flair')
+        umcl_patient.apply_mni_transform(image_key='ls_mask')
 
-    # apply the transform to flair and ls_mask
-    umcl_patient.apply_mni_transform(image_key='flair')
-    umcl_patient.apply_mni_transform(image_key='ls_mask')
+        # dilate lesion_msk 
+        umcl_patient.dilatate_lesionmasks()
 
-    # dilate lesion_msk 
-    umcl_patient.dilatate_lesionmasks()
-
-    # slice the images and generate gan2 input 
-    umcl_patient.create_gan2_source_target(fold=fold_idx)
+        # slice the images and generate gan2 input 
+        umcl_patient.create_gan2_source_target(fold=fold_idx)
 
 
 #-------------------------------------------------------------
 #                msseg data:                           -------
 #-------------------------------------------------------------
-msseg_flairs_path = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/original_data/msseg/orig_flair_mris")
-msseg_t1s_path = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/original_data/msseg/orig_tw1_mris")
-msseg_lesions_path = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/original_data/msseg/orig_lesionmasks")
+if process_msseg:
+    msseg_flairs_path = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/original_data/msseg/orig_flair_mris")
+    msseg_t1s_path = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/original_data/msseg/orig_tw1_mris")
+    msseg_lesions_path = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/original_data/msseg/orig_lesionmasks")
 
-msseg_patient_ids = range(1,6)  
-msseg_center_ids = [1,7] # # centers 1 and 7 are used for training, center 8 is not used (no siemens scanner)
-combinations = list(product(msseg_patient_ids, msseg_center_ids))
-for p, c in combinations:
-    #break  # TODO: remove this line to process msseg patients
-    # expected naming: patient12_center_01_consensus_gt.nii.gz, patient12_center_01_FLAIR.nii.gz, patient12_center_08_T1W.nii.gz
- 
-    flair_path = (msseg_flairs_path / f"patient{p:02}_center_{c:02}_FLAIR.nii.gz").resolve()
-    t1_path = (msseg_t1s_path / f"patient{p:02}_center_{c:02}_T1W.nii.gz").resolve()
-    ls_path = (msseg_lesions_path / f"patient{p:02}_center_{c:02}_consensus_gt.nii.gz").resolve()
-
-    msseg_patient = ImgPreprocessing(name=f"msseg_patient{p:02}_center{c:02}",
-                                     result_dir=results_dir,
-                                     flair_path=flair_path,
-                                     t1_path=t1_path,
-                                     ls_path=ls_path
-                                    )
+    msseg_patient_ids = range(1,6)  
+    msseg_center_ids = [1,7] # # centers 1 and 7 are used for training, center 8 is not used (no siemens scanner)
+    combinations = list(product(msseg_patient_ids, msseg_center_ids))
+    for p, c in combinations:
+        # expected naming: patient12_center_01_consensus_gt.nii.gz, patient12_center_01_FLAIR.nii.gz, patient12_center_08_T1W.nii.gz
     
-    # find fold for cross validation
-    patient_id = ('msseg', (p, c))  
-    fold_idx = next(idx for idx, patients in folds.items() if patient_id in patients)
+        flair_path = (msseg_flairs_path / f"patient{p:02}_center_{c:02}_FLAIR.nii.gz").resolve()
+        t1_path = (msseg_t1s_path / f"patient{p:02}_center_{c:02}_T1W.nii.gz").resolve()
+        ls_path = (msseg_lesions_path / f"patient{p:02}_center_{c:02}_consensus_gt.nii.gz").resolve()
 
-    # register T1 and save the transform.
-    msseg_patient.calc_transform_mni152('t1')
-    
-    # egister ls_mask and flair to mni, using the transform from T1.
-    msseg_patient.apply_mni_transform(image_key='ls_mask') 
-    msseg_patient.apply_mni_transform(image_key='flair') 
-    
-    # dialate lesion_msk
-    msseg_patient.dilatate_lesionmasks()
+        msseg_patient = ImgPreprocessing(name=f"msseg_patient{p:02}_center{c:02}",
+                                        result_dir=results_dir,
+                                        flair_path=flair_path,
+                                        t1_path=t1_path,
+                                        ls_path=ls_path
+                                        )
+        
+        # find fold for cross validation
+        patient_id = ('msseg', (p, c))  
+        fold_idx = next(idx for idx, patients in folds.items() if patient_id in patients)
 
-    # slice the images and generate gan2 input
-    msseg_patient.create_gan2_source_target(fold=fold_idx)
+        # register T1 and save the transform.
+        msseg_patient.calc_transform_mni152('t1')
+        
+        # egister ls_mask and flair to mni, using the transform from T1.
+        msseg_patient.apply_mni_transform(image_key='ls_mask') 
+        msseg_patient.apply_mni_transform(image_key='flair') 
+        
+        # dialate lesion_msk
+        msseg_patient.dilatate_lesionmasks()
+
+        # slice the images and generate gan2 input
+        msseg_patient.create_gan2_source_target(fold=fold_idx)
 
 #-------------------------------------------------------------
 #                msseg-2 data:                           -------
 #-------------------------------------------------------------
-msseg2_flairs_path = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/original_data/msseg2/orig_flair_mris")
-msseg2_lesions_path = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/original_data/msseg2/orig_lesionmasks")
+if process_msseg2:
+    msseg2_flairs_path = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/original_data/msseg2/orig_flair_mris")
+    msseg2_lesions_path = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/original_data/msseg2/orig_lesionmasks")
 
-# expected naming: msseg2_p019_flair.nii.gz, msseg2_p026_consensus.nii.gz
-for patient in list(msseg2_flairs_path.glob("*.nii.gz")):
-    #break  # TODO: remove this line to process msseg2 patients
-    pid = re.search(r"msseg2_p(\d+)_flair", patient.name).group(1)
+    # expected naming: msseg2_p019_flair.nii.gz, msseg2_p026_consensus.nii.gz
+    for patient in list(msseg2_flairs_path.glob("*.nii.gz")):
+        pid = re.search(r"msseg2_p(\d+)_flair", patient.name).group(1)
+        patient_id = ('msseg2', pid)
 
-    flair_path = msseg2_flairs_path / f"msseg2_p{pid}_flair.nii.gz"
-    ls_path = msseg2_lesions_path / f"msseg2_p{pid}_consensus.nii.gz"
+        # find fold for cross validation, some imgs are not used for training gan2, scip them. 
+        try:
+            fold_idx = next(fold for fold, patients in folds.items() if patient_id in patients)
+        except StopIteration:
+            print(f"Patient {patient_id} not found in folds, skipping.")
+            continue
 
-    msseg2_patient = ImgPreprocessing(name=f"msseg2_patient{pid}",
-                                      result_dir=results_dir,
-                                      flair_path=flair_path,
-                                      ls_path=ls_path)
-    
-    # find fold for cross validation    
-    patient_id = ('msseg2', pid)
-    fold_idx = next(fold for fold, patients in folds.items() if patient_id in patients)
-    # images are only registered, everything else needs to be applied.
+        flair_path = msseg2_flairs_path / f"msseg2_p{pid}_flair.nii.gz"
+        ls_path = msseg2_lesions_path / f"msseg2_p{pid}_consensus.nii.gz"
 
-    # bias correction
-    msseg2_patient.bias_correction(image_key='flair')
-    msseg2_patient.bias_correction(image_key='ls_mask')
+        msseg2_patient = ImgPreprocessing(name=f"msseg2_patient{pid}",
+                                        result_dir=results_dir,
+                                        flair_path=flair_path,
+                                        ls_path=ls_path)
+        
+        # images are only registered, everything else needs to be applied.
 
-    # brain extraction
-    msseg2_patient.extract_brain(image_key='flair')
+        # bias correction
+        msseg2_patient.bias_correction(image_key='flair')
+        msseg2_patient.bias_correction(image_key='ls_mask')
 
-    # register and save the transform.
-    # Note: msseg2 does not have T1 images, so we register flair to mni152_1mm template.
-    msseg2_patient.calc_transform_mni152('flair')
+        # brain extraction
+        msseg2_patient.extract_brain(image_key='flair')
 
-    # apply the transform to flair and ls_mask  
-    msseg2_patient.apply_mni_transform(image_key='flair')
-    msseg2_patient.apply_mni_transform(image_key='ls_mask')
+        # register and save the transform.
+        # Note: msseg2 does not have T1 images, so we register flair to mni152_1mm template.
+        msseg2_patient.calc_transform_mni152('flair')
 
-    # dialate lesion_msk
-    msseg2_patient.dilatate_lesionmasks()
+        # apply the transform to flair and ls_mask  
+        msseg2_patient.apply_mni_transform(image_key='flair')
+        msseg2_patient.apply_mni_transform(image_key='ls_mask')
 
-    # slice the images and generate gan2 input
-    msseg2_patient.create_gan2_source_target(fold=fold_idx)
+        # dialate lesion_msk
+        msseg2_patient.dilatate_lesionmasks()
+
+        # slice the images and generate gan2 input
+        msseg2_patient.create_gan2_source_target(fold=fold_idx)

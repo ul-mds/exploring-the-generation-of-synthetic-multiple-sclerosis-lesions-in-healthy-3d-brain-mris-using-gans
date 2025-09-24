@@ -2,11 +2,11 @@
 
 #SBATCH --job-name="gan2_train"
 #SBATCH --time=02-00:00:00
-#SBATCH --partition=paula
+#SBATCH --partition=clara
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=12
-#SBATCH --gpus=a30
+#SBATCH --gpus=rtx2080ti
 #SBATCH --mem-per-cpu=8G
 #SBATCH --output=slurm-%x-%j.out
 #SBATCH --error=slurm-%x-%j.err 

@@ -2,11 +2,11 @@
 
 #SBATCH --job-name="run_pipeline"
 #SBATCH --time=02-00:00:00
-#SBATCH --partition=paula
+#SBATCH --partition=clara
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=12
-#SBATCH --gpus=a30
+#SBATCH --gpus=rtx2080ti
 #SBATCH --mem-per-cpu=16G
 #SBATCH --output=slurm-%A_%a.out
 #SBATCH --error=slurm-%A_%a.err
@@ -21,7 +21,7 @@ GAN1_RESULTS_DIR="/home/sc.uni-leipzig.de/iu71daji/test_pipeline/gan1results_syn
 REGISTERED_FLAIRS="/home/sc.uni-leipzig.de/iu71daji/test_pipeline/test_imgs/registered_flairs"
 GAN2_SOURCE="/home/sc.uni-leipzig.de/iu71daji/test_pipeline/test_imgs/gan2_source"
 GAN2_RESULTS_DIR="/home/sc.uni-leipzig.de/iu71daji/test_pipeline/gan2results"
-GAN2_NAME="gan2_final_model_L1_150_L2_70"
+GAN2_NAME="gan2_left_out_fold0_L1_150_L2_70"
 GAN2_EPOCH=100
 PIPELINE_RESULTS_DIR="/home/sc.uni-leipzig.de/iu71daji/test_pipeline/final_pipeline_results"
 MIN_MAX_CSV_PATH="/home/sc.uni-leipzig.de/iu71daji/test_pipeline/test_imgs/gan2_source/flair_minmax.csv"

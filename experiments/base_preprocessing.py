@@ -273,9 +273,6 @@ class ImgPreprocessing():
         if flair_img.shape != lesion_img.shape:
             raise ValueError("Dimension mismatch between FLAIR and lesion mask.")
         
-        # Normalize flair_img to [0, 255] using min-max normalization
-        flair_img = (flair_img - flair_img.min()) / (np.ptp(flair_img) + 1e-8) * 255
-
         # save min and max for later denormalization
         csv_path = Path(self.result_dir) / "flair_minmax.csv"
 
@@ -288,6 +285,9 @@ class ImgPreprocessing():
         new_row = {"name": self.name, "min": float(flair_img.min()), "max": float(flair_img.max())}
         df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
         df.to_csv(csv_path, index=False)
+
+        # Normalize flair_img to [0, 255] using min-max normalization
+        flair_img = (flair_img - flair_img.min()) / (np.ptp(flair_img) + 1e-8) * 255
 
         # Ensure lesion mask is binary
         assert np.all(np.isin(lesion_img, [0, 1])), "Lesion mask should be binary (0 or 1)."

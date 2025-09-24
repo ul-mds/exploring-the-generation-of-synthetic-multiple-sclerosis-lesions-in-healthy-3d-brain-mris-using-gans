@@ -38,8 +38,8 @@ import random
 from sklearn.model_selection import KFold
 import json
 
-process_umcl = False
-process_msseg = False
+process_umcl = True
+process_msseg = True
 process_msseg2 = True
 
 # add toplevel directory to system path
@@ -47,7 +47,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from base_preprocessing import ImgPreprocessing
 
-results_dir = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/train_gan2_data/final_preprocessing_18092025")
+results_dir = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/train_gan2_data/final_preprocessing_19092025")
 #------------------------------------------------------------
 #                k == 5 fold cross validation:        -------
 #------------------------------------------------------------

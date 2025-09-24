@@ -26,31 +26,41 @@ process_ppmi = True
 process_oasis = True
 process_icbm = True
 
-results_dir = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/test_pipeline_data/test_data_preprocessing190925")
+results_dir = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/test_pipeline_data/test_data_preprocessing240925")
 freesurfer_dir = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/test_pipeline_data/freesurfer_results06082025")
 if not results_dir.exists():
     results_dir.mkdir(parents=True, exist_ok=True)
 
 all_basenames = []  # collect all processed images, for the 50 / 50 data split
 #-------------------------------------------------------------
-#                CERMP                           -------
-#------------------------------------------------------------
+#                CERMP                           
+#-------------------------------------------------------------
+
+
+
+
 if process_cermp: 
     t1_cermp = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/original_data/cermp/t1")
 
     flair_cermp = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/original_data/cermp/flair")
     freesurfer_cermp = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/test_pipeline_data/cermp/freesurfer_results_cermp")
 
-    patient_ids1 =  np.arange(1,38)
-        # naming: sub-0002_T1w.nii.gz
-    for patient_id in patient_ids1:
-        patient = f"{patient_id:04d}"
-        all_basenames.append(f"cermp_{patient}")
-        t1_path = t1_cermp / f"sub-{patient}_T1w.nii.gz"
-        flair_path = flair_cermp / f"sub-{patient}_FLAIR.nii.gz"
-        aseg_path = freesurfer_cermp / f"cermp_patient{patient}" / "mri" / "aseg.mgz"
+    #which images will we use? 
+    cermp_images = [
+                'sub-0002', 'sub-0003', 'sub-0004', 'sub-0005', 'sub-0007', 'sub-0008',  'sub-0009', 'sub-0010', 'sub-0011',
+                'sub-0012', 'sub-0013', 'sub-0015', 'sub-0018', 'sub-0019', 'sub-0020', 'sub-0021', 'sub-0022', 'sub-0023', 
+                'sub-0024', 'sub-0028', 'sub-0029', 'sub-0030', 'sub-0031', 'sub-0032', 'sub-0034', 'sub-0035', 'sub-0037'
+                ]
+    
+    # naming: sub-0002_T1w.nii.gz
+    for patient in cermp_images:
+        patient_id = patient.split("-")[1]
+        all_basenames.append(f"cermp_{patient_id}")
+        t1_path = t1_cermp / f"{patient}_T1w.nii.gz"
+        flair_path = flair_cermp / f"{patient}_FLAIR.nii.gz"
+        aseg_path = freesurfer_cermp / f"cermp_patient{patient_id}" / "mri" / "aseg.mgz"
         
-        cermp_patient = ImgPreprocessing(name=f"cermp_{patient}",
+        cermp_patient = ImgPreprocessing(name=f"cermp_{patient_id}",
                                         result_dir=results_dir,
                                         mni_transform=None, 
                                         flair_path=flair_path, 

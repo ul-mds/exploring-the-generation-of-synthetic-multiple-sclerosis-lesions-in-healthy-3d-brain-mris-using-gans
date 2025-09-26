@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --job-name="gan2_train"
-#SBATCH --time=02-00:00:00
+#SBATCH --time=08:00:00
 #SBATCH --partition=clara
 #SBATCH --nodes=1
 #SBATCH --ntasks=1

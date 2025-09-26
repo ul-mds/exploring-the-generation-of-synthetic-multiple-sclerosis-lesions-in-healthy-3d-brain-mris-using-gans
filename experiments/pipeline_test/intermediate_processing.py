@@ -102,7 +102,7 @@ lsmask_path = Path(args.lsmasks_path) / args.gan1_name / f"{args.gan1_phase}_{ar
 dialated_masks_dir = Path(args.output_path) / "dilated_synthetic_lesion_masks"
 dialated_masks_dir.mkdir(parents=True, exist_ok=True)
 
-for file in Path(args.flairs_path).glob("*.mgz"):
+for file in Path(args.flairs_path).glob("*.nii.gz"):
     basename = file.stem.replace('_flair_mni_registered', '')
 
     # dialate synthetic lesion masks 

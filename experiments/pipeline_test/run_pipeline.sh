@@ -64,9 +64,9 @@ apptainer exec --nv $IMAGE bash <<EOF
 	--flairs_path $REGISTERED_FLAIRS \
 	--lsmasks_path $GAN1_RESULTS_DIR \
 	--output_path $GAN2_SOURCE \
-    	--gan1_epoch $GAN1_EPOCH \
-    	--gan1_name $GAN1_NAME \
-    	--gan1_phase inference 
+    --gan1_epoch $GAN1_EPOCH \
+    --gan1_name $GAN1_NAME \
+    --gan1_phase inference 
 EOF
 
 # run gan2
@@ -107,5 +107,6 @@ apptainer exec --nv $IMAGE bash <<EOF
         --gan1_phase inference \
         --gan2_name $GAN2_NAME \
         --gan2_epoch $GAN2_EPOCH \
-        --min_max_csv $MIN_MAX_CSV_PATH
+        --min_max_csv $MIN_MAX_CSV_PATH \
+        --dilated_mask_path $GAN2_SOURCE
 EOF

@@ -11,6 +11,7 @@ import logging
 import os
 import time
 import pandas as pd
+import antspynet
 
 
 def setup_logger(results_dir):
@@ -76,7 +77,7 @@ class ImgPreprocessing():
         else:
             interpolator = 'linear'
         
-        output_file = (self.result_dir / "interim_results" / f"{self.name}_{image_key}_mni_registered.mgz").resolve()
+        output_file = (self.result_dir / "interim_results" / f"{self.name}_{image_key}_mni_registered.nii.gz").resolve()
         img = ants.image_read(str(self.images[image_key])) 
 
         # we normally register to T1, only if no T1 is given, we register flair to T2 template.
@@ -142,7 +143,7 @@ class ImgPreprocessing():
 
         resampled_img = ants.resample_image(img, new_spacing, use_voxels=False)
 
-        output_file = (self.result_dir / "interim_results" / f"{self.name}_{image_key}_mni_registered.mgz").resolve()
+        output_file = (self.result_dir / "interim_results" / f"{self.name}_{image_key}_mni_registered.nii.gz").resolve()
         ants.image_write(resampled_img, output_file)
 
         self.images[image_key] = output_file
@@ -193,7 +194,7 @@ class ImgPreprocessing():
         Extracts the brain and cuts of the scull from the image. 
         """
 
-        output_file = (self.result_dir / "interim_results" / f"{self.name}_{image_key}_brain_extracted.mgz").resolve()
+        output_file = (self.result_dir / "interim_results" / f"{self.name}_{image_key}_brain_extracted.nii.gz").resolve()
 
         for attempt in range(max_retries):
             try:
@@ -211,6 +212,19 @@ class ImgPreprocessing():
         logging.error(f"Brain extraction failed for {self.name} {image_key} after {max_retries} attempts.")
         raise RuntimeError(f"Brain extraction failed for {self.name} {image_key} after {max_retries} attempts.")
 
+
+    def extract_brain_ants(self, image_key, modality='flair'):
+        """ 
+        Alternative brain extraction using ANTs instead of freesurfer. 
+        modality can be 't1', 't2' or 'flair'.
+        """
+        output_file = (self.result_dir / "interim_results" / f"{self.name}_{image_key}_brain_extracted.nii.gz").resolve()
+        img = ants.image_read(self.images[image_key])
+        brain = antspynet.utilities.brain_extraction(img, modality=modality, verbose=True)
+        ants.image_write(brain, str(output_file))   
+        self.images[image_key] = output_file
+
+
     def apply_brainmask(self, image_key):
         """ 
         Applies a brain mask to the image, effectively removing non-brain areas.
@@ -224,9 +238,10 @@ class ImgPreprocessing():
         img_brain_data = img.get_fdata() * brain_mask.get_fdata()
         img_brain = nib.Nifti1Image(img_brain_data, affine=img.affine, header=img.header)
 
-        output_file = (self.result_dir / "interim_results" / f"{self.name}_{image_key}_brain_extracted.mgz").resolve()
+        output_file = (self.result_dir / "interim_results" / f"{self.name}_{image_key}_brain_extracted.nii.gz").resolve()
         nib.save(img_brain, str(output_file))
         self.images[image_key] = output_file
+
 
     def dilatate_lesionmasks(self): 
         """ 

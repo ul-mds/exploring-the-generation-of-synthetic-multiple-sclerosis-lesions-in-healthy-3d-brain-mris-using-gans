@@ -32,25 +32,31 @@ argument_parser.add_argument('--gan1_phase', type=str, required=True, help='Need
 argument_parser.add_argument('--gan2_name', type=str, required=True, help='Needed to complete path to GAN2 results.')
 argument_parser.add_argument('--gan2_epoch', type=str, required=True, help='Needed to complete path to GAN2 results.')
 argument_parser.add_argument('--min_max_csv', type=str, required=True, help='Path to the CSV file containing min-max values for normalization.')    
-
+argument_parser.add_argument('--dilated_mask_path', type=str, required=True, help='Path to the directory containing the dilated lesion masks.')
 args = argument_parser.parse_args()
 
+dilated_lsmask_path = Path(args.dilated_mask_path) / "dilated_synthetic_lesion_masks"
+
 lsmask_path = Path(args.lsmasks_path) / args.gan1_name / f"{args.gan1_phase}_{args.gan1_epoch}" / "images"
+
 slice_dir = Path(args.slices_dir) / args.gan2_name / f"inference_{args.gan2_epoch}"
 
 reconstructed_dir = Path(args.output_path) / "reconstructed" 
 reconstructed_dir.mkdir(parents=True, exist_ok=True)
 
-for flair_img in Path(args.reference_flair_path).glob("*.mgz"):
-    basename = flair_img.stem.replace('_flair_mni_registered', '').replace('.','')
+flair_imgs = [f for f in Path(args.reference_flair_path).iterdir()
+              if f.suffix in {'.mgz', '.nii'} or f.name.endswith('.nii.gz')]
+
+for flair_img in flair_imgs:
+    basename = flair_img.stem.replace('_flair_mni_registered', '').replace('.nii','').replace('.gz', '')
     print("basename flair :", basename)
     reconstruct_3d_from_slices(
         min_max_csv=Path(args.min_max_csv),
         slice_dir=slice_dir,
         reference_flair_path=flair_img,
-        output_path= reconstructed_dir / f"{basename}_reconstructed.nii.gz",
+        output_path=reconstructed_dir / f"{basename}_reconstructed.nii.gz",
         basename=basename,
-        ref_mask_path=lsmask_path / f"{basename}_fake_B.nii"
+        ref_mask_path=dilated_lsmask_path / f"{basename}_ls_mask_dilated.nii.gz"
     )
 
 # apply gaussian smoothing to the reconstructed 3D NIfTI images
@@ -64,5 +70,5 @@ for reconstructed_img in Path(reconstructed_dir).glob("*_reconstructed.nii.gz"):
     apply_gaussian_smoothing(reconstructed_img, 
             output_path= postprocessed_dir / f"{basename}_postprocessed.nii.gz", 
                              basename=basename,
-                             ls_mask_path= lsmask_path / f"{basename}_fake_B.nii"
+                             ls_mask_path=lsmask_path / f"{basename}_fake_B.nii"
     )

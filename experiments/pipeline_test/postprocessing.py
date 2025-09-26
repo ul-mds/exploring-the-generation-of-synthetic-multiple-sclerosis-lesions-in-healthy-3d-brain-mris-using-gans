@@ -70,5 +70,5 @@ for reconstructed_img in Path(reconstructed_dir).glob("*_reconstructed.nii.gz"):
     apply_gaussian_smoothing(reconstructed_img, 
             output_path= postprocessed_dir / f"{basename}_postprocessed.nii.gz", 
                              basename=basename,
-                             ls_mask_path=lsmask_path / f"{basename}_fake_B.nii"
+                             ls_mask_path=dilated_lsmask_path / f"{basename}_ls_mask_dilated.nii.gz"
     )

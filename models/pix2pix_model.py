@@ -184,13 +184,14 @@ class Pix2PixModel(BaseModel):
         
          # 3. L2 loss in background or lesion regions, depending on gan type
         if self.opt.dataset_mode == "gan2":
-            # In gan2, L1 is computed for the whole image, L2 only for lesion areas
+            # In gan2, L1 is computed for the whole image excluding the lesion areas, L2 only for lesion areas
             # we have 3 channels, loss is only calculated on the first channel, the others are ignored.
             # L1 reduction method is set to 'mean' if dataset_mode == "gan2"
-            self.loss_G_L1 = self.criterionL1(self.fake_B[:, 0:1, :,:],
-                                          self.real_B[:, 0:1, :, :]) * self.opt.lambda_L1
-            
             lsmsk_tensor = self.real_B[:, 1:2, :, :]
+            self.loss_G_L1 = self.criterionL1(self.fake_B[:, 0:1, :,:] * (1-lsmsk_tensor),
+                                          self.real_B[:, 0:1, :, :] * (1-lsmsk_tensor)) * self.opt.lambda_L1
+            
+    
             self.loss_G_L2 = self.criterionL2(self.fake_B[:, 0:1, :,:] * lsmsk_tensor,
                                               self.real_B[:, 0:1, :, :] * lsmsk_tensor) * self.opt.lambda_L2
             

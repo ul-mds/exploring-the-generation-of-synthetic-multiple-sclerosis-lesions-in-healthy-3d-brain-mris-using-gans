@@ -219,8 +219,9 @@ class ImgPreprocessing():
         modality can be 't1', 't2' or 'flair'.
         """
         output_file = (self.result_dir / "interim_results" / f"{self.name}_{image_key}_brain_extracted.nii.gz").resolve()
-        img = ants.image_read(self.images[image_key])
-        brain = antspynet.utilities.brain_extraction(img, modality=modality, verbose=True)
+        img = ants.image_read(str(self.images[image_key]))
+        brain_mask = antspynet.utilities.brain_extraction(img, modality=modality, verbose=True)
+        brain = img * brain_mask
         ants.image_write(brain, str(output_file))   
         self.images[image_key] = output_file
 
@@ -373,7 +374,7 @@ class ImgPreprocessing():
                                           affine=aseg_img.affine, 
                                           header=aseg_img.header)
         
-        out_path = Path(self.result_dir) / "interim_results" / "{self.name}_wm_mask.nii.gz"
+        out_path = Path(self.result_dir) / "interim_results" / f"{self.name}_wm_mask.nii.gz"
         nib.save(wm_mask, str(out_path))
         self.images['wm_mask'] = out_path
 

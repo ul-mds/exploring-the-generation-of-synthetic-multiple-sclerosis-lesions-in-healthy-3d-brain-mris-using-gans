@@ -26,7 +26,7 @@ process_ppmi = True
 process_oasis = True
 process_icbm = True
 
-results_dir = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/test_pipeline_data/test_data_preprocessing240925")
+results_dir = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/test_pipeline_data/test_data_preprocessing240925ants_brain_extraction")
 freesurfer_dir = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/test_pipeline_data/freesurfer_results06082025")
 if not results_dir.exists():
     results_dir.mkdir(parents=True, exist_ok=True)
@@ -72,9 +72,10 @@ if process_cermp:
         cermp_patient.bias_correction(image_key='t1') 
         cermp_patient.bias_correction(image_key='flair')
 
-        cermp_patient.extract_brain(image_key='flair')
-        cermp_patient.extract_brain(image_key='t1')
-
+        #cermp_patient.extract_brain(image_key='flair')
+        #cermp_patient.extract_brain(image_key='t1')
+        cermp_patient.extract_brain_ants(image_key='t1') 
+        cermp_patient.extract_brain_ants(image_key='flair')
         # register T1 and save the transform.
         cermp_patient.calc_transform_mni152('t1')
         
@@ -128,8 +129,10 @@ if process_ppmi:
         ppmi_patient1.bias_correction(image_key='t1')
         ppmi_patient1.bias_correction(image_key='flair')
 
-        ppmi_patient1.extract_brain(image_key='flair')
-        ppmi_patient1.extract_brain(image_key='t1')
+        #ppmi_patient1.extract_brain(image_key='flair')
+        #ppmi_patient1.extract_brain(image_key='t1')
+        ppmi_patient1.extract_brain_ants(image_key='t1')
+        ppmi_patient1.extract_brain_ants(image_key='flair')
 
         # register T1 and save the transform.
         ppmi_patient1.calc_transform_mni152('t1')
@@ -176,8 +179,10 @@ if process_ppmi:
         ppmi_patient2.bias_correction(image_key='t1')
         ppmi_patient2.bias_correction(image_key='flair')
 
-        ppmi_patient2.extract_brain(image_key='flair')
-        ppmi_patient2.extract_brain(image_key='t1')
+        #ppmi_patient2.extract_brain(image_key='flair')
+        #ppmi_patient2.extract_brain(image_key='t1')
+        ppmi_patient2.extract_brain_ants(image_key='t1')
+        ppmi_patient2.extract_brain_ants(image_key='flair')
 
         # register T1 and save the transform.
         ppmi_patient2.calc_transform_mni152('t1')
@@ -226,8 +231,10 @@ if process_oasis:
         oasis_patient.bias_correction(image_key='t1')
         oasis_patient.bias_correction(image_key='flair')
 
-        oasis_patient.extract_brain(image_key='flair')
-        oasis_patient.extract_brain(image_key='t1')
+        #oasis_patient.extract_brain(image_key='flair')
+        #oasis_patient.extract_brain(image_key='t1')
+        oasis_patient.extract_brain_ants(image_key='t1')
+        oasis_patient.extract_brain_ants(image_key='flair')
 
         # register T1 and save the transform.
         oasis_patient.calc_transform_mni152('t1')
@@ -271,8 +278,10 @@ if process_icbm:
         icbm_patient.bias_correction(image_key='t1')
         icbm_patient.bias_correction(image_key='flair')
 
-        icbm_patient.extract_brain(image_key='flair')
-        icbm_patient.extract_brain(image_key='t1')
+        #icbm_patient.extract_brain(image_key='flair')
+        #icbm_patient.extract_brain(image_key='t1')
+        icbm_patient.extract_brain_ants(image_key='t1')
+        icbm_patient.extract_brain_ants(image_key='flair')
 
         # register T1 and save the transform.
         icbm_patient.calc_transform_mni152('t1')
@@ -307,7 +316,7 @@ dataset1_basenames = all_basenames[:split_index]
 
 for basename in dataset1_basenames: 
     source = results_dir / "gan1_source" / f"{basename}_source_gan1.nii.gz"
-    flair = results_dir / "interim_results" / f"{basename}_flair_mni_registered.mgz"
+    flair = results_dir / "interim_results" / f"{basename}_flair_mni_registered.nii.gz"
     shutil.copy(source, dataset1_gan1 / source.name)
     shutil.copy(flair, dataset1_regflairs / flair.name)
     os.remove(source)

@@ -14,7 +14,7 @@
 # Variables to set: 
 GAN1_SOURCE="/home/sc.uni-leipzig.de/iu71daji/test_pipeline/test_imgs/gan1_source"
 GAN1_NAME="gan1_hyptr_L1_250_L2_200"
-GAN1_EPOCH=600
+GAN1_EPOCH=300
 GAN1_RESULTS_DIR="/home/sc.uni-leipzig.de/iu71daji/test_pipeline/gan1results_synthetic_masks"
 
 

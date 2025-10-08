@@ -38,8 +38,8 @@ import random
 from sklearn.model_selection import KFold
 import json
 
-process_umcl = True
-process_msseg = True
+process_umcl = False
+process_msseg = False
 process_msseg2 = True
 
 # add toplevel directory to system path
@@ -194,11 +194,11 @@ if process_msseg:
         # register T1 and save the transform.
         msseg_patient.calc_transform_mni152('t1')
         
-        # egister ls_mask and flair to mni, using the transform from T1.
+        # register ls_mask and flair to mni, using the transform from T1.
         msseg_patient.apply_mni_transform(image_key='ls_mask') 
         msseg_patient.apply_mni_transform(image_key='flair') 
-        
-        # dialate lesion_msk
+
+        # dilate lesion_msk
         msseg_patient.dilatate_lesionmasks()
 
         # slice the images and generate gan2 input
@@ -235,7 +235,6 @@ if process_msseg2:
 
         # bias correction
         msseg2_patient.bias_correction(image_key='flair')
-        msseg2_patient.bias_correction(image_key='ls_mask')
 
         # brain extraction
         msseg2_patient.extract_brain(image_key='flair')

@@ -205,12 +205,13 @@ class LesionMetrics:
 
     def calc_lesion_heatmap(self, out_path, normalize=True):
         """ 
-        sums up all lesion masks and saves a heatmap of the lesions.
+        Sums up all lesion masks and saves a heatmap of the lesions.
         If normalize is True, the heatmap is normalized by the number of images.
         """
         heatmap = None
         ls_img = None
 
+        # sum up all ls voxels of the given data set.
         for name in self.img_basenames:
             if self.ls_suffix:
                 ls_path = self.ls_dir / f"{name}{self.ls_suffix}"
@@ -225,6 +226,7 @@ class LesionMetrics:
             # sum up lesion voxels
             heatmap += mask.astype(np.float32)
 
+        # normalize heatmap by number of images -> then values are in [0, 1]
         if normalize and len(self.img_basenames) > 0:
             heatmap = heatmap / len(self.img_basenames)
 
@@ -245,9 +247,11 @@ class LesionMetrics:
         (by std of self) and the mean as total_score.
         """ 
         if attributes is None:
-            attributes = ['lesion_count_per_img', 'lesion_voxels_per_img', 'lesion_min_size', 'lesion_max_size',
-                           'lesion_mean_size', 'lesion_min_sphericity', 'lesion_max_sphericity', 'lesion_mean_sphericity',
-                           'lesion_min_surface_to_volume_ratio', 'lesion_max_surface_to_volume_ratio', 'lesion_mean_surface_to_volume_ratio']
+            attributes = ['lesion_count_per_img', 'lesion_voxels_per_img', 
+                          'lesion_min_size', 'lesion_max_size','lesion_mean_size', 
+                          'lesion_min_sphericity', 'lesion_max_sphericity', 'lesion_mean_sphericity',
+                          'lesion_min_surface_to_volume_ratio', 'lesion_max_surface_to_volume_ratio', 'lesion_mean_surface_to_volume_ratio'
+                          ]
 
         emds = {}
         emds_normed = {}

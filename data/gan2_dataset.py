@@ -81,7 +81,7 @@ class Gan2Dataset(BaseDataset):
 
         elif self.phase == 'test':
             folds = [self.fold_idx]
-        elif self.phase == 'train' and self.fold_idx > 0:
+        elif self.phase == 'train' and self.fold_idx >= 0:
             folds = [i for i in range(self.K) if i != self.fold_idx]
 
         for fold in folds: 

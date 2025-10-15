@@ -38,16 +38,16 @@ import random
 from sklearn.model_selection import KFold
 import json
 
-process_umcl = False
+process_umcl = True
 process_msseg = False
-hacky = True # only slicing and saving in correct fold, preprocessing is done already.
+hacky = False # only slicing and saving in correct fold, preprocessing is done already.
 
 # add toplevel directory to system path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from base_preprocessing import ImgPreprocessing
 
-results_dir = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/train_gan2_data/final_preprocessing_09102025")
+results_dir = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/train_gan2_data/final_preprocessing_15102025")
 #------------------------------------------------------------
 #                k == 5 fold cross validation:        -------
 #------------------------------------------------------------
@@ -118,7 +118,7 @@ if process_umcl:
     t1s_path = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/original_data/umcl/orig_tw1_mris")
     brainmasks_path = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/original_data/umcl/orig_brainmasks")
 
-    for k in range(13,31):
+    for k in range(1,13):
         # expected naming: patient12_consensus_gt.nii, patient12_FLAIR.nii
         flair_path=(flairs_path / f"patient{k:02}_FLAIR.nii.gz")
         ls_path=(lesions_path / f"patient{k:02}_consensus_gt.nii.gz")
@@ -156,7 +156,7 @@ if process_umcl:
         umcl_patient.dilatate_lesionmasks()
 
         # slice the images and generate gan2 input 
-        umcl_patient.create_gan2_source_target(fold=fold_idx)
+        #umcl_patient.create_gan2_source_target(fold=fold_idx)
 
 
 #-------------------------------------------------------------

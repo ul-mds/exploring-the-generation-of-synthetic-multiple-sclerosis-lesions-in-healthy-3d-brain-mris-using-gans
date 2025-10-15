@@ -38,16 +38,16 @@ import random
 from sklearn.model_selection import KFold
 import json
 
-process_umcl = False
+process_umcl = True
 process_msseg = False
-process_msseg2 = True
+hacky = False # only slicing and saving in correct fold, preprocessing is done already.
 
 # add toplevel directory to system path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from base_preprocessing import ImgPreprocessing
 
-results_dir = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/train_gan2_data/final_preprocessing_19092025")
+results_dir = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/train_gan2_data/final_preprocessing_15102025")
 #------------------------------------------------------------
 #                k == 5 fold cross validation:        -------
 #------------------------------------------------------------
@@ -56,19 +56,16 @@ def get_all_patients():
     """ 
     Returns a list of all patients in the dataset. Kind of hard coded, but this is fine for now.
     """
-    msseg2_dir = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/train_gan2_data/msseg2")
     umcl_patients = [f"patient{k:02}" for k in range(1, 31)]
     msseg_patients = [(p, c) for p in range(1, 6) for c in [1, 7]]
-    msseg2_patients = [name for name in os.listdir(msseg2_dir)] 
+
                
     all_patients = []
     for pid in umcl_patients:
         all_patients.append(('umcl', pid))
     for p, c in msseg_patients:
         all_patients.append(('msseg', (p, c)))
-    for pid in msseg2_patients:
-        all_patients.append(('msseg2', pid))
-
+   
     return all_patients
 
 def k_fold_patients(all_patients, k=5, random_state=42):
@@ -121,7 +118,7 @@ if process_umcl:
     t1s_path = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/original_data/umcl/orig_tw1_mris")
     brainmasks_path = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/original_data/umcl/orig_brainmasks")
 
-    for k in range(13,31):
+    for k in range(1,13):
         # expected naming: patient12_consensus_gt.nii, patient12_FLAIR.nii
         flair_path=(flairs_path / f"patient{k:02}_FLAIR.nii.gz")
         ls_path=(lesions_path / f"patient{k:02}_consensus_gt.nii.gz")
@@ -159,7 +156,7 @@ if process_umcl:
         umcl_patient.dilatate_lesionmasks()
 
         # slice the images and generate gan2 input 
-        umcl_patient.create_gan2_source_target(fold=fold_idx)
+        #umcl_patient.create_gan2_source_target(fold=fold_idx)
 
 
 #-------------------------------------------------------------
@@ -204,51 +201,60 @@ if process_msseg:
         # slice the images and generate gan2 input
         msseg_patient.create_gan2_source_target(fold=fold_idx)
 
-#-------------------------------------------------------------
-#                msseg-2 data:                           -------
-#-------------------------------------------------------------
-if process_msseg2:
-    msseg2_flairs_path = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/original_data/msseg2/orig_flair_mris")
-    msseg2_lesions_path = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/original_data/msseg2/orig_lesionmasks")
 
-    # expected naming: msseg2_p019_flair.nii.gz, msseg2_p026_consensus.nii.gz
-    for patient in list(msseg2_flairs_path.glob("*.nii.gz")):
-        pid = re.search(r"msseg2_p(\d+)_flair", patient.name).group(1)
-        patient_id = ('msseg2', pid)
+###############################################################################
+#                       hacky version of the script                           #
+################################################################################
+# the preprocessing has been done already, only slicing and saving slices in the correct fold is needed. 
+if hacky:
+    all_patients = get_all_patients()
+    folds = k_fold_patients(all_patients, k=5, random_state=42)
 
-        # find fold for cross validation, some imgs are not used for training gan2, scip them. 
-        try:
-            fold_idx = next(fold for fold, patients in folds.items() if patient_id in patients)
-        except StopIteration:
-            print(f"Patient {patient_id} not found in folds, skipping.")
-            continue
+    # save results to json file
+    json_path = results_dir / "k_fold_patients.json"
+    with open(json_path, "w") as f:
+        json.dump(folds, f, indent=2)
 
-        flair_path = msseg2_flairs_path / f"msseg2_p{pid}_flair.nii.gz"
-        ls_path = msseg2_lesions_path / f"msseg2_p{pid}_consensus.nii.gz"
+    preprocessed_flair_ls_path =  Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/train_gan2_data/final_preprocessing_19092025/interim_results")
 
-        msseg2_patient = ImgPreprocessing(name=f"msseg2_patient{pid}",
-                                        result_dir=results_dir,
-                                        flair_path=flair_path,
-                                        ls_path=ls_path)
-        
-        # images are only registered, everything else needs to be applied.
 
-        # bias correction
-        msseg2_patient.bias_correction(image_key='flair')
+    # msseg: 
 
-        # brain extraction
-        msseg2_patient.extract_brain(image_key='flair')
+    msseg_patient_ids = range(1,6)  
+    msseg_center_ids = [1,7] # # centers 1 and 7 are used for training, center 8 is not used (no siemens scanner)
+    combinations = list(product(msseg_patient_ids, msseg_center_ids))
+    for p, c in combinations:
+        preprocessed_flair_path = (preprocessed_flair_ls_path / f"msseg_patient{p:02}_center{c:02}_flair_mni_registered.mgz").resolve()
+        dialated_ls_path = (preprocessed_flair_ls_path / f"msseg_patient{p:02}_center{c:02}_ls_mask_dilated.nii.gz").resolve()
+        msseg_patient = ImgPreprocessing(name=f"msseg_patient{p:02}_center{c:02}",
+                                            result_dir=results_dir,
+                                            flair_path=preprocessed_flair_path,
+                                            t1_path=None,
+                                            ls_path=dialated_ls_path
+                                            )
+        # find fold for cross validation
+        patient_id = ('msseg', (p, c))  
+        fold_idx = next(idx for idx, patients in folds.items() if patient_id in patients)
+        msseg_patient.create_gan2_source_target(fold=fold_idx)
 
-        # register and save the transform.
-        # Note: msseg2 does not have T1 images, so we register flair to mni152_1mm template.
-        msseg2_patient.calc_transform_mni152('flair')
 
-        # apply the transform to flair and ls_mask  
-        msseg2_patient.apply_mni_transform(image_key='flair')
-        msseg2_patient.apply_mni_transform(image_key='ls_mask')
+    # umcl: 
 
-        # dialate lesion_msk
-        msseg2_patient.dilatate_lesionmasks()
+    flairs_path = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/original_data/umcl/orig_flair_mris")
+    lesions_path = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/original_data/umcl/orig_lesionmasks")
 
-        # slice the images and generate gan2 input
-        msseg2_patient.create_gan2_source_target(fold=fold_idx)
+    brainmasks_path = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/original_data/umcl/orig_brainmasks")
+
+    for k in range(13,31):
+        preprocessed_flair_path = (preprocessed_flair_ls_path / f"umcl_patient{k:02}_flair_mni_registered.mgz").resolve()
+        dialated_ls_path = (preprocessed_flair_ls_path / f"umcl_patient{k:02}_ls_mask_dilated.nii.gz").resolve()
+        umcl_patient = ImgPreprocessing(name=f"umcl_patient{k:02}",
+                                            result_dir=results_dir,
+                                            flair_path=preprocessed_flair_path,
+                                            t1_path=None,
+                                            ls_path=dialated_ls_path
+                                            )
+        # find fold for cross validation  
+        patient_id = ('umcl', umcl_patient.name.split('_')[1])
+        fold_idx = next(idx for idx, patients in folds.items() if patient_id in patients)
+        umcl_patient.create_gan2_source_target(fold=fold_idx)

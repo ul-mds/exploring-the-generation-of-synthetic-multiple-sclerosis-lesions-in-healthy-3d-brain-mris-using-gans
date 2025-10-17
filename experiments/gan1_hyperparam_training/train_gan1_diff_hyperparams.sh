@@ -43,7 +43,7 @@ apptainer exec --nv $IMAGE bash <<EOF
     --output_nc 1 \
     --netG unet_256 \
     --ngf 32 \
-    --ndf 16 \
+    --ndf 32 \
     --gan_mode 'lsgan' \
     --upsampling linear \
     --n_epochs_decay 0 \

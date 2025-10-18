@@ -133,7 +133,6 @@ with open(gan2_hyperparams, "r") as f:
                                             output_path=path_3d_img, 
                                             basename=img_name,
                                             ref_mask_path=ref_mask_path, 
-                                            fold=fold,
                                             delete_slices=True)
                     
                     apply_gaussian_smoothing(reconstructed_img=path_3d_img,

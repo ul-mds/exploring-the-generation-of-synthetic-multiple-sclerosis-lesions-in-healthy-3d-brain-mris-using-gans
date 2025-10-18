@@ -17,4 +17,4 @@ IMAGE="/home/sc.uni-leipzig.de/iu71daji/masterthesis/containers/nifti_img.sif"
 WORKDIR="/home/sc.uni-leipzig.de/iu71daji/masterthesis/Pix2PixNIfTI/experiments/gan1_hyperparam_training"
 cd $WORKDIR
 
-apptainer exec --nv $IMAGE python eval_gan1_hyperparam_training.py
+apptainer exec --nv $IMAGE python evaluation_gan1_hyperparam_training.py

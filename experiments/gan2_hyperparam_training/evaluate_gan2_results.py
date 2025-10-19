@@ -62,8 +62,21 @@ def calc_mse(output_path, reference_flair, ref_mask_path):
     """
     # Load images
     output_img = nib.load(output_path).get_fdata()
-    ref_flair_img = nib.load(reference_flair).get_fdata()
     ref_mask_img = nib.load(ref_mask_path).get_fdata()
+
+    # allow different file endings for reference flair
+    ref_flair_img = None
+    if reference_flair.exists():
+        ref_flair_img = nib.load(str(reference_flair))
+    else:
+        for ext in [".nii", ".nii.gz"]:
+            alt = reference_flair.with_suffix(ext)
+            if alt.exists():
+                ref_flair_img = nib.load(str(alt))
+                break
+    if ref_flair_img is None: 
+        raise FileNotFoundError(f"Could not find NIfTI file for {reference_flair} with .nii or .nii.gz")
+
 
     # Normalize images to [0, 1]
     output_img_norm = normalize(output_img)

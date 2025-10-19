@@ -87,7 +87,7 @@ parser = argparse.ArgumentParser(description='GAN2 Eval Script.')
 parser.add_argument('--min_line', type=int, required=True, help='minimum line of gan2_hyperparams to read in. Defining window of models to evaluate.')
 parser.add_argument('--max_line', type=int, required=True, help='Max line of gan2_hyperparams to read in. Defining window of models to evaluate.')
 parser.add_argument('--results_name', type=str, required=True, help='Name for eval_results pickle file.')
-parser.add_argument('--min_max_csv', type=str, default="/home/sc.uni-leipzig.de/iu71daji/thesis_gan2/train_gan2/min_max_flair.csv", help='Path to min max csv file.')
+parser.add_argument('--min_max_csv', type=str, default="/home/sc.uni-leipzig.de/iu71daji/thesis_gan2/train_gan2/flair_minmax.csv", help='Path to min max csv file.')
 args = parser.parse_args()
 
 

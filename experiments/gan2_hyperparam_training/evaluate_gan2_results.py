@@ -67,12 +67,12 @@ def calc_mse(output_path, reference_flair, ref_mask_path):
     # allow different file endings for reference flair
     ref_flair_img = None
     if reference_flair.exists():
-        ref_flair_img = nib.load(str(reference_flair))
+        ref_flair_img = nib.load(str(reference_flair)).get_fdata()
     else:
         for ext in [".nii", ".nii.gz"]:
             alt = reference_flair.with_suffix(ext)
             if alt.exists():
-                ref_flair_img = nib.load(str(alt))
+                ref_flair_img = nib.load(str(alt)).get_fdata()
                 break
     if ref_flair_img is None: 
         raise FileNotFoundError(f"Could not find NIfTI file for {reference_flair} with .nii or .nii.gz")

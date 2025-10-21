@@ -36,8 +36,8 @@ apptainer exec --nv $IMAGE bash <<EOF
     --model pix2pix \
     --dataset_mode gan2 \
     --norm instance \
-    --lambda_L1 ${LAMBDA_L1} \
-    --lambda_L2 ${LAMBDA_L2} \
+    --lambda_ls ${LAMBDA_L1} \
+    --lambda_bg ${LAMBDA_L2} \
     --netG unet_256 \
     --ngf 32 \
     --ndf 32 \

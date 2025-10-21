@@ -54,7 +54,7 @@ class Pix2PixModel(BaseModel):
         self.fp16 = opt.fp16
         # specify the training losses you want to print out.
         # The training/test scripts will call <BaseModel.get_current_losses>
-        self.loss_names = ['G_GAN', 'G_L1', 'G_L2', 'D_real', 'D_fake']
+        self.loss_names = ['G_GAN', 'G_bg', 'G_ls', 'D_real', 'D_fake']
         # specify the images you want to save/display.
         
         # specify the models you want to save to the disk.

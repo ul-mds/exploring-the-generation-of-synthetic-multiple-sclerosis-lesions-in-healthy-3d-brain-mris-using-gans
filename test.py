@@ -70,7 +70,6 @@ if __name__ == '__main__':
         model.test()  # run inference
         visuals = model.get_current_visuals(dataset_mode)  # get image results
         img_path = model.get_image_paths()  # get image paths
-        print("Debug print y: image path: ", img_path)
         
         if i % 5 == 0:  # save images to an HTML file
             print('processing (%04d)-th image... %s' % (i, img_path))

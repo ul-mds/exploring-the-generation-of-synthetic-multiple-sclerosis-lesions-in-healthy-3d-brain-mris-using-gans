@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --job-name="gan2_eval"
-#SBATCH --time=09:00:00
+#SBATCH --time=2-00:00:00
 #SBATCH --partition=paula
 #SBATCH --nodes=1
 #SBATCH --ntasks=1

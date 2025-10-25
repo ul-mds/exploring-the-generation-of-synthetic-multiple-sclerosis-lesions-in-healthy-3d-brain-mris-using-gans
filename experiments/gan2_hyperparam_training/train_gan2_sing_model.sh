@@ -16,8 +16,8 @@ export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 IMAGE="/home/sc.uni-leipzig.de/iu71daji/masterthesis/containers/nifti_img.sif"
 WORKDIR="/home/sc.uni-leipzig.de/iu71daji/masterthesis/Pix2PixNIfTI"
 
-LAMBDA_L1=150
-LAMBDA_L2=70
+LAMBDA_L1=100
+LAMBDA_L2=20
 EPOCHS=100
 
 apptainer exec --nv $IMAGE bash <<EOF
@@ -33,12 +33,12 @@ apptainer exec --nv $IMAGE bash <<EOF
     --phase train \
     --save_epoch_freq 100\
     --print_model_info \
-    --name gan2_final_model_L1_${LAMBDA_L1}_L2_${LAMBDA_L2} \
+    --name gan2_final_model_L1_bg_${LAMBDA_L1}_L2_ls_${LAMBDA_L2} \
     --model pix2pix \
     --dataset_mode gan2 \
     --norm instance \
-    --lambda_L1 ${LAMBDA_L1} \
-    --lambda_L2 ${LAMBDA_L2} \
+    --lambda_bg ${LAMBDA_L1} \
+    --lambda_ls ${LAMBDA_L2} \
     --netG unet_256 \
     --ngf 32 \
     --ndf 32 \

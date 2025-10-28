@@ -26,7 +26,18 @@ def reconstruct_3d_from_slices(min_max_csv, slice_dir, reference_flair_path, out
 
     # original flair and lesion_mask (3d before slicing)
     # make sure lesion_mask is dialated, if not, dialate it here!
-    ref_flair_img = nib.load(str(reference_flair_path))
+    ref_flair_img = None
+    if reference_flair_path.exists():
+        ref_flair_img = nib.load(str(reference_flair_path))
+    else:
+        for ext in [".nii", ".nii.gz"]:
+            alt = reference_flair_path.with_suffix(ext)
+            if alt.exists():
+                ref_flair_img = nib.load(str(alt))
+                break
+    if ref_flair_img is None: 
+        raise FileNotFoundError(f"Could not find NIfTI file for {reference_flair_path} with .nii or .nii.gz")
+
     ref_flair_data = ref_flair_img.get_fdata().astype(ref_flair_img.get_data_dtype())
     lesion_data = nib.load(str(ref_mask_path)).get_fdata()
 

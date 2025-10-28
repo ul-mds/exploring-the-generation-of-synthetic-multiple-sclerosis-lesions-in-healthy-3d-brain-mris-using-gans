@@ -51,8 +51,7 @@ class Gan1Dataset(BaseDataset):
 
     def __getitem__(self, index):
         """Lädt ein Bildpaar (source & target) und konvertiert sie in Tensoren"""
-        print("debug print, getitem: ")
-        print(self.basenames[index])
+
         if self.phase == 'test' or self.phase == 'inference':
             test_filename = self.basenames[index] + "_source_gan1.nii.gz"
             test_path = os.path.join(self.test_dir, test_filename)

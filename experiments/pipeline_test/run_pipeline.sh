@@ -13,15 +13,15 @@
 
 # Variables to set: 
 GAN1_SOURCE="/home/sc.uni-leipzig.de/iu71daji/test_pipeline/test_imgs/gan1_source"
-GAN1_NAME="gan1_hyptr_L1_250_L2_200"
-GAN1_EPOCH=300
+GAN1_NAME="gan1_hyptr_ls_100_bg_50"
+GAN1_EPOCH=600
 GAN1_RESULTS_DIR="/home/sc.uni-leipzig.de/iu71daji/test_pipeline/gan1results_synthetic_masks"
 
 
 REGISTERED_FLAIRS="/home/sc.uni-leipzig.de/iu71daji/test_pipeline/test_imgs/registered_flairs"
 GAN2_SOURCE="/home/sc.uni-leipzig.de/iu71daji/test_pipeline/test_imgs/gan2_source"
 GAN2_RESULTS_DIR="/home/sc.uni-leipzig.de/iu71daji/test_pipeline/gan2results"
-GAN2_NAME="gan2_final_model_L1_150_L2_70"
+GAN2_NAME="gan2_final_model_L1_bg_100_L2_ls_20"
 GAN2_EPOCH=100
 PIPELINE_RESULTS_DIR="/home/sc.uni-leipzig.de/iu71daji/test_pipeline/final_pipeline_results"
 MIN_MAX_CSV_PATH="/home/sc.uni-leipzig.de/iu71daji/test_pipeline/test_imgs/gan2_source/flair_minmax.csv"

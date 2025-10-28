@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --job-name="gan2_eval"
-#SBATCH --time=09:00:00
+#SBATCH --time=2-00:00:00
 #SBATCH --partition=paula
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
@@ -18,4 +18,4 @@ WORKDIR="/home/sc.uni-leipzig.de/iu71daji/masterthesis/Pix2PixNIfTI/experiments/
 
 cd $WORKDIR
 
-apptainer exec --nv $IMAGE python evaluate_gan2_results.py --min_line 0 --max_line 80 --results_name "gan2_mse_dump_0to80_100925"
+apptainer exec --nv $IMAGE python evaluate_gan2_results.py --min_line 0 --max_line 80 --results_name "gan2_mse_dump_0to80_181025"

@@ -32,8 +32,8 @@ class Pix2PixModel(BaseModel):
         """
         # changing the default values to match the pix2pix paper (https://phillipi.github.io/pix2pix/)
         parser.set_defaults(norm='batch', netG='unet_256', dataset_mode='aligned')
-        parser.add_argument('--lambda_L1', type=float, default=100.0, help='weight for L1 loss')
-        parser.add_argument('--lambda_L2', type=float, default=100.0, help='weight for L2 truth loss in background area.')
+        parser.add_argument('--lambda_bg', type=float, default=100.0, help='weight for loss in background (1-ls_mask)')
+        parser.add_argument('--lambda_ls', type=float, default=100.0, help='weight for loss in lesion area.')
         parser.add_argument('--k_fold', type=int, default=-1, help='fold which is not used for training, but saved for testing.')
         if is_train:
             parser.set_defaults(pool_size=0, gan_mode='vanilla')
@@ -54,7 +54,7 @@ class Pix2PixModel(BaseModel):
         self.fp16 = opt.fp16
         # specify the training losses you want to print out.
         # The training/test scripts will call <BaseModel.get_current_losses>
-        self.loss_names = ['G_GAN', 'G_L1', 'G_L2', 'D_real', 'D_fake']
+        self.loss_names = ['G_GAN', 'G_bg', 'G_ls', 'D_real', 'D_fake']
         # specify the images you want to save/display.
         
         # specify the models you want to save to the disk.
@@ -180,40 +180,37 @@ class Pix2PixModel(BaseModel):
         pred_fake = self.netD(fake_AB)
         self.loss_G_GAN = self.criterionGAN(pred_fake, True)
         
-        #self.loss_G_L1 = zero_division(self.loss_G_L1, torch.sum(self.mask))
-        
-         # 3. L2 loss in background or lesion regions, depending on gan type
         if self.opt.dataset_mode == "gan2":
             # In gan2, L1 is computed for the whole image excluding the lesion areas, L2 only for lesion areas
             # we have 3 channels, loss is only calculated on the first channel, the others are ignored.
             # L1 reduction method is set to 'mean' if dataset_mode == "gan2"
             lsmsk_tensor = self.real_B[:, 1:2, :, :]
-            self.loss_G_L1 = self.criterionL1(self.fake_B[:, 0:1, :,:] * (1-lsmsk_tensor),
-                                          self.real_B[:, 0:1, :, :] * (1-lsmsk_tensor)) * self.opt.lambda_L1
+            self.loss_G_bg = self.criterionL1(self.fake_B[:, 0:1, :,:] * (1-lsmsk_tensor),
+                                          self.real_B[:, 0:1, :, :] * (1-lsmsk_tensor)) * self.opt.lambda_bg
             
     
-            self.loss_G_L2 = self.criterionL2(self.fake_B[:, 0:1, :,:] * lsmsk_tensor,
-                                              self.real_B[:, 0:1, :, :] * lsmsk_tensor) * self.opt.lambda_L2
+            self.loss_G_ls = self.criterionL2(self.fake_B[:, 0:1, :,:] * lsmsk_tensor,
+                                              self.real_B[:, 0:1, :, :] * lsmsk_tensor) * self.opt.lambda_ls
             
-            # L2 reduction = 'sum' -> we divide by the sum of voxels manually
-            self.loss_G_L2 = zero_division(self.loss_G_L2, torch.sum(lsmsk_tensor))
+            # L1 reduction = 'sum' -> we divide by the sum of voxels manually
+            self.loss_G_ls = zero_division(self.loss_G_ls, torch.sum(lsmsk_tensor))
         else: 
-            # in gan1 L1 is computed for the lesion areas only, L2 for the background 
+            # in gan1 L1 is computed for the lesion areas only, another L1 term for the background 
             # we have one channel instead of three.
 
             # L1 reduction = 'mean' -> we divide by the sum of lesion voxels manually
-            self.loss_G_L1 = self.criterionL1(self.fake_B * self.mask,
-                                          self.real_B * self.mask) * self.opt.lambda_L1
-            #TODO Set back? Experimenting with L1 reduction 'mean' instead of 'sum' 
-            self.loss_G_L1 = zero_division(self.loss_G_L1, torch.sum(self.mask))
+            self.loss_G_bg = self.criterionL1(self.fake_B * self.mask,
+                                          self.real_B * self.mask) * self.opt.lambda_bg
+            self.loss_G_bg = zero_division(self.loss_G_bg, torch.sum(self.mask))
 
-            # calculate L2 loss for whole img ( background + ls_regions)
-            # L2 reduction = 'mean' (no further division)
-            self.loss_G_L2 = self.criterionL2(self.fake_B * (1-self.mask), 
-                                              self.real_B * (1-self.mask)) * self.opt.lambda_L2
+            # calculate another L1 loss for background
+            self.loss_G_ls = self.criterionL1(self.fake_B * (1-self.mask), 
+                                              self.real_B * (1-self.mask)) * self.opt.lambda_ls
+            
+            self.loss_G_ls = zero_division(self.loss_G_ls, torch.sum(1 - self.mask))
 
         # combine loss and calculate gradients
-        self.loss_G = self.loss_G_GAN + self.loss_G_L1  + self.loss_G_L2
+        self.loss_G = self.loss_G_GAN + self.loss_G_bg  + self.loss_G_ls
         if self.fp16:
             from apex import amp
             with amp.scale_loss(self.loss_G, self.optimizer_G, loss_id=1) as scaled_loss:

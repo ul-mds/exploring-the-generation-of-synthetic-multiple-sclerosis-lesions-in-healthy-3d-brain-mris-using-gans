@@ -56,10 +56,10 @@ for hyperparam in hyperparams:
     lambda_l1, lambda_l2 = hyperparam
     for epoch in [150, 300, 450, 600]:
         # load synthetic lesion masks
-        model_path = TEST_RESULTS_PATH / f"gan1_hyptr_L1_{lambda_l1}_L2_{lambda_l2}/test_{epoch}"
+        model_path = TEST_RESULTS_PATH / f"gan1_hyptr_ls_{lambda_l1}_bg_{lambda_l2}/test_{epoch}"
         synth_ls_path = save_synthetic_masks(model_path)
         synthetic_data = LesionMetrics(ls_dir=synth_ls_path, 
-                                    dataset_name=f"gan1_results_L1_{lambda_l1}_L2_{lambda_l2}_epoch_{epoch}", 
+                                    dataset_name=f"gan1_results_ls_{lambda_l1}_bg_{lambda_l2}_epoch_{epoch}", 
                                     ls_suffix="_source_gan1.nii_fake_B.nii")
         synthetic_data._collect_basenames()
         synthetic_data.compute_measures()
@@ -83,6 +83,6 @@ for hyperparam in hyperparams:
                                                                             mse_heatmap=mse_heatmap)
 
 # save results
-results_path = RESULTS_PATH / "gan1_eval_hyperparam_training_results_2609.pkl"
+results_path = RESULTS_PATH / "gan1_eval_hyperparam_training_results_171025.pkl"
 with open(results_path, 'wb') as f:
     pickle.dump(results, f)

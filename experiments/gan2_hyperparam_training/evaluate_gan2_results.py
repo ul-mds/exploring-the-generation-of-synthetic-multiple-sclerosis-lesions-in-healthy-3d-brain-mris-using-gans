@@ -62,8 +62,21 @@ def calc_mse(output_path, reference_flair, ref_mask_path):
     """
     # Load images
     output_img = nib.load(output_path).get_fdata()
-    ref_flair_img = nib.load(reference_flair).get_fdata()
     ref_mask_img = nib.load(ref_mask_path).get_fdata()
+
+    # allow different file endings for reference flair
+    ref_flair_img = None
+    if reference_flair.exists():
+        ref_flair_img = nib.load(str(reference_flair)).get_fdata()
+    else:
+        for ext in [".nii", ".nii.gz"]:
+            alt = reference_flair.with_suffix(ext)
+            if alt.exists():
+                ref_flair_img = nib.load(str(alt)).get_fdata()
+                break
+    if ref_flair_img is None: 
+        raise FileNotFoundError(f"Could not find NIfTI file for {reference_flair} with .nii or .nii.gz")
+
 
     # Normalize images to [0, 1]
     output_img_norm = normalize(output_img)
@@ -87,7 +100,7 @@ parser = argparse.ArgumentParser(description='GAN2 Eval Script.')
 parser.add_argument('--min_line', type=int, required=True, help='minimum line of gan2_hyperparams to read in. Defining window of models to evaluate.')
 parser.add_argument('--max_line', type=int, required=True, help='Max line of gan2_hyperparams to read in. Defining window of models to evaluate.')
 parser.add_argument('--results_name', type=str, required=True, help='Name for eval_results pickle file.')
-parser.add_argument('--min_max_csv', type=str, default="/home/sc.uni-leipzig.de/iu71daji/thesis_gan2/train_gan2/min_max_flair.csv", help='Path to min max csv file.')
+parser.add_argument('--min_max_csv', type=str, default="/home/sc.uni-leipzig.de/iu71daji/thesis_gan2/train_gan2/flair_minmax.csv", help='Path to min max csv file.')
 args = parser.parse_args()
 
 
@@ -133,7 +146,6 @@ with open(gan2_hyperparams, "r") as f:
                                             output_path=path_3d_img, 
                                             basename=img_name,
                                             ref_mask_path=ref_mask_path, 
-                                            fold=fold,
                                             delete_slices=True)
                     
                     apply_gaussian_smoothing(reconstructed_img=path_3d_img,

@@ -100,7 +100,7 @@ def save_images(opt, webpage, visuals, image_path, dataset_mode, aspect_ratio=1.
         if im is None:
             print(f"Skipping {label} because tensor2im returned None")
             continue
-        print("Debug print 3 im shape; ", im.shape)
+        #print("Debug print 3 im shape; ", im.shape)
         #TODO only save label 'B_fake' images and throw away the others
         image_name = '%s_%s.nii' % (name, label)
         save_path = os.path.join(image_dir, image_name)

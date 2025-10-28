@@ -16,9 +16,9 @@ export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 IMAGE="/home/sc.uni-leipzig.de/iu71daji/masterthesis/containers/nifti_img.sif"
 WORKDIR="/home/sc.uni-leipzig.de/iu71daji/masterthesis/Pix2PixNIfTI"
 
-gan_name="gan2_final_model_L1_150_L2_70"
-LAMBDA_L1=150
-LAMBDA_L2=70
+gan_name="gan2_final_model_L1_bg_100_L2_ls_20"
+LAMBDA_L1=100
+LAMBDA_L2=20
 
 apptainer exec --nv $IMAGE bash <<EOF
     cd $WORKDIR
@@ -32,8 +32,8 @@ apptainer exec --nv $IMAGE bash <<EOF
     --dataroot /home/sc.uni-leipzig.de/iu71daji/thesis_gan2/train_gan2/fold_4 \
     --results_dir /home/sc.uni-leipzig.de/iu71daji/thesis_gan2/testresults \
     --phase inference \
-    --lambda_L1 ${LAMBDA_L1} \
-    --lambda_L2 ${LAMBDA_L2} \
+    --lambda_bg ${LAMBDA_L1} \
+    --lambda_ls ${LAMBDA_L2} \
     --name ${gan_name} \
     --model pix2pix \
     --dataset_mode gan2 \

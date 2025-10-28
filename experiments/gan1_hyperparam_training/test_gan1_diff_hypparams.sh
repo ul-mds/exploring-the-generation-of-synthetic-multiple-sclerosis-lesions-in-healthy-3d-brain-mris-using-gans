@@ -18,7 +18,7 @@ WORKDIR="/home/sc.uni-leipzig.de/iu71daji/masterthesis/Pix2PixNIfTI"
 
 read LAMBDA_L1 LAMBDA_L2 < <(sed -n "${SLURM_ARRAY_TASK_ID}p" gan1_hyperparameters.txt)
 
-MODEL_NAME="gan1_hyptr_L1_${LAMBDA_L1}_L2_${LAMBDA_L2}"
+MODEL_NAME="gan1_hyptr_ls_${LAMBDA_L1}_bg_${LAMBDA_L2}"
 
 apptainer exec --nv $IMAGE bash <<EOF
     cd $WORKDIR

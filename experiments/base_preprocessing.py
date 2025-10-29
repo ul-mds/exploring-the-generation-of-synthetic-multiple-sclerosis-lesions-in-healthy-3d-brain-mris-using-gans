@@ -27,10 +27,10 @@ def setup_logger(results_dir):
 
 class ImgPreprocessing(): 
     # reference template
-    T1_TEMPLATE = Path(r"/Pix2PixNIfTI/data/standard/icbm_avg_152_t1_tal_lin_resampled.nii")
-    T2_TEMPLATE = Path(r"/Pix2PixNIfTI/data/standard/icbm_avg_152_t2_tal_lin_resampled.nii")
-    
-    
+    T1_TEMPLATE = Path(r"/home/flydia/Documents/pix2pix_nifti/data/standard/icbm_avg_152_t1_tal_lin_resampled.nii")
+    T2_TEMPLATE = Path(r"/home/flydia/Documents/pix2pix_nifti/data/standard/icbm_avg_152_t2_tal_lin_resampled.nii")
+
+
     def __init__(self, name:str, 
                  result_dir,
                   mni_transform = None, 

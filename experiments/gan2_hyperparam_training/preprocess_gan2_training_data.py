@@ -38,16 +38,16 @@ import random
 from sklearn.model_selection import KFold
 import json
 
-process_umcl = True
+process_umcl = False
 process_msseg = False
-hacky = False # only slicing and saving in correct fold, preprocessing is done already.
+hacky = True # only slicing and saving in correct fold, preprocessing is done already.
 
 # add toplevel directory to system path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from base_preprocessing import ImgPreprocessing
 
-results_dir = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/train_gan2_data/final_preprocessing_15102025")
+results_dir = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/train_gan2_data/final_preprocessing_09102025")
 #------------------------------------------------------------
 #                k == 5 fold cross validation:        -------
 #------------------------------------------------------------
@@ -215,7 +215,7 @@ if hacky:
     with open(json_path, "w") as f:
         json.dump(folds, f, indent=2)
 
-    preprocessed_flair_ls_path =  Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/train_gan2_data/final_preprocessing_19092025/interim_results")
+    preprocessed_flair_ls_path =  Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/train_gan2_data/final_preprocessing_09102025/interim_results")
 
 
     # msseg: 
@@ -240,13 +240,11 @@ if hacky:
 
     # umcl: 
 
-    flairs_path = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/original_data/umcl/orig_flair_mris")
-    lesions_path = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/original_data/umcl/orig_lesionmasks")
-
-    brainmasks_path = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/original_data/umcl/orig_brainmasks")
-
-    for k in range(13,31):
-        preprocessed_flair_path = (preprocessed_flair_ls_path / f"umcl_patient{k:02}_flair_mni_registered.mgz").resolve()
+    for k in range(1,31):
+        if k <=12:  
+            preprocessed_flair_path = (preprocessed_flair_ls_path / f"umcl_patient{k:02}_flair_mni_registered.nii.gz").resolve()
+        else:
+            preprocessed_flair_path = (preprocessed_flair_ls_path / f"umcl_patient{k:02}_flair_mni_registered.mgz").resolve()
         dialated_ls_path = (preprocessed_flair_ls_path / f"umcl_patient{k:02}_ls_mask_dilated.nii.gz").resolve()
         umcl_patient = ImgPreprocessing(name=f"umcl_patient{k:02}",
                                             result_dir=results_dir,

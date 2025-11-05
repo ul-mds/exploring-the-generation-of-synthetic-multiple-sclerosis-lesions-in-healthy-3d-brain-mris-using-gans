@@ -45,7 +45,7 @@ print(f"Hyperparameters: {hyperparams}")
 
 results = {}
 # load reference lesion masks
-reference_data = LesionMetrics(ls_dir=REF_LSMSKS, dataset_name="eval_reference_lesionmasks", ls_suffix="_ls_mask_mni_registered.mgz")
+reference_data = LesionMetrics(ls_dir=REF_LSMSKS, dataset_name="eval_reference_lesionmasks", ls_suffix="_ls_mask_mni_registered.nii.gz")
 reference_data._collect_basenames()
 reference_data.compute_measures()
 

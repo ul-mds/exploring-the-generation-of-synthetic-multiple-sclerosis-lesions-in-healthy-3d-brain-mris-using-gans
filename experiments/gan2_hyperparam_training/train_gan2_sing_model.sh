@@ -2,11 +2,11 @@
 
 #SBATCH --job-name="gan2_train"
 #SBATCH --time=08:00:00
-#SBATCH --partition=clara
+#SBATCH --partition=paula
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=12
-#SBATCH --gpus=rtx2080ti
+#SBATCH --gpus=a30
 #SBATCH --mem-per-cpu=8G
 #SBATCH --output=slurm-%x-%j.out
 #SBATCH --error=slurm-%x-%j.err 
@@ -31,9 +31,9 @@ apptainer exec --nv $IMAGE bash <<EOF
     python train.py \
     --dataroot /home/sc.uni-leipzig.de/iu71daji/thesis_gan2/train_gan2/all_traindata \
     --phase train \
-    --save_epoch_freq 100\
+    --save_epoch_freq 100 \
     --print_model_info \
-    --name gan2_final_model_L1_bg_${LAMBDA_L1}_L2_ls_${LAMBDA_L2} \
+    --name gan2_final_model_L1_bg_${LAMBDA_L1}_L2_ls_${LAMBDA_L2}_3 \
     --model pix2pix \
     --dataset_mode gan2 \
     --norm instance \

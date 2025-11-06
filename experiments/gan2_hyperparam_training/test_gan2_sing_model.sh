@@ -16,7 +16,7 @@ export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 IMAGE="/home/sc.uni-leipzig.de/iu71daji/masterthesis/containers/nifti_img.sif"
 WORKDIR="/home/sc.uni-leipzig.de/iu71daji/masterthesis/Pix2PixNIfTI"
 
-gan_name="gan2_final_model_L1_bg_100_L2_ls_20"
+gan_name="gan2_final_model_L1_bg_100_L2_ls_20_3"
 LAMBDA_L1=100
 LAMBDA_L2=20
 

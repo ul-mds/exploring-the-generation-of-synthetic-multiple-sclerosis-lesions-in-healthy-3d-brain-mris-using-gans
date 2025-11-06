@@ -234,7 +234,7 @@ def save_image_to_nii(image_numpy, image_path, aspect_ratio=1.0):
         image_path (str)          -- the path of the image
     """
     try: 
-        template_path = Path("data/templates/icbm_avg_152_t1_tal_lin_resampled.nii")
+        template_path = Path("data/standard/icbm_avg_152_t1_tal_lin_resampled.nii.gz")
         template = nib.load(str(template_path))
         affine = template.affine
     except Exception as e:

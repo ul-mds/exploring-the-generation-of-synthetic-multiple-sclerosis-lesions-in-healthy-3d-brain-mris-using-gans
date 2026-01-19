@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Exploring the Generation of Synthetic Multiple Sclerosis Lesions in Healthy 3D Brain MRIs Using GANs
 
 
@@ -275,5 +274,3 @@ This repository is based on and includes code derived from the upstream projects
 Please also refer to:
 - https://github.com/giuliabaldini/Pix2PixNIfTI
 - https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix
-
->>>>>>> master

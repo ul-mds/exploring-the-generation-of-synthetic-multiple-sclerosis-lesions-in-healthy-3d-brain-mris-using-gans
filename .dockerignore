@@ -1,0 +1,9 @@
+docs
+venv
+checkpoints
+results
+.git
+.idea
+*.ipynb
+README*
+LICENCE*

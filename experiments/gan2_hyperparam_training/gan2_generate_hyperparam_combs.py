@@ -1,6 +1,6 @@
 """
-In GAN2 l1 is computed for the hole brain and l2 only for the lesion mask.
-Therefore Lesion-Areas conut twice in the loss function, if L2 is greater than zero.
+Code Snipped to generate all combinations of hyperparameters for GAN2 training.
+saved as gan2_hyperparams.txt
 """
 import itertools, random
 

@@ -1,19 +1,10 @@
-import numpy as np
-import nibabel as nib
-from scipy.ndimage import label
-from pathlib import Path
-import matplotlib.pyplot as plt
-import pickle
-from scipy.stats import wasserstein_distance
-from scipy.ndimage import label, generate_binary_structure
-from scipy.linalg import sqrtm
-from scipy.ndimage import binary_erosion
-
-
 """
-This class calculates metrics for different data sets and allows to compare the distributions of the
-calculated attributes.
+GAN1 hyperparameter optimization evaluation class.
 
+Author/Mod: Franziska Röpke (added 2026-01-15)
+
+This class calculates metrics for different datasets and allows to compare the distributions of the
+calculated attributes.
 Attributes currently calculated are: 
     * ls_count_per_img: number of disconnected features / lesions, per image.
     * all_ls_vxls: The total number of lesion voxels in each image. 
@@ -24,8 +15,17 @@ Attributes currently calculated are:
     others (not used at the moment because not counted per image, but per lesion or wm is not always available.):):
     * lesion_size. The number of voxels in each seperate feature (calculated not per image, but per lesion.)
     * ls_vxls_in_wm: the number of lesion voxels inside white matter, per image.
-
 """ 
+import numpy as np
+import nibabel as nib
+from scipy.ndimage import label
+from pathlib import Path
+import matplotlib.pyplot as plt
+from scipy.stats import wasserstein_distance
+from scipy.ndimage import label, generate_binary_structure
+from scipy.linalg import sqrtm
+from scipy.ndimage import binary_erosion
+
 
 class LesionMetrics:
 
@@ -53,12 +53,13 @@ class LesionMetrics:
         self.heatmap = None
 
 
-    def _collect_basenames(self):
+    def _collect_basenames(self) -> None:
         """
         Extracts base names from ls_dir where filenames end with 
         '_source_gan1.nii' or '_target_gan1.nii'. 
         Strips the suffix to get the common basename.
         """
+
         if self.ls_suffix: 
             suffixes = [self.ls_suffix]
         else:
@@ -77,32 +78,49 @@ class LesionMetrics:
             if f.name.endswith(suffix)
         ])
 
-    def compute_surface_voxels(self, mask):
-        """Berechnet die Anzahl der Oberflächen-Voxel in einer Binärmaske."""
+
+    def compute_surface_voxels(self, mask: np.ndarray) -> int:
+        """
+        Calculates the number of surface voxels in a binary mask.
+        The number of surface voxels is determined by performing a binary erosion 
+        on the mask and counting the voxels that are present in the original mask but not in the eroded mask.
+        Parameters:
+        - mask: 3D binary numpy array representing the lesion mask.
+        Returns:
+        - int: Number of surface voxels in the mask.
+        """
+
         structure = generate_binary_structure(3, 1)
-        # Erosion: Voxel, die dabei verschwinden, sind Oberflächen-Voxel
+        
         eroded = np.logical_and(mask, ~binary_erosion(mask, structure=structure))
         return np.count_nonzero(eroded)
 
-    def compute_sphericity(self, mask):
+    def compute_sphericity(self, mask: np.ndarray) -> float:
         """
-        Berechnet die Sphärizität einer Binärmaske.
-        mask: 3D-Bool-Array (Läsion)
+        Calculates the sphericity of a binary mask.
+        Parameters:
+        - mask: 3D binary numpy array representing the lesion mask.
+        Returns:
+        - float: Sphericity of the mask.
         """
         V = np.count_nonzero(mask)
         if V == 0:
             return 0.0
+        
         S = self.compute_surface_voxels(mask)
         if S == 0:
             return 0.0
-        sphericity = (np.pi**(1/3)) * (6*V)**(2/3) / S
-        return sphericity
+            
+        return (np.pi**(1/3)) * (6*V)**(2/3) / S
 
 
-    def compute_surface_to_volume_ratio(self, mask):
+    def compute_surface_to_volume_ratio(self, mask: np.ndarray) -> float:
         """
-        Berechnet das Oberfläche-zu-Volumen-Verhältnis einer Binärmaske.
-        mask: 3D-Bool-Array (Läsion)
+        Calculates the surface-to-volume ratio of a binary mask.
+        Parameters:
+        - mask: 3D binary numpy array representing the lesion mask.
+        Returns:
+        - float: Surface-to-volume ratio of the mask.
         """
         V = np.count_nonzero(mask)
         if V == 0:
@@ -111,9 +129,9 @@ class LesionMetrics:
         return S / V
 
 
-    def compute_measures(self):
+    def compute_measures(self) -> None:
         """
-        loads the wm_masks and lesion_masks for every image and computes the 
+        Loads the wm_masks and lesion_masks for every image and computes the 
         metrics. 
         """
 
@@ -171,42 +189,13 @@ class LesionMetrics:
         print(f"Img {self.img_basenames} measurements computed successfully.")
             
 
-    def plot_boxplot(self, attribute_name):
-        """
-        Plots a boxplot for the specified attribute.
-        """
-        if hasattr(self, attribute_name):
-            data = getattr(self, attribute_name)
-            plt.figure(figsize=(6, 4))
-            plt.boxplot(data)
-            plt.title(f"Boxplot of {attribute_name}")
-            plt.ylabel("Value")
-            plt.grid(True)
-            plt.show()
-        else:
-            print(f"Attribut '{attribute_name}' existiert nicht.")
-
-
-    def plot_histogram(self, attribute_name, bins=20):
-        """
-        Plots a histogram for the specified attribute.
-        """
-        if hasattr(self, attribute_name):
-            data = getattr(self, attribute_name)
-            plt.figure(figsize=(6, 4))
-            plt.hist(data, bins=bins, edgecolor='black')
-            plt.title(f"Histogram of {attribute_name}")
-            plt.xlabel("Value")
-            plt.ylabel("Frequency")
-            plt.grid(True)
-            plt.show()
-        else:
-            print(f"Attribut '{attribute_name}' existiert nicht.")
-
-    def calc_lesion_heatmap(self, out_path, normalize=True):
+    def calc_lesion_heatmap(self, out_path: str, normalize: bool = True) -> None:
         """ 
         Sums up all lesion masks and saves a heatmap of the lesions.
         If normalize is True, the heatmap is normalized by the number of images.
+        Parameters:
+        - out_path (str): Directory where the heatmap will be saved.
+        - normalize (bool): Whether to normalize the heatmap by the number of images.
         """
         heatmap = None
         ls_img = None
@@ -223,18 +212,16 @@ class LesionMetrics:
             if heatmap is None:
                 heatmap = np.zeros_like(mask, dtype=np.float32)
                 ls_img = img 
-            # sum up lesion voxels
+            
             heatmap += mask.astype(np.float32)
 
-        # normalize heatmap by number of images -> then values are in [0, 1]
+        # normalize heatmap by number of images -> to [0, 1]
         if normalize and len(self.img_basenames) > 0:
             heatmap = heatmap / len(self.img_basenames)
 
-        # save heatmap
         out_path = Path(out_path) / f"{self.dataset_name}_heatmap.nii.gz"
         heatmap_img = nib.Nifti1Image(heatmap, ls_img.affine, ls_img.header)
         nib.save(heatmap_img, out_path)
-
         self.heatmap = out_path
 
         print(f"Lesion heatmap saved to {out_path}")
@@ -245,12 +232,18 @@ class LesionMetrics:
         Compares the distributions of given attributes between the two datasets. 
         Metric used is the wasserstein distance. Also returns normalized distances 
         (by std of self) and the mean as total_score.
+        Parameters:
+        - second_dataset (LesionMetrics): The second dataset to compare with.
+        - attributes (list): List of attribute names to compare. If None, default attributes are used.
+        Returns:
+        - dict: A dictionary with EMD scores for each attribute, normalized scores, and the mean score.
         """ 
         if attributes is None:
             attributes = ['lesion_count_per_img', 'lesion_voxels_per_img', 
                           'lesion_min_size', 'lesion_max_size','lesion_mean_size', 
                           'lesion_min_sphericity', 'lesion_max_sphericity', 'lesion_mean_sphericity',
-                          'lesion_min_surface_to_volume_ratio', 'lesion_max_surface_to_volume_ratio', 'lesion_mean_surface_to_volume_ratio'
+                          'lesion_min_surface_to_volume_ratio', 'lesion_max_surface_to_volume_ratio', 
+                          'lesion_mean_surface_to_volume_ratio'
                           ]
 
         emds = {}
@@ -269,10 +262,15 @@ class LesionMetrics:
         return (emds, emds_normed, emd_score)
 
 
-    def calculate_feature_matrix(self, dataset, attributes):
+    def calculate_feature_matrix(self, dataset: "LesionMetrics", attributes):
         """       
         Calculates a feature matrix for the given dataset based on specified attributes.
         Returns a numpy array with shape (n_samples, n_features).
+        Parameters:
+            dataset (LesionMetrics): The dataset for which to calculate the feature matrix.
+            attributes (list): List of attribute names to include in the feature matrix.
+        Returns:
+            np.ndarray: Feature matrix of shape (n_samples, n_features).
         """
         for attr in attributes:
             if len(getattr(dataset, attr)) != len(dataset.img_basenames):
@@ -294,7 +292,7 @@ class LesionMetrics:
         Returns np.nan if the calculation is not possible (e.g., due to NaNs, singular matrices, or sqrtm failure).
         All diagnostic messages are printed to stdout.
         """
-        # 1. Set default attributes
+        # default attributes
         if attributes is None:
             attributes = [
                 'lesion_count_per_img',
@@ -310,11 +308,10 @@ class LesionMetrics:
                 'lesion_mean_surface_to_volume_ratio'
             ]
 
-        # 2. Calculate feature matrices
         X = self.calculate_feature_matrix(self, attributes)
         Y = self.calculate_feature_matrix(second_dataset, attributes)
 
-        # 3. Remove NaN and Inf values
+        # Remove NaN and Inf values
         if np.any(np.isnan(X)) or np.any(np.isnan(Y)):
             print("Warning: Feature matrices contain NaN values. They are replaced with 0.")
         if np.any(np.isinf(X)) or np.any(np.isinf(Y)):
@@ -322,7 +319,7 @@ class LesionMetrics:
         X = np.nan_to_num(X, nan=0.0, posinf=0.0, neginf=0.0)
         Y = np.nan_to_num(Y, nan=0.0, posinf=0.0, neginf=0.0)
 
-        # 4. Remove zero-variance features
+        # Remove zero-variance features
         var_X = np.var(X, axis=0)
         var_Y = np.var(Y, axis=0)
         valid_cols = np.where((var_X > 0) & (var_Y > 0))[0]
@@ -332,18 +329,17 @@ class LesionMetrics:
         X = X[:, valid_cols]
         Y = Y[:, valid_cols]
 
-        # 5. Compute means and covariances
         mean_X = np.mean(X, axis=0)
         mean_Y = np.mean(Y, axis=0)
         cov_X = np.cov(X, rowvar=False)
         cov_Y = np.cov(Y, rowvar=False)
 
-        # 6. Regularize covariance matrices
+        # Regularize covariance matrices
         eps = 1e-4
         cov_X += np.eye(cov_X.shape[0]) * eps
         cov_Y += np.eye(cov_Y.shape[0]) * eps
 
-        # 7. Matrix square root with error checking
+        # Matrix square root with error checking
         try:
             covmean = sqrtm(cov_X @ cov_Y)
             if np.isnan(covmean).any():
@@ -358,7 +354,7 @@ class LesionMetrics:
             print(f"Error: sqrtm failed with exception: {e}. FID cannot be calculated.")
             return np.nan
 
-        # 8. Calculate FID
+        # Calculate FID
         fid = np.sum((mean_X - mean_Y) ** 2) + np.trace(cov_X + cov_Y - 2 * covmean)
         if np.isnan(fid) or np.isinf(fid):
             print("Error: FID calculation resulted in NaN or Inf. Check data and calculation steps.")
@@ -367,9 +363,15 @@ class LesionMetrics:
         return float(fid)
 
 
-    def compare_heatmaps(self, second_dataset:"LesionMetrics"):
+    def compare_heatmaps(self, second_dataset:"LesionMetrics") -> float:
         """
         Compares the lesion heatmaps of two datasets calculating the mean squared error (MSE).
+        Parameters:
+            second_dataset (LesionMetrics): The second dataset to compare with.
+        Returns:
+            float: MSE between the two heatmaps.
+        Raises:
+            ValueError: If heatmaps have not been calculated for one or both datasets.
         """
         if self.heatmap is None or second_dataset.heatmap is None:
             raise ValueError("Heatmaps have not been calculated for one or both datasets.")
@@ -379,9 +381,16 @@ class LesionMetrics:
         mse = np.mean((heatmap1 - heatmap2) ** 2)
         return float(mse)
 
-    def results_to_dict(self, emds = None, fid=None, mse_heatmap=None):
+
+    def results_to_dict(self, emds = None, fid=None, mse_heatmap=None) -> dict:
         """
         Converts the results of the metrics into a dictionary format.
+        Parameters:
+            emds (tuple): Tuple containing raw EMD values, normalized EMD values, and EMD score.
+            fid (float): Fréchet Inception Distance value.  
+            mse_heatmap (float): Mean Squared Error between heatmaps.
+        Returns:
+            dict: Dictionary containing all results.
         """
         if emds: 
             emds, emds_normed, emd_score = emds

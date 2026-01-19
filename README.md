@@ -1,154 +1,183 @@
-# Pix2PixNIfTI
+# Exploring the Generation of Synthetic Multiple Sclerosis Lesions in Healthy 3D Brain MRIs Using GANs 
 
-Extension of [Pix2Pix](https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix) to run with NIfTI files (2D or 3D).
-Pix2Pix is a general framework for image-to-image translation.
-With our extension this cGAN can learn a mapping between two MRI sequences.
+This repository contains the code used in my Master’s thesis to generate **semi-synthetic 3D brain MRIs with realistic multiple sclerosis (MS) white matter lesions**, starting from **healthy, lesion-free scans**.
 
-The general framework is still the same, so the that can be found in [Pix2Pix](https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix) is still valid.
-However, the code has been extended with the following:
-* We modify the loading functionality to accept 3D NIfTI images.
-* We extend the data augmentation process with an additional library, [TorchIO](https://github.com/fepegar/torchio), which implements useful preprocessing and data augmentation routines for medical imaging.
-* We add the mixed precision training functionality from [NVIDIA APEX](https://github.com/NVIDIA/apex), which can be enabled with `--fp16`.
-* Since a big portion of our scans is background, the L1 loss is only computed on the actual brain voxels.
-* Linear additive upsampling can be used instead of the transpose convolution operation. Select the desidered upsampling with `--upsampling [deconvolution | linear]`.
-* We modify the loss function to consider, additionally to the L1 loss, the MSE loss of the pixels corresponding to the tumor ground truth (if available).
+The approach connects **two Pix2Pix GANs** in an inference pipeline:
 
-In [Paper To Be Added](www.soontobepublished.com) you can find a description of our approaches and some results.
+1. **GAN1** generates a **synthetic lesion mask** (lesion placement/shape) from a **white matter mask** derived from healthy MRIs.  
+2. **GAN2** inserts **realistic-appearing lesions** into a healthy **FLAIR** scan conditioned on the GAN1 mask.
 
-## Installation
-The framework is written in python3 and requires some libraries, which can be installed with
-```
-pip install requirements.txt
-```
+![Pipeline overview](pipeline_overview.png)
 
-## Running the program
-The model can be trained with `train.py` and then the desired data set can be tested with `test.py`.
+This project is based on **Pix2PixNIfTI** (Pix2Pix extended to 2D/3D NIfTI volumes):
+- Upstream: https://github.com/giuliabaldini/Pix2PixNIfTI  
+- Original Pix2Pix: https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix  
 
-### Data and Folder Organization
-This software accepts all the formats previously accepted by Pix2Pix and additionally accepts 3D NIfTI files. 
-The MRI scans should be skull-stripped and registered to the same template.
+> **Note:** This is research/thesis code. The scripts are provided as used in the thesis and may require adaptation
+> (paths, folder layout, cluster settings) to run on a different system or dataset.
 
-For the NIfTI case we require that there is a separate folder for the source and the target sequence.
-The folder structure should have a `path/to/data` folder where there is a `train` folder that contains the training data
-and some test/validation folders. Each of these folders has one folder for each sequencing, so `t1`, `t2`, `t1ce`, `flair` 
-and one for the ground truth `truth`.
-If you are only interested in the translation between `t1` and `t2`, the other folders are not needed.
-The tumor ground truth `truth` is used to compute the MSE of the tumor, and will be ignored if not present.
-```
-path/to/data
-|
-└───train
-│   └───t1
-│   |   │   pat1.nii
-│   |   │   pat2.nii
-│   |   │   ...
-|   |   |   patn.nii
-|   |
-│   └───t2
-│   |   │   pat1.nii
-│   |   │   pat2.nii
-│   |   │   ...
-|   |   |   patn.nii
-|   |
-│   └─── ...
-└───val
-│   └───t1
-│   |   │   pat1.nii
-│   |   │   pat2.nii
-│   |   │   ...
-|   |   |   patn.nii
-|   |
-│   └─── ...
-```
+---
 
-Normally, the data sets containing MRI scans have a folder `data/to/fix` 
-which contains folders like `train` and `test`. These folders contain one patient folder each, and each patient folder
-contains `t1`, `t2`, `t1ce`, `flair` and `truth`. 
-Given a file hierarchy of this type, we created a script that takes the 
-images and saves them such that they can be used by Pix2Pix.
-```
-python ./datasets/fix_data.py --folder data/to/fix --save_folder path/to/data --phase train
-```
-The `--phase train` argument can be changed to any folder name.
+## Key Features
 
-### Train
+- **Two-stage lesion synthesis pipeline (GAN1 → GAN2)**
+  - GAN1: *white matter mask* → *synthetic MS lesion mask*
+  - GAN2: *(healthy FLAIR + synthetic lesion mask)* → *FLAIR with synthetic lesions*
 
-To start the actual training procedure run
-```
-python train.py --dataroot path/to/data --dataset_mode nifti --model pix2pix3d --name test_name
-```
-Which will create a model for 3D MRI scans. To use 2D slices instead select `--model pix2pix`.
-To select a slice to run the training on, use the parameter `--chosen_slice`. 
-At the moment only transverse slices are supported and the default slice is the middle transverse slice for a scan of size 240x240x155.
+- **3D NIfTI support** via the Pix2PixNIfTI codebase (training/inference on volumetric MRI data)
 
-The network is a `unet_128` by default, so the images should have side lengths which are multiples of 128. 
-However, if this is not the case, random crops will be performed to ensure that the entire structure of the brain is captured.
-In our tests `resnet_6blocks` performed best, and we think they are the best choice for this purpose.
+- **Direct output pairing (image + mask)**
+  Produces a semi-synthetic MRI *and* its corresponding lesion mask (from GAN1), enabling downstream tasks without additional manual labeling.
 
-### Test
-Once the model has been trained, we can retrieve the results for the `test_name` experiment with
-```
-python test.py --dataroot path/to/data --dataset_mode nifti --model pix2pix3d --name test_name --preprocess resize --excel --postprocess 1 --phase name/to/test
-```
-If the source images do not have side lengths which are multiples of 128 they can be padded with `--preprocess pad`.
+- **Task-specific dataset handling**
+  Additional dataset classes for the two GAN stages (see `data/gan1_dataset.py` and `data/gan2_dataset.py`).
 
-The flag `--excel` prints the results of the MSE computation to a csv file. 
-Otherwise, the results are only printed to screen.
+- **Experiments & pipeline tooling**
+  The `experiments/` folder contains the full set of scripts used in this project, including:
+  - **preprocessing** utilities (shared and GAN-specific),
+  - **training and hyperparameter search** for GAN1 and GAN2,
+  - **inference pipeline** scripts (GAN1 → overlay → GAN2),
+  - **evaluation/metrics** computation,
+  - and **Slurm job scripts** to run all stages on an HPC cluster.
 
-`name/to/test` is the name of the folder where the MRI images for testing are located. For example, if the files to test are in `/path/to/data/name/to/test`, then `name/to/test` should be used. 
-The default value is `test`.
 
-The variable `--postprocess` can be used to postprocess the image:
-* **-1** (default): means no post-processing,
-* **0**: scales the image to the [0, 1] range,
-* **1**: standardizes the image to have zero mean and unit variance,
+## Changes made to Pix2PixNIfTI
 
-It is also possible to select a filter to apply to the resulting image with `--smoothing`. 
-Both the original and the filtered image will be saved as output.
-The options are `median` and `average`, where `median` applies the median filter while `average` applies a simple averaging filter.
-The default filter is `median`.
+Compared to the upstream Pix2PixNIfTI repository, the main project-specific changes are:
 
-In case you not have a GPU, please add the option `--gpu_id -1`.
+- Added **GAN1/GAN2 dataset modes** (`data/gan1_dataset.py`, `data/gan2_dataset.py`)
+- Modified training/testing entry points:
+  - updated `train.py` and `test.py`
+  - added `train_gan2.py` (largely based on `train.py`, with GAN2-specific adjustments)
+- Modified **loss functions** for GAN1 and GAN2:
+  - `models/pix2pix3d_model.py`
+  - `models/pix2pix_model.py`
+- Added the complete thesis workflow under **`experiments/`**
 
-### Docker
+## Installation & Quick Start
 
-The file `base.dockerfile` contains the base structure of our Pix2PixNIfTI image and it can be used both for training and testing.
-Some example dockerfiles that build on top of that image can be found in `scripts`.
+This repository can be used in **two modes**:
 
-Here an example of how to create the base image and some images for training and testing.
-```
-# Fix training dataset
-python3 ./datasets/make_nifti_dataset.py --folder /path/to/data --save_folder /fixed/pix_data --phase train
-# Fix validation dataset
-python3 ./datasets/make_nifti_dataset.py --folder /path/to/data --save_folder /fixed/pix_data --phase validation
+1) **Local (Python venv):** preprocessing + evaluation 
+2) **HPC Computing Cluster (Slurm + Apptainer):** training + testing
 
-# Build Pix2Pix base image
-docker build --force-rm -f base.dockerfile -t pix_base .
+Both workflows use the same codebase (most entry points live under `experiments/`).
+Start with preprocessing scripts, then use slurm scripts for training and model testing.
 
-# Run Training ResNet
-docker build --force-rm -f ./scripts/train_resnet.dockerfile -t train_resnet . && \
-nvidia-docker run --rm --mount type=bind,source=/fixed/pix_data,target=/input \
---mount type=bind,source=/location/pix_checkpoints,target=/checkpoints \
---mount type=bind,source=/location/pix_output,target=/results train_resnet
+---
 
-echo "Finished ResNet Training"
+## 1) Local workflow (Preprocessing & Evaluation): Python venv
 
-docker build --force-rm -f ./scripts/val_resnet.dockerfile -t val_resnet . && \
-nvidia-docker run --rm --mount type=bind,source=/fixed/pix_data,target=/input \
---mount type=bind,source=/location/pix_checkpoints,target=/checkpoints \
---mount type=bind,source=/location/pix_output,target=/results val_resnet
+Preprocessing and results evaluation were run locally in a virtual environment.
 
-echo "Finished ResNet Validation"
+### Requirements (local)
 
-python3 ./datasets/make_nifti_dataset.py --folder path/to/data --save_folder /fixed/pix_data --phase testBraTS
-python3 ./datasets/make_nifti_dataset.py --folder path/to/data --save_folder /fixed/pix_data --phase testUK
-python3 ./datasets/make_nifti_dataset.py --folder path/to/data --save_folder /fixed/pix_data --phase testNoTruth
+- Python `3.12.3`
+- Dependencies from `requirements.txt`
 
-docker build --force-rm -f ./scripts/test_resnet.dockerfile -t test_resnet . && \
-nvidia-docker run --rm --mount type=bind,source=/fixed/pix_data,target=/input \
---mount type=bind,source=/location/pix_checkpoints,target=/checkpoints \
---mount type=bind,source=/location/pix_output,target=/results test_resnet
+### Setup
 
-echo "Finished ResNet Testing"
-docker rmi test_resnet
+```bash
+python3.12 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 ``` 
+### Preprocessing (required before model training)
+
+Preprocessing is implemented as **Python scripts** under `experiments/` (not fully automated via CLI).
+You will need to **edit file paths and, if necessary, filename patterns** in the scripts to match your local dataset
+layout.
+
+- Shared preprocessing logic: `experiments/base_preprocessing.py` (`ImgPreprocessing`)
+- GAN1 preprocessing entry point: `experiments/gan1_hyperparam_training/gan1_preprocess_training_data.py`
+- GAN2 preprocessing entry point: `experiments/gan2_hyperparam_training/preprocess_gan2_training_data.py`
+
+#### FreeSurfer prerequisite 
+
+GAN1 preprocessing relies on a **FreeSurfer `recon-all` run per subject** (using the **T1** image) to obtain
+`aseg.mgz`, which is used to derive a **white matter mask**.
+
+> `recon-all` is **time-intensive**. Plan this step accordingly.
+
+#### Run preprocessing
+
+```bash
+cd experiments/gan1_hyperparam_training
+python gan1_preprocess_training_data.py
+```
+---
+
+## 2) Cluster workflow (Training & Testing)
+
+Training and testing of GANs in this project was developed and executed primarily on an HPC computing cluster
+using Slurm.
+The original upstream project ships a `Dockerfile`. In this thesis project, experiments were run on an HPC cluster using
+**Apptainer** (formerly **Singularity**) 
+
+- If you have **Docker** available (local workstation/server): you can build and run the provided `base.dockerfile`.
+- If you are on an **HPC system with Apptainer**: you can use **Apptainer** to build/run an image *from the Dockerfile*.
+
+#### Requirements (recommended setup)
+
+- **Linux** environment
+- **NVIDIA GPU** with CUDA support (for training/inference)
+  - *Note:* GPU memory requirements depend on model/configuration (2D vs 3D, patch size, batch size).  
+    Start with the provided scripts and reduce batch size / volume size if you hit OOM.
+- **Apptainer** / **Docker**
+- **Slurm** (required for using the provided sbatch scripts)
+
+
+#### Container environment (recommended)
+
+The container is based on `nvcr.io/nvidia/pytorch:21.02-py3` and installs the required Python packages via Conda/pip
+(e.g. `nibabel`, `torchio`, `opencv-python`, `visdom`).
+
+##### Build (Docker)
+```bash
+docker build -f base.dockerfile -t ms-lesion-pix2pix .
+```
+
+##### Build (Apptainer/Singularity)
+```bash
+apptainer build ms-lesion-pix2pix.sif base.dockerfile
+``` 
+
+Most workflows can be launched by submitting the
+provided `sbatch` scripts under `experiments/**/slurm_scripts/`.
+
+#### Example execution (GAN1 training):
+
+Before submitting any job in `experiments/**/slurm_scripts/`, you must adapt the hard-coded paths at the top of the
+scripts. These typically include:
+
+- container image path (`IMAGE=...`) and working directory (`WORKDIR=...`)
+- input/output directories for sources, registered images, results, and CSVs
+
+Then submit the job via:
+
+```bash
+sbatch experiments/gan1_hyperparam_training/slurm_scripts/train_gan1_diff_hyperparams.sh
+``` 
+
+---
+
+## Data
+
+- The datasets/images used for the experiments are listed in [`datasets_report.md`](datasets_report.md).
+- The required folder structure is **not fully generalized**. It is implicitly defined in the preprocessing scripts
+  under `experiments/` (in particular `gan1_preprocess_training_data.py` and `preprocess_gan2_training_data.py`).
+  You will likely need to adapt paths and naming conventions to match your local data layout.
+- The datasets are not included in this repository. All datasets used are **publicly available**, however some of them require an **access request / data usage agreement** before download.
+
+---
+
+## License
+
+See [`LICENSE`](LICENSE).
+
+This repository is based on and includes code derived from the upstream projects **Pix2PixNIfTI** and
+**pytorch-CycleGAN-and-pix2pix**. Their original licenses and copyright notices apply to the corresponding parts of the code.
+Please also refer to:
+- https://github.com/giuliabaldini/Pix2PixNIfTI
+- https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix
+

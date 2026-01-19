@@ -1,3 +1,8 @@
+"""
+Code snipped to generate all combinations of hyperparameters for GAN1 training.
+saved as hyperparams.txt
+"""
+
 import itertools, random
 
 ALL_LAMBDA_L1 = [50, 100, 150, 200, 250]

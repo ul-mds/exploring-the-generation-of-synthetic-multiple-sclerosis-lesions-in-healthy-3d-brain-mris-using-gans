@@ -1,7 +1,9 @@
 """ 
-Script for intermediate processing in between GAN1 and GAN2. 
-The GAN1 Results-Path is cleaned up: only the synthetic lesion masks are kept.
+Script for intermediate processing in between GAN1 and GAN2 during pipeline inference. 
 
+Author/Mod: Franziska Röpke (added 2026-01-15)
+
+The GAN1 Results-Path is cleaned up: Only the synthetic lesion masks are kept.
 Then gan2 input gets created and the slices get saved.
 """
 
@@ -13,10 +15,13 @@ import pandas as pd
 from scipy.ndimage import generate_binary_structure
 from scipy.ndimage import binary_dilation
 
-def dilate_lesionmasks(lsmask_path, result_file, name): 
+def dilate_lesionmasks(lsmask_path: Path, result_file: Path) -> None: 
         """ 
         Performs a dialtation on the image it gets, mainly meant to dilatate
-        the lesion masks, which is necessary in preprocessing for gan2. 
+        the lesion masks, which is necessary in preprocessing for GAN2. 
+        Parameters:
+            lsmask_path (Path): Path to the lesion mask file to be dilated.
+            result_file (Path): Path where the dilated lesion mask will be saved.
         """
         # load img
         orig_img = nib.load(str(lsmask_path))
@@ -32,12 +37,17 @@ def dilate_lesionmasks(lsmask_path, result_file, name):
         nib.save(dilated_img, result_file)
 
 
-def create_gan2_source_target(basename, flair_path, lsmask_path, output_path):
+def create_gan2_source_target(basename: str, flair_path: Path, lsmask_path: Path, output_path: Path) -> None:
         """
         Slices the 3D FLAIR and lesion mask images into 2D numpy arrays for GAN2 training.
         Only slices containing at least one lesion voxel are saved. This function is 
         codependent with the create_gan2_3d_output() function, which reconstructs the 3D images. 
         Changes made in this code should be applied to the reconstruction function as well.
+        Parameters:
+            basename (str): Basename for the output files.
+            flair_path (Path): Path to the 3D FLAIR image.
+            lsmask_path (Path): Path to the 3D lesion mask image.
+            output_path (Path): Directory where the 2D slices will be saved.
         """
 
         flair_img = nib.load(str(flair_path)).get_fdata()
@@ -87,32 +97,39 @@ def create_gan2_source_target(basename, flair_path, lsmask_path, output_path):
                 np.save(lesion_slice_path, lesion_slice.astype(np.uint8)) # save as uint8 for binary mask
                 img_index += 1 
 
-# get passed arguments
-parser = argparse.ArgumentParser(description='GAN2 Preprocessing Script')
-parser.add_argument('--flairs_path', type=str, required=True, help='Path to registered flairs')
-parser.add_argument('--lsmasks_path', type=str, required=True, help='Path to synthetic lesion masks.')
-parser.add_argument('--output_path', type=str, required=True, help='Output path for flair and mask slices.')
-parser.add_argument('--gan1_epoch', type=str, required=True, help='Needed to complete path to GAN1 results.')
-parser.add_argument('--gan1_name', type=str, required=True, help='Needed to complete path to GAN1 results.')
-parser.add_argument('--gan1_phase', type=str, required=True, help='Needed to complete path to GAN1 results.')
 
-args = parser.parse_args()
+def main():
+    """
+    Main function to process GAN1 results and prepare GAN2 training data.
+    """
 
-lsmask_path = Path(args.lsmasks_path) / args.gan1_name / f"{args.gan1_phase}_{args.gan1_epoch}" / "images"
-dialated_masks_dir = Path(args.output_path) / "dilated_synthetic_lesion_masks"
-dialated_masks_dir.mkdir(parents=True, exist_ok=True)
+    parser = argparse.ArgumentParser(description='GAN2 Preprocessing Script')
+    parser.add_argument('--flairs_path', type=str, required=True, help='Path to registered flairs')
+    parser.add_argument('--lsmasks_path', type=str, required=True, help='Path to synthetic lesion masks.')
+    parser.add_argument('--output_path', type=str, required=True, help='Output path for flair and mask slices.')
+    parser.add_argument('--gan1_epoch', type=str, required=True, help='Needed to complete path to GAN1 results.')
+    parser.add_argument('--gan1_name', type=str, required=True, help='Needed to complete path to GAN1 results.')
+    parser.add_argument('--gan1_phase', type=str, required=True, help='Needed to complete path to GAN1 results.')
 
-for file in Path(args.flairs_path).glob("*.nii.gz"):
-    basename = file.stem.replace('_flair_mni_registered', '').replace('.nii', '').replace('.gz', '')
+    args = parser.parse_args()
 
-    # dialate synthetic lesion masks 
+    lsmask_path = Path(args.lsmasks_path) / args.gan1_name / f"{args.gan1_phase}_{args.gan1_epoch}" / "images"
+    dilated_masks_dir = Path(args.output_path) / "dilated_synthetic_lesion_masks"
+    dilated_masks_dir.mkdir(parents=True, exist_ok=True)
 
-    dilate_lesionmasks(lsmask_path= lsmask_path / f"{basename}_fake_B.nii",
-                         result_file=dialated_masks_dir / f"{basename}_ls_mask_dilated.nii.gz",
-                         name=basename)
+    for file in Path(args.flairs_path).glob("*.nii.gz"):
+        basename = file.stem.replace('_flair_mni_registered', '').replace('.nii', '').replace('.gz', '')
 
-    create_gan2_source_target(basename, 
-                              flair_path= file, 
-                              lsmask_path= dialated_masks_dir / f"{basename}_ls_mask_dilated.nii.gz", 
-                              output_path= Path(args.output_path)
-                              )
+
+        dilate_lesionmasks(lsmask_path= lsmask_path / f"{basename}_fake_B.nii",
+                            result_file=dilated_masks_dir / f"{basename}_ls_mask_dilated.nii.gz",
+                            name=basename)
+
+        create_gan2_source_target(basename, 
+                                flair_path= file, 
+                                lsmask_path= dilated_masks_dir / f"{basename}_ls_mask_dilated.nii.gz", 
+                                output_path= Path(args.output_path)
+                                )
+        
+if __name__ == "__main__":
+    main()

@@ -1,31 +1,27 @@
 """ 
-This class is meant to load in the data to train and test GAN2. Gan2 learns to create 
-realistic looking synthetic lesions in a grayscale 3D MRI, from a lesion mask. 
-source input: Brain MRI with lesion mask on top (areas labeld with one's where the lesions are 
-supposed to be.) 
-target_output: The same Brain MRI but the lesion mask areas replaced by synthetic lesions. 
+Dataset class for GAN2 training/testing on 2D FLAIR slices with lesion masks.
 
-The data class expects a dataroot which has two dirs: 
-    * ./registered_flairs
-    * ./registered_lesionmasks
+Author/Mod: Franziska Röpke (added 2025-01-15)
 
-names have to match and it's the same no matter if it is test or training images.
+Expected dataroot structure:
+    registered_flairs/        (*.npy)
+    registered_lesionmasks/   (*.npy)
+Filenames must match (same basename for image and mask).
 
-The given Images have to be already 2D slices and only slices, which contain lesion voxels are 
-used. The Lesion masks are already dilated and lesion_mask and mri have the same basename. 
-Images are expected to be 2d numpy arrays. saved as '.npy'. See preprocessing for more details.
+Data assumptions:
+- Inputs are already 2D slices saved as numpy arrays (.npy).
+- Only slices containing lesion voxels are used.
+- Lesion masks are dilated, binary in {0,1}.
+- FLAIR images are grayscale in [0,255] and normalized to [-1,1].
 
- -> load them in, arrange source and target. 
-        (source: channel 1: grayscale mri, but deleted where lesion mask is + lesion_mask in channel 2)
-        (target: the original mri with real lesions in training / synthetic ones in testing.)
+Model I/O:
+- source: 2 channels
+    (1) FLAIR with lesion region removed/zeroed
+    (2) lesion mask
+- target: original FLAIR (training: real lesions; testing: synthetic lesions)
 
-* Lesion mask is a binary mask with values [0,1].
-* Flair images are grayscale images with values in [0,255], 
-    they are normalized to [-1, 1] for the model.
-    
+If the GAN2 preprocessing script is used, the data should already be in the correct format (see experiments/gan2_hyperparameter_training).
 """
-
-
 
 import os
 import torch
@@ -36,26 +32,31 @@ from PIL import Image
 
 class Gan2Dataset(BaseDataset):
 
-    K = 5  # Number of folds for cross-validation
+    K = 5  # cross-validation folds
 
     @staticmethod
-    def modify_commandline_options(parser, is_train):
+    def modify_commandline_options(parser):
         """Add new dataset-specific options, and rewrite default values for existing options.
 
         Parameters:
             parser          -- original option parser
-            is_train (bool) -- whether training phase or test phase. You can use this flag to add training-specific or test-specific options.
 
         Returns:
             the modified parser.
         """
-        parser.add_argument('--L1_mask_only', action='store_true', help='Computes L1 only for mask areas.')
-        #parser.add_argument('--k_fold', type=int, default=-1, help='K-fold cross-validation. -1: no k-fold, 0-4: use fold_x).')
-        return parser
+        return parser.add_argument('--L1_mask_only', action='store_true', help='Computes L1 only for mask areas.')
+         
 
 
-    def __init__(self, opt):
-        """Initialisiert das Dataset"""
+    def __init__(self, opt) -> None:
+
+        """
+        Initializes the dataset class.  
+        Parameters:
+            opt (Option class)-- stores all the experiment flags; needs to be a subclass of BaseOptions
+        Returns:
+            a dataset class instance
+        """
         super().__init__(opt)
 
         self.samples = []
@@ -64,7 +65,7 @@ class Gan2Dataset(BaseDataset):
         self.fold_idx = opt.k_fold if opt.k_fold >= 0 else -1
 
         if self.phase == "inference" or (self.fold_idx == -1 and self.phase == "train"):
-            # no k-fold validataion.
+            # no k-fold validation.
             flair_dir = os.path.join(opt.dataroot, "flair_slices")
             lsmsk_dir = os.path.join(opt.dataroot, "mask_slices")
             for fname in os.listdir(flair_dir):
@@ -87,6 +88,7 @@ class Gan2Dataset(BaseDataset):
         for fold in folds: 
             flair_dir = os.path.join(opt.dataroot, f"fold_{fold}", "flair_slices")
             lsmsk_dir = os.path.join(opt.dataroot, f"fold_{fold}", "mask_slices")
+
             # naming: umcl_patient01_flair_slice_051.npy umcl_patient25_mask_slice_112.npy
             for fname in os.listdir(flair_dir):
                 if fname.endswith(".npy"):
@@ -102,9 +104,14 @@ class Gan2Dataset(BaseDataset):
                             })
     
 
-    def __getitem__(self, index):
+    def __getitem__(self, index: int) -> dict:
         """
         Loads an image pair (source & target) and converts them into tensors.
+        Parameters:
+            index (int) -- index of the image pair to load
+        Returns:
+            a dictionary containing the source and target images as tensors,
+            along with their file paths.
         """
 
         sample = self.samples[index]
@@ -127,8 +134,10 @@ class Gan2Dataset(BaseDataset):
         masked_flair_scaled = masked_flair.astype(np.float32) / 127.5 - 1.0
         flair_img_scaled     = flair_img.astype(np.float32) / 127.5 - 1.0
 
-        # Source Tensor: orignal mri with lesionregions labeled as 0 [3, H, W]
-        # 3 channels -> masked flair, lsmsk_img, empty
+        # Source tensor: 3-channel input [3, H, W]
+        # Channel 0: FLAIR image with lesion regions set to zero (masked)
+        # Channel 1: Binary lesion mask (0=background, 1=lesion)
+        # Channel 2: Empty channel (zeros)
         
         source_array = np.stack([masked_flair_scaled, lsmsk_img, empty], axis=0)
         source_tensor = torch.tensor(source_array, dtype=torch.float32)
@@ -136,12 +145,14 @@ class Gan2Dataset(BaseDataset):
         if self.phase == "inference" or self.phase == "test": 
              return {"A": source_tensor, "A_paths": sample["flair_path"]}
         else: 
-            # Target Tensor: only original mri [3, H, W]
-            # 3 channels -> unmasked flair, lsmsk_img, empty
+            # Target tensor: 3-channel ground truth [3, H, W]
+            # Channel 0: Original FLAIR image (unmasked)
+            # Channel 1: Binary lesion mask (0=background, 1=lesion)
+            # Channel 2: Empty channel (zeros)
             target_array = np.stack([flair_img_scaled, lsmsk_img, empty], axis=0)
             target_tensor = torch.tensor(target_array, dtype=torch.float32)
 
-            # get "BrainMask" / non-background area -> area where flair_img != 0. 
+            # Brain mask: binary tensor identifying non-background regions (non-zero FLAIR voxels)
             brainmask_tensor = torch.tensor(flair_img != 0, dtype=torch.float32)
 
             return {"A": source_tensor, "B": target_tensor, "mask": brainmask_tensor, 

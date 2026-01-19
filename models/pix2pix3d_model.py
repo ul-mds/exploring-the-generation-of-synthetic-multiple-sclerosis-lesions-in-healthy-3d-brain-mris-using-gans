@@ -1,3 +1,13 @@
+"""
+Based on the pix2pix implementation from Pix2PixNIfTI:
+https://github.com/giuliabaldini/Pix2PixNIfTI
+
+Note: This file is largely upstream code.
+Changes in this repository are minor and mainly affect parser arguments.
+
+Modified:
+- Franziska Röpke (2026-01-15)
+"""
 from .pix2pix_model import Pix2PixModel
 
 

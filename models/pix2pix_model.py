@@ -1,3 +1,14 @@
+"""
+Based on the pix2pix implementation from Pix2PixNIfTI:
+https://github.com/giuliabaldini/Pix2PixNIfTI
+
+Note: This file is largely upstream code.
+Changes in this repository are minor and mainly affect loss functions / training behavior.
+
+Modified:
+- Franziska Röpke (2026-01-15)
+"""
+
 import torch
 from .base_model import BaseModel
 from . import networks
@@ -85,19 +96,18 @@ class Pix2PixModel(BaseModel):
             self.criterionGAN = networks.GANLoss(opt.gan_mode).to(self.device)
 
             if self.opt.dataset_mode == "gan2": 
-                # in gan2 we use L1 for the whole image, L2 for lesion areas only
+                # In gan2: L1 for background, L2 for lesion areas
                 self.criterionL1 = torch.nn.L1Loss(reduction='mean')
                 self.criterionL2 = torch.nn.MSELoss(reduction='sum')
             elif self.opt.dataset_mode == "gan1":
-                # in gan1 we use L1 for lesion areas only, L2 for the whole image
-                #TODO Set back? Experimenting with L1 reduction = 'mean' instead of sum -> no manual division.
+                # In gan1: L1 for lesion areas, L2 for background
                 self.criterionL1 = torch.nn.L1Loss(reduction='sum')
                 self.criterionL2 = torch.nn.MSELoss(reduction='mean')
             else:
-                # standard: take mean.
+                # Standard: mean reduction
                 self.criterionL1 = torch.nn.L1Loss(reduction='mean')
                 self.criterionL2 = torch.nn.MSELoss(reduction='mean')
-            # initialize optimizers; schedulers will be automatically created by function <BaseModel.setup>.
+            # Initialize optimizers; schedulers will be automatically created by function <BaseModel.setup>
             self.optimizer_G = torch.optim.Adam(self.netG.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
             self.optimizer_D = torch.optim.Adam(self.netD.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
             self.optimizers.append(self.optimizer_G)
@@ -181,29 +191,27 @@ class Pix2PixModel(BaseModel):
         self.loss_G_GAN = self.criterionGAN(pred_fake, True)
         
         if self.opt.dataset_mode == "gan2":
-            # In gan2, L1 is computed for the whole image excluding the lesion areas, L2 only for lesion areas
-            # we have 3 channels, loss is only calculated on the first channel, the others are ignored.
-            # L1 reduction method is set to 'mean' if dataset_mode == "gan2"
+            # In gan2, L1 is computed for background (excluding lesions), L2 only for lesion areas
+            # Three channels: only first channel used for loss computation
             lsmsk_tensor = self.real_B[:, 1:2, :, :]
             self.loss_G_bg = self.criterionL1(self.fake_B[:, 0:1, :,:] * (1-lsmsk_tensor),
                                           self.real_B[:, 0:1, :, :] * (1-lsmsk_tensor)) * self.opt.lambda_bg
             
-    
             self.loss_G_ls = self.criterionL2(self.fake_B[:, 0:1, :,:] * lsmsk_tensor,
                                               self.real_B[:, 0:1, :, :] * lsmsk_tensor) * self.opt.lambda_ls
             
-            # L1 reduction = 'sum' -> we divide by the sum of voxels manually
+            # Normalize L2 loss by number of lesion voxels
             self.loss_G_ls = zero_division(self.loss_G_ls, torch.sum(lsmsk_tensor))
         else: 
-            # in gan1 L1 is computed for the lesion areas only, another L1 term for the background 
-            # we have one channel instead of three.
+            # In gan1, L1 is computed separately for lesion areas and background
+            # Single channel input
 
-            # L1 reduction = 'mean' -> we divide by the sum of lesion voxels manually
+            # Lesion area loss (normalized by number of lesion voxels)
             self.loss_G_bg = self.criterionL1(self.fake_B * self.mask,
                                           self.real_B * self.mask) * self.opt.lambda_bg
             self.loss_G_bg = zero_division(self.loss_G_bg, torch.sum(self.mask))
 
-            # calculate another L1 loss for background
+            # Background loss (normalized by number of background voxels)
             self.loss_G_ls = self.criterionL1(self.fake_B * (1-self.mask), 
                                               self.real_B * (1-self.mask)) * self.opt.lambda_ls
             
@@ -219,15 +227,16 @@ class Pix2PixModel(BaseModel):
             self.loss_G.backward()
 
     def optimize_parameters(self, i):
-        self.forward()  # compute fake images: G(A)
-        # update D
-        #if i % 5 == 0:  TODO set as hyperparameter to slow down training of D 
-        self.set_requires_grad(self.netD, True)  # enable backprop for D
-        self.optimizer_D.zero_grad()  # set D's gradients to zero
-        self.backward_D()  # calculate gradients for D
-        self.optimizer_D.step()  # update D's weights
-        # update G
-        self.set_requires_grad(self.netD, False)  # D requires no gradients when optimizing G
-        self.optimizer_G.zero_grad()  # set G's gradients to zero
-        self.backward_G()  # calculate graidents for G
-        self.optimizer_G.step()  # udpate G's weights
+        self.forward()
+        
+        # Update discriminator
+        self.set_requires_grad(self.netD, True)
+        self.optimizer_D.zero_grad()
+        self.backward_D()
+        self.optimizer_D.step()
+        
+        # Update generator
+        self.set_requires_grad(self.netD, False)
+        self.optimizer_G.zero_grad()
+        self.backward_G()
+        self.optimizer_G.step()

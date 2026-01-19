@@ -1,7 +1,10 @@
 
 """ 
-Preprocessing-Script für GAN1 Evaluation dataset:
-converts .nhdr files to .nii.gz and registers lesion masks to MNI space.
+Preprocessing-Script für GAN1 Evaluation dataset.
+
+Author/Mod: Franziska Röpke (added/modified 2026-01-15)
+
+Script converts .nhdr files to .nii.gz and registers lesion masks to MNI space.
 to register the lesion masks, the corresponding T1 images are used.
 T1 images are bias-corrected and brain-extracted before calculating the transform to MNI space.
 transforms are then applied to the lesion masks.
@@ -17,7 +20,6 @@ import os
 import logging
 import re
 
-# Logging initialisieren
 logging.basicConfig(
     filename="gan1_eval_masks_preprocessing.log",
     filemode="a",
@@ -25,9 +27,7 @@ logging.basicConfig(
     level=logging.INFO
 )
 
-# add toplevel directory to system path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
 from base_preprocessing import ImgPreprocessing
 
 results_dir = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/gan1_eval_lesion_masks/preprocessing_results_02112025")
@@ -100,7 +100,7 @@ if register_masks and preprocess_nitrc:
 ######################################################################
 
 if preprocess_isbi: 
-    isbi_orig_imgs = msseg_orig_flairs = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/gan1_eval_lesion_masks/isbi")
+    isbi_orig_imgs = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/gan1_eval_lesion_masks/isbi")
 
 
     for file in isbi_orig_imgs.iterdir():

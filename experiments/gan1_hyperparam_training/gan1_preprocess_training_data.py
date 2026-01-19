@@ -1,17 +1,22 @@
-""" 
-This script preprocesses the train / test images for Gan1. 
-Things to do for train_images are: 
-    * Coregister the images (Flair, T1 and lesionmasks) with each other (if they are'nt already).
-    * Compute the transform for registering T1 on mni_template.
-    * Run recon-all on the images.
-    * Register the aseg.mgz (segmentation, outputed by recon-all) and the lesion_mask to mni_template.
-        The registered lesion_mask is the target_gan1 image for training.
-    * Generate source_gan1 from the registered aseg file.
-Same pipeline for test_images, only difference: no lesion_mask to register and no target_gan1 image 
-to generate. The chosen registration is to a mni152_template, resampled on 256^3 and a affine registration 
-with 12 degrees of freedom is performed. 
 """
+Preprocessing pipeline for GAN1 training data.
 
+Author/Mod: Franziska Röpke (added/modified 2026-01-15)
+
+Required Inputs (have to be prepared beforehand):
+- FLAIR images
+- T1-weighted images
+- Lesion masks
+- aseg.mgz files from FreeSurfer recon-all processing
+
+Steps:
+- Co-register FLAIR, T1 and lesion mask (if not already aligned).
+- Estimate affine registration (12 DOF) to the MNI152 template (resampled to 256^3).
+- Register aseg.mgz (from recon-all) and lesion mask to MNI space.
+- Outputs for GAN1 training:
+    - target_gan1: lesion mask in MNI space
+    - source_gan1: derived from the registered aseg
+"""
 import sys
 import os
 from pathlib import Path
@@ -19,12 +24,8 @@ from itertools import product
 import re
 from itertools import combinations
 
-# add toplevel directory to system path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
 from base_preprocessing import ImgPreprocessing
-
-# general paths 
 
 results_dir = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/train_gan1_data/preprocessing_results_04092025")
 if not results_dir.exists():
@@ -79,11 +80,6 @@ for flair_path in flair_paths.iterdir():
 patient_ids = range(1,6)
 center_ids = [1,7,8]
 combinations = list(product(patient_ids, center_ids))
-
-#msseg_freesurfer = Path(r"C:\Users\T14\Documents\Masterthesis\Data\train_gan1_data\freesurfer_results_msseg")
-#t1_paths = Path(r"C:\Users\T14\Documents\Masterthesis\Data\original_data\msseg\orig_tw1_mris")
-#flair_paths = Path(r"C:\Users\T14\Documents\Masterthesis\Data\original_data\msseg\orig_flair_mris")
-#ls_paths = Path(r"C:\Users\T14\Documents\Masterthesis\Data\original_data\msseg\orig_lesionmasks")
 
 msseg_freesurfer = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/train_gan1_data/freesurfer_results_msseg")
 t1_paths = Path("/mnt/c/Users/T14/Documents/Masterthesis/Data/original_data/msseg/orig_tw1_mris")

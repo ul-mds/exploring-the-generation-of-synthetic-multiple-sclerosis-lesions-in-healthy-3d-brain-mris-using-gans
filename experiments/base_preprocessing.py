@@ -1,3 +1,15 @@
+
+"""
+Preprocessing class for medical images, including registration to MNI space, skull stripping, and bias correction and other 
+preprocessing steps. 
+
+Author/Mod: Franziska Röpke (added/modified 2026-01-15)
+
+Used for GAN1 and GAN2 preprocessing pipelines. Prduces interim results that can be used for 
+further processing steps and source/target images ready to be fed into GAN1 / GAN2. 
+(see data/gan1_dataset.py and data/gan2_dataset.py for details on model I/O formats).
+"""
+
 import ants
 import shutil
 from pathlib import Path
@@ -26,9 +38,8 @@ def setup_logger(results_dir):
     )
 
 class ImgPreprocessing(): 
-    # reference template
-    T1_TEMPLATE = Path(r"/home/flydia/Documents/pix2pix_nifti/data/standard/icbm_avg_152_t1_tal_lin_resampled.nii.gz")
-    T2_TEMPLATE = Path(r"/home/flydia/Documents/pix2pix_nifti/data/standard/icbm_avg_152_t2_tal_lin_resampled.nii.gz")
+    T1_TEMPLATE = Path(r"./data/standard/icbm_avg_152_t1_tal_lin_resampled.nii.gz")
+    T2_TEMPLATE = Path(r"./data/standard/icbm_avg_152_t2_tal_lin_resampled.nii.gz")
 
     def __init__(self, name:str, 
                  result_dir,
@@ -59,10 +70,12 @@ class ImgPreprocessing():
                 raise ValueError(f"Path {path} doesn't exist!")
     
 
-    def apply_mni_transform(self, image_key):
+    def apply_mni_transform(self, image_key: str) -> None:
         """ 
         Function registers the image to the template and saves the resulting registered 
-        image. 
+        image. A mni_transform has to be calculated beforehand using calc_transform_mni152().
+        Parameters:
+            image_key (str): Key of the image to be transformed ('flair', 't1', 'ls_mask', etc.) 
         """
         if self.mni_transform is None:
             raise ValueError(f"mni transformation for {self.name} not found, did you forget to compute it ?")
@@ -97,10 +110,12 @@ class ImgPreprocessing():
         logging.info(f"Completed MNI registration for img {self.name} {image_key}.")
 
 
-    def calc_transform_mni152(self, image_key):
+    def calc_transform_mni152(self, image_key: str) -> None:
         """
         Function calculates the transform form the orig image to the mni template. 
         stores it.
+        Parameters:
+            image_key (str): Key of the image to be transformed ('flair', 't1', 'ls_mask', etc.)
         """
 
         if self.images[image_key] is None: 
@@ -126,9 +141,11 @@ class ImgPreprocessing():
         logging.info(f"Calculated and saved mnni transformation for img {self.name} {self.name} succesfully.")
 
 
-    def resample_to_256(self, image_key): 
+    def resample_to_256(self, image_key: str) -> None: 
         """
-        resamples a 3D image of arbitraty size to a 256^3 image. Voxels are not expected to be quadratic.
+        Resamples a 3D image of arbitraty size to a 256^3 image. Voxels are not expected to be quadratic.
+        Parameters:
+            image_key (str): Key of the image to be transformed ('flair', 't1', 'ls_mask', etc.)
         """
         if self.images[image_key] is None: 
             raise ValueError(f"No path to image {image_key} for {self.name} given.")
@@ -150,13 +167,15 @@ class ImgPreprocessing():
         logging.info(f"Completed resampling to size 256^3 for img {self.name} {image_key}.")
 
 
-    def coregister_to_t1(self, image_key):
+    def coregister_to_t1(self, image_key: str) -> None:
 
         """ 
         Coregisters a given image to the fixed_img (t1).
         Saves the resulting image(s) in the results_dir. 
+        Parameters:
+            image_key (str): Key of the image to be transformed ('flair', 't1', 'ls_mask', etc.)
         """ 
-        #TODO make it flexible, so that it can be used to register flairs aswell (MSSEG-2 case).
+        
         fixed_img = ants.image_read(str(self.images['t1']))
         moving_img = ants.image_read(str(self.images[image_key]))
 
@@ -173,9 +192,11 @@ class ImgPreprocessing():
         logging.info(f"{image_key} registered to t1 successfully for {self.name} {image_key}")
 
 
-    def bias_correction(self, image_key):
+    def bias_correction(self, image_key: str) -> None:
         """
         Performs bias field correction using ANTs N4BiasFieldCorrection.
+        Parameters:
+            image_key (str): Key of the image to be bias corrected ('flair', 't1', etc.)
         """
         input_path = self.images[image_key]
         img = ants.image_read(str(input_path))
@@ -188,9 +209,11 @@ class ImgPreprocessing():
         logging.info(f"Completed bias correction for img {self.name} {image_key}.")
     
 
-    def extract_brain(self, image_key, max_retries=5):
+    def extract_brain(self, image_key: str, max_retries: int = 5) -> None:
         """
-        Extracts the brain and cuts of the scull from the image. 
+        Extracts the brain and cuts of the scull from the image. Uses FreeSurfer's WatershedSkullStrip.
+        Parameters:
+            image_key (str): Key of the image to be brain extracted ('flair', 't1', etc.)
         """
 
         output_file = (self.result_dir / "interim_results" / f"{self.name}_{image_key}_brain_extracted.nii.gz").resolve()
@@ -212,10 +235,13 @@ class ImgPreprocessing():
         raise RuntimeError(f"Brain extraction failed for {self.name} {image_key} after {max_retries} attempts.")
 
 
-    def extract_brain_ants(self, image_key, modality='flair'):
+    def extract_brain_ants(self, image_key: str, modality: str = 'flair') -> None:
         """ 
-        Alternative brain extraction using ANTs instead of freesurfer. 
+        Extracts brain using ANTs instead of freesurfer. 
         modality can be 't1', 't2' or 'flair'.
+        Parameters: 
+            image_key (str): Key of the image to be brain extracted ('flair', 't1', etc.)
+            modality (str): Modality of the image ('t1', 't2', 'flair')
         """
         output_file = (self.result_dir / "interim_results" / f"{self.name}_{image_key}_brain_extracted.nii.gz").resolve()
         img = ants.image_read(str(self.images[image_key]))
@@ -225,9 +251,11 @@ class ImgPreprocessing():
         self.images[image_key] = output_file
 
 
-    def apply_brainmask(self, image_key):
+    def apply_brainmask(self, image_key: str) -> None:
         """ 
         Applies a brain mask to the image, effectively removing non-brain areas.
+        Parameters:
+            image_key (str): Key of the image to be brain masked ('flair', 't1', etc.)  
         """
         if self.images['brain_mask'] is None: 
             raise ValueError(f"No brain mask set for {self.name}, can't apply brain mask to {image_key}.")
@@ -243,9 +271,9 @@ class ImgPreprocessing():
         self.images[image_key] = output_file
 
 
-    def dilatate_lesionmasks(self): 
+    def dilatate_lesionmasks(self) -> None: 
         """ 
-        Performs a dialtation on the image it gets, mainly meant to dilatate
+        Performs a dilatation on the image it gets, mainly meant to dilatate
         the lesion masks, which is necessary in preprocessing for gan2. 
         """
         # load img
@@ -269,12 +297,19 @@ class ImgPreprocessing():
         logging.info(f"Dilated lesion mask saved to: {out_path}")
     
 
-    def create_gan2_source_target(self, fold, flair_key='flair', mask_key='ls_mask'):
+    def create_gan2_source_target(self, fold: int, flair_key: str = 'flair', mask_key: str = 'ls_mask') -> None:
         """
         Slices the 3D FLAIR and lesion mask images into 2D numpy arrays for GAN2 training.
-        Only slices containing at least one lesion voxel are saved. This function is 
-        codependent with the create_gan2_3d_output() function, which reconstructs the 3D images. 
+        Only slices containing at least one lesion voxel are saved. The FLAIR images are normalized to [0, 255]
+        before slicing and original min and max values are saved for later denormalization.
+        
+        This function is codependent with the create_gan2_3d_output() function, which reconstructs the 3D images. 
         Changes made in this code should be applied to the reconstruction function as well.
+
+        Parameters:
+            fold (int): Fold index for k-fold cross-validation.
+            flair_key (str): Key for the FLAIR image in self.images.
+            mask_key (str): Key for the lesion mask image in self.images.
         """
         
         flair_path = self.images.get(flair_key)
@@ -333,18 +368,16 @@ class ImgPreprocessing():
         logging.info(f"Created {img_index} GAN2 source/target slice pairs for {self.name}.")
 
 
-    def create_gan1_source(self): 
+    def create_gan1_source(self) -> None: 
         """
-        Expects an aseg.mgz file to be in self.images['aseg'] and returns the white matter mask, which is used as source_input 
-        in gan1.  
+        Creates and saves the GAN1 source image (white matter mask).
+        Expects an aseg.mgz file to be in self.images['aseg'].
         """
         if self.images['wm_mask'] is None: 
             raise ValueError("No wm_mask file set, gan1_source can't be generated.")
 
         wm_img = nib.load(str(self.images['wm_mask']))
        
-
-
         # set output path and save source_img
         out_dir = Path(self.result_dir) / "gan1_source"
         out_dir.mkdir(parents=True, exist_ok=True)
@@ -377,7 +410,8 @@ class ImgPreprocessing():
         nib.save(wm_mask, str(out_path))
         self.images['wm_mask'] = out_path
 
-    def create_gan1_target(self): 
+
+    def create_gan1_target(self) -> None: 
         """ 
         saves the lesion mask as gan1_target image. Lesion mask should be registered before.
         """
@@ -404,62 +438,3 @@ class ImgPreprocessing():
         nib.save(img, str(target_path))
 
         logging.info(f"GAN1 target saved to: {target_path}")
-
-
-#--------------------------------------------------------------------------------------------
-
-def reconstruct_3d_from_slices(slice_dir, reference_flair_path, output_path, prefix, ref_mask_path, fold):
-    """ 
-    Reconstructs a 3D NIfTI image from sorted 2D numpy arrays (gan2 output).
-    The slices are expected to be named with the given prefix and sorted by their index. Reference NIfTI
-    is used to set the shape, affine and header of the output image aswell as the slices, which do not contain 
-    lesionvoxels and therefore were not generated by gan2. It's important to have dialated_lesionmasks as a reference,
-     as the slices chosen for gan2 input are also based on dialated masks. 
-     arguments:
-    - slice_dir: Directory containing the gan2 generated slices.
-    - reference_flair_path: Path to the reference FLAIR NIfTI image.
-    - output_path: Path where the reconstructed 3D NIfTI image will be saved.
-    - prefix: Prefix used for the gan2 generated slice filenames.
-    - ref_mask_path: Path to the reference lesion mask NIfTI image, used to check which slices contain lesion voxels (has to be dialated!).
-     """
-    #TODO test and check this function, it should work, but I didn't test it yet.
-    #TODO think about adding it to the class, or keep it as standalone function.
-
-
-    # original flair and lesion_mask (3d before slicing)
-    # make sure lesion_mask is dialated, if not, dialate it here!
-    ref_flair_img = nib.load(str(reference_flair_path))
-    ref_flair_data = ref_flair_img.get_fdata().astype(ref_flair_img.get_data_dtype())
-    lesion_data = nib.load(str(ref_mask_path)).get_fdata()
-
-    # new empty 3d image to fill with slices
-    new_3d = np.zeros(ref_flair_data.shape, dtype=ref_flair_data.dtype)
-
-    img_index = 0
-    for i in range(ref_flair_data.shape[0]): 
-        flair_slice = ref_flair_data[i, : , :]
-        lesion_slice = lesion_data[i, : , :]
-
-        # check if lesion voxels in this slice, if yes, gan2 generated a slice for it.
-        if np.any(lesion_slice): 
-            # TODO this part of the function is not tested yet!
-            # make sure it works correctly, also normalization or data_types could be an issue here.
-        
-            # load the corresponding gan2 slice
-            gan2_slice_path = Path(slice_dir) / fold / "flair_slices" / f"{prefix}_flair_slice_{img_index:03d}.npy"	
-            if not gan2_slice_path.exists():
-                logging.info(f"Warning: Slice {gan2_slice_path} was expected but does not exist.")
-                return None
-            arr = np.load(gan2_slice_path)
-            new_3d[i, :, :] = arr
-            img_index += 1
-        else: 
-            # copy the slice from the reference image
-            new_3d[i, :, :] = flair_slice
-
-    # create a new NIfTI image with the reconstructed 3D volume
-    output_path = Path(output_path) 
-    img = nib.Nifti1Image(new_3d, affine=ref_flair_img.affine, header=ref_flair_img.header)
-    nib.save(img, str(output_path))
-    
-    logging.info(f"Reconstructed 3D NIfTI saved to {output_path}")

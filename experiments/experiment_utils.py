@@ -1,5 +1,8 @@
 """" 
 Functions used by more than one script in the experiments folder.
+(GAN2 evaluation and pipeline postprocessing.)
+
+Author/Mod: Franziska Röpke (added/modified 2026-01-15)
 """ 
 
 import nibabel as nib

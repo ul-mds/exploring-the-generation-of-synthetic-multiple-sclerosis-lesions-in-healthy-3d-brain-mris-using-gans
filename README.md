@@ -1,5 +1,8 @@
 # Exploring the Generation of Synthetic Multiple Sclerosis Lesions in Healthy 3D Brain MRIs Using GANs 
 
+> [!NOTE]
+> This repository is an unmodified copy of the original project by **Franziska Roepke**, originally hosted on [GitLab](https://git.informatik.uni-leipzig.de/iu71daji/exploring-the-generation-of-synthetic-multiple-sclerosis-lesions-in-healthy-3d-brain-mris-using-gans).
+
 This repository contains the code used in my Master’s thesis to generate **semi-synthetic 3D brain MRIs with realistic multiple sclerosis (MS) white matter lesions**, starting from **healthy, lesion-free scans**.
 
 The approach connects **two Pix2Pix GANs** in an inference pipeline:
